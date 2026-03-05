@@ -6,7 +6,7 @@ import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
-  id: string; // <-- your API returns "id"
+  participant_id: string; // <-- your API returns "id"
   subject_number?: number;
   status?: string;
   created_at?: string;
@@ -31,7 +31,7 @@ export default function IntakePage() {
 
       // Canon: redirect using returned id
       if (data?.participant_id) {
-        router.push(`/subject/${data.id}`);
+        router.push(`/subject/${data.participant_id}`);
         return;
       }
 
