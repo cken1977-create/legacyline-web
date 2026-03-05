@@ -25,18 +25,23 @@ export default function IntakePage() {
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
 
       if (!res.ok) {
-        setMessage(`API ${res.status}: ${JSON.stringify(data)}`);
+        setMessage(`API ${res.status}: ${text || res.statusText}`);
+        setLoading(false);
         return;
       }
 
-      if (data?.id) {
-        router.push(`/subject/${data.id}`);
+      const data = JSON.parse(text);
+
+      // Redirect to subject dashboard
+      if (data?.participant_id) {
+        router.push(`/subject/${data.participant_id}`);
         return;
       }
 
+      // Fallback display if redirect fails
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
@@ -70,13 +75,13 @@ export default function IntakePage() {
           </div>
         </div>
 
-      <button
-       onClick={createSubject}
-       disabled={loading}
-       className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
-      >
-       {loading ? "Creating…" : "Create Subject"}
-      </button>
+        <button
+          onClick={createSubject}
+          disabled={loading}
+          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+        >
+          {loading ? "Creating…" : "Create Subject"}
+        </button>
 
         {message && (
           <pre className="mt-6 rounded-xl bg-black/40 p-4 text-xs text-green-300 whitespace-pre-wrap">
@@ -86,4 +91,4 @@ export default function IntakePage() {
       </div>
     </Shell>
   );
-      }
+}
