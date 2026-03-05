@@ -29,8 +29,8 @@ export default function IntakePage() {
         body: JSON.stringify({}),
       });
 
-      if (data?.id) {
-        router.push(`/subject/${data.id}`); // <-- IMPORTANT
+      if (data?.participant_id) {
+        router.push(`/subject/${data.participant_id}`); // <-- IMPORTANT
         return;
       }
 
