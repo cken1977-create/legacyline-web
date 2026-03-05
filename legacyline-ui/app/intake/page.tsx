@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
-  participant_id: string; // <-- your API returns "id"
+  id?: string;
+  participant_id?: string;
   subject_number?: number;
   status?: string;
   created_at?: string;
-  registry_id?: string; // if added later, fine
+  registry_id?: string;
 };
 
 export default function IntakePage() {
-  const router = useRouter();
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function createSubject() {
     if (loading) return;
+
     setLoading(true);
     setMessage("");
 
@@ -29,13 +29,16 @@ export default function IntakePage() {
         body: JSON.stringify({}),
       });
 
-      // Canon: redirect using returned id
-      if (data?.participant_id) {
-        router.push(`/subject/${data.participant_id}`);
+      // accept either field name (backend may return id OR participant_id)
+      const pid = data.participant_id ?? data.id;
+
+      if (pid) {
+        // force real navigation (most reliable on mobile)
+        window.location.href = `/subject/${pid}`;
         return;
       }
 
-      // fallback if API shape changes
+      // if API shape changes, show the response
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
@@ -57,7 +60,7 @@ export default function IntakePage() {
           <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
             <div className="text-sm font-semibold">Subject Creation</div>
             <div className="mt-2 text-sm text-white/65">
-              Deterministic subject number + registry binding.
+              Deterministic subject number + registry ID binding.
             </div>
           </div>
 
