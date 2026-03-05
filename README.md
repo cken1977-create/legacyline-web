@@ -63,3 +63,37 @@ Legacyline Web provides:
 ## Development
 
 Install dependencies:
+
+npm install
+Copy code
+
+Run the development server:
+npm run dev
+Copy code
+
+The application will run locally at:
+http://localhost:3000⁠�
+Copy code
+
+---
+
+## Environment Variables
+
+Create `.env.local`:
+NEXT_PUBLIC_API_BASE_URL=https://legacyline-core-production.up.railway.app⁠�
+Copy code
+
+---
+
+## Related Repositories
+
+- legacyline-core — readiness engine and API  
+- brsa-registry — authority registry site  
+- obr — organizational readiness engine  
+- evaluator-portal — evaluator certification system  
+
+---
+
+## License
+
+BRSA Ecosystem – Internal Development
