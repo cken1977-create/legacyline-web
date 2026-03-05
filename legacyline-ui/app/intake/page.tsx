@@ -27,9 +27,11 @@ export default function IntakePage() {
         </div>
 
         <button
-          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
-          disabled
-        >
+  onClick={() => createSubject()}
+  className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
+>
+  Create Subject
+</button>
           Create Subject (API next)
         </button>
       </div>
