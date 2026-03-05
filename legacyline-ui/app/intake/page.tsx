@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
-import { api } from "../../lib/api";
+import { api } from "../lib/api";
 
 type CreateParticipantResponse = {
-  id?: string;
-  participant_id?: string;
+  id: string; // <-- canonical backend id (ptc-...)
   subject_number?: number;
   status?: string;
   created_at?: string;
@@ -14,12 +14,12 @@ type CreateParticipantResponse = {
 };
 
 export default function IntakePage() {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function createSubject() {
     if (loading) return;
-
     setLoading(true);
     setMessage("");
 
@@ -29,16 +29,11 @@ export default function IntakePage() {
         body: JSON.stringify({}),
       });
 
-      // accept either field name (backend may return id OR participant_id)
-      const pid = data.participant_id ?? data.id;
-
-      if (pid) {
-        // force real navigation (most reliable on mobile)
-        window.location.href = `/subject/${pid}`;
+      if (data?.id) {
+        router.push(`/subject/${data.id}`); // <-- IMPORTANT
         return;
       }
 
-      // if API shape changes, show the response
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
@@ -67,7 +62,8 @@ export default function IntakePage() {
           <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
             <div className="text-sm font-semibold">Consent + Scope</div>
             <div className="mt-2 text-sm text-white/65">
-              Consent-based behavioral data. No credit scoring. No lending decisions.
+              Consent-based behavioral data. No credit scoring. No lending
+              decisions.
             </div>
           </div>
         </div>
