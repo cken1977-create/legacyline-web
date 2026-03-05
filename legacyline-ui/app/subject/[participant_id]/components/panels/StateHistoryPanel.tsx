@@ -1,50 +1,50 @@
 type StateHistoryEntry = {
-  timestamp: string;
-  from: string;
-  to: string;
-  actor: string;
-  reason: string;
+  id?: string;
+  from_state?: string;
+  to_state?: string;
+  occurred_at?: string;
+  created_at?: string;
+  actor?: string;
+  note?: string;
 };
 
 type StateHistoryPanelProps = {
-  history: StateHistoryEntry[];
+  entries: StateHistoryEntry[];
 };
 
-export function StateHistoryPanel({ history }: StateHistoryPanelProps) {
+export function StateHistoryPanel({ entries }: StateHistoryPanelProps) {
   return (
-    <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900 p-4">
-      <h2 className="text-lg font-semibold text-white">State History</h2>
+    <section className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
+      <div className="text-sm font-semibold text-white">State History</div>
+      <div className="mt-2 text-xs text-white/60">
+        Deterministic state transitions recorded by the kernel.
+      </div>
 
-      {history.length === 0 ? (
-        <p className="text-gray-500 text-sm">No state transitions recorded.</p>
-      ) : (
-        <div className="space-y-3">
-          {history.map((entry, i) => (
-            <div
-              key={i}
-              className="rounded border border-gray-700 bg-gray-800 p-3 text-sm text-gray-300"
-            >
-              <div className="flex justify-between">
-                <span className="font-medium text-white">
-                  {entry.from} → {entry.to}
-                </span>
-                <span className="text-gray-400">{entry.timestamp}</span>
-              </div>
+      <div className="mt-4 space-y-2">
+        {entries.length === 0 && (
+          <div className="text-xs text-white/60">No state transitions yet.</div>
+        )}
 
-              <div className="mt-1 text-gray-400">
-                <p>
-                  <span className="font-medium text-gray-300">Actor:</span>{" "}
-                  {entry.actor}
-                </p>
-                <p>
-                  <span className="font-medium text-gray-300">Reason:</span>{" "}
-                  {entry.reason}
-                </p>
-              </div>
+        {entries.map((e, i) => (
+          <div key={e.id ?? i} className="rounded-xl bg-black/30 p-3 ring-1 ring-white/10">
+            <div className="text-[11px] text-white/80">
+              {(e.from_state || "—")} → {(e.to_state || "—")}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+
+            <div className="mt-1 text-[11px] text-white/55">
+              {new Date(e.occurred_at || e.created_at || Date.now()).toLocaleString()}
+              {e.actor ? (
+                <>
+                  {" "}
+                  • <span className="text-white/65">Actor:</span> {e.actor}
+                </>
+              ) : null}
+            </div>
+
+            {e.note ? <div className="mt-1 text-[11px] text-white/60">{e.note}</div> : null}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
