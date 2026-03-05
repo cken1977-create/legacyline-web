@@ -21,7 +21,7 @@ export default function IntakePage() {
         }
       );
 
-      const text = await res.text(); // best for debugging + non-JSON errors
+      const text = await res.text();
 
       if (!res.ok) {
         setMessage(`API ${res.status}: ${text || res.statusText}`);
@@ -36,13 +36,12 @@ export default function IntakePage() {
         return;
       }
 
-      // Redirect to subject dashboard (the real flow)
-      if (data?.participant_id) {
-        window.location.assign(`/subject/${data.participant_id}`);
+      // Redirect to subject dashboard
+      if (data?.id) {
+        window.location.assign(`/subject/${data.id}`);
         return;
       }
 
-      // Fallback: show response if no participant_id (shouldn't happen)
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
