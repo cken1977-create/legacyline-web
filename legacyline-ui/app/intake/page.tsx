@@ -71,11 +71,13 @@ export default function IntakePage() {
         </div>
 
         <button
-          onClick={createSubject}
-          disabled={loading}
-          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+        onClick={() => {
+        alert("CLICK WORKS");
+        createSubject();
+        }}
+        className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
         >
-          {loading ? "Creating…" : "Create Subject"}
+         Create Subject
         </button>
 
         {message && (
