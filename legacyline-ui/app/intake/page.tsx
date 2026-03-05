@@ -25,23 +25,18 @@ export default function IntakePage() {
         }
       );
 
-      const text = await res.text();
+      const data = await res.json();
 
       if (!res.ok) {
-        setMessage(`API ${res.status}: ${text || res.statusText}`);
-        setLoading(false);
+        setMessage(`API ${res.status}: ${JSON.stringify(data)}`);
         return;
       }
 
-      const data = JSON.parse(text);
-
-      // Redirect to subject dashboard
-      if (data?.participant_id) {
-        router.push(`/subject/${data.participant_id}`);
+      if (data?.id) {
+        router.push(`/subject/${data.id}`);
         return;
       }
 
-      // Fallback display if redirect fails
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
@@ -76,11 +71,11 @@ export default function IntakePage() {
         </div>
 
         <button
-          onClick={createSubject}
-          disabled={loading}
-          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
-        >
-          {loading ? "Creating…" : "Create Subject"}
+        onClick={createSubject}
+        disabled={loading}
+        className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+      >
+        {loading ? "Creating…" : "Create Subject"}
         </button>
 
         {message && (
