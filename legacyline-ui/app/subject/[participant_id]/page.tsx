@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Shell from "../../_components/Shell";
-import { api } from "../../../lib/api";
+import { api } from "../../lib/api";
 
 type Subject = {
   id: string;
   subject_number?: number;
   status?: string;
   created_at?: string;
-  registry_id?: string; // may not exist yet
+  registry_id?: string;
 };
 
 export default function SubjectPage({
@@ -28,12 +28,9 @@ export default function SubjectPage({
     async function load() {
       try {
         setError("");
-        setSubject(null);
-
         const data = await api<Subject>(`/participants/${participantId}`, {
           method: "GET",
         });
-
         if (!alive) return;
         setSubject(data);
       } catch (e: any) {
@@ -42,8 +39,8 @@ export default function SubjectPage({
       }
     }
 
-    if (!participantId) {
-      setError("Missing participant_id in URL.");
+    if (!participantId || participantId === "undefined") {
+      setError("Missing participant_id in URL. Go to Intake and create a subject first.");
       return;
     }
 
@@ -91,12 +88,10 @@ export default function SubjectPage({
                 <span className="text-white/60">Created:</span>{" "}
                 {subject.created_at ?? "—"}
               </div>
-              {subject.registry_id && (
-                <div>
-                  <span className="text-white/60">Registry ID:</span>{" "}
-                  {subject.registry_id}
-                </div>
-              )}
+              <div>
+                <span className="text-white/60">Registry ID:</span>{" "}
+                {subject.registry_id ?? "—"}
+              </div>
             </div>
 
             <div className="mt-8 rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
