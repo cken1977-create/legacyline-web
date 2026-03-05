@@ -1,29 +1,22 @@
 import { TimelineEventBadge } from "./TimelineEventBadge";
+import type { TimelineEvent } from "../../page";
 
-type TimelineEvent = {
-  kind: string;
-  label?: string;
-  occurred_at: string;
-  actor?: string;
-  meta?: string;
-};
+type KindLabelMap = Record<TimelineEvent["kind"], string>;
+type KindColorMap = Record<TimelineEvent["kind"], string>;
 
-type TimelineEventItemProps = {
+type Props = {
   ev: TimelineEvent;
-  kindLabel: Record<string, string>;
-  kindColor: Record<string, string>;
+  kindLabel: KindLabelMap;
+  kindColor: KindColorMap;
 };
 
-export function TimelineEventItem({ ev, kindLabel, kindColor }: TimelineEventItemProps) {
-  const label = kindLabel?.[ev.kind] ?? ev.kind;
-  const color = kindColor?.[ev.kind] ?? "bg-white/10 text-white";
-
+export function TimelineEventItem({ ev, kindLabel, kindColor }: Props) {
   return (
     <div className="flex gap-3 rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
-      <TimelineEventBadge label={label} color={color} />
+      <TimelineEventBadge label={kindLabel[ev.kind]} color={kindColor[ev.kind]} />
 
       <div className="flex-1 space-y-1">
-        <div className="text-[11px] font-medium">{ev.label ?? label}</div>
+        <div className="text-[11px] font-medium">{ev.label}</div>
 
         <div className="text-[11px] text-white/55">
           {new Date(ev.occurred_at).toLocaleString()}
