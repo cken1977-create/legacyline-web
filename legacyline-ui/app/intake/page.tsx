@@ -18,22 +18,31 @@ export default function IntakePage() {
         "https://legacyline-core-production.up.railway.app/participants",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
         }
       );
 
-      const data = await res.json();
+      const text = await res.text();
 
       if (!res.ok) {
-        setMessage(`API ${res.status}: ${JSON.stringify(data)}`);
+        setMessage(`API ${res.status}: ${text || res.statusText}`);
         return;
       }
 
-      if (data?.id) {
-        router.push(`/subject/${data.id}`);
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setMessage(`API returned non-JSON:\n${text}`);
+        return;
+      }
+
+      // ✅ THIS is the ID your API returns
+      const pid = data?.participant_id || data?.id;
+
+      if (pid) {
+        router.push(`/subject/${pid}`);
         return;
       }
 
@@ -71,11 +80,11 @@ export default function IntakePage() {
         </div>
 
         <button
-        onClick={createSubject}
-        disabled={loading}
-        className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
-      >
-        {loading ? "Creating…" : "Create Subject"}
+          onClick={createSubject}
+          disabled={loading}
+          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+        >
+          {loading ? "Creating…" : "Create Subject"}
         </button>
 
         {message && (
