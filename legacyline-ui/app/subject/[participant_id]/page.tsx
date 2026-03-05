@@ -16,15 +16,22 @@ import {
   addCheckIn,
 } from "./actions";
 
-// Safe timestamp resolver so TS stops complaining and mixed timeline shapes still sort correctly
-function eventTime(ev: any): number {
-  const t =
-    ev?.occurred_at ??
-    ev?.created_at ??
-    ev?.timestamp ??
-    ev?.time ??
-    ev?.at;
+type TimelineKind = "consent" | "evidence" | "readiness" | "state";
 
+// Minimal type that makes TS happy AND is flexible with your backend shape.
+type TimelineEvent = {
+  id: string;
+  kind: TimelineKind;
+  occurred_at?: string;  // preferred
+  created_at?: string;   // fallback
+  timestamp?: string;    // fallback
+  label?: string;
+  actor?: string;
+  meta?: string;
+};
+
+function getEventTime(ev: TimelineEvent): number {
+  const t = ev.occurred_at || ev.created_at || ev.timestamp;
   const ms = t ? new Date(t).getTime() : 0;
   return Number.isFinite(ms) ? ms : 0;
 }
@@ -36,21 +43,26 @@ export default async function SubjectPage({
 }) {
   const id = params.participant_id;
 
-  const [subject, consent, readiness, evidence, stateHistory] =
-    await Promise.all([
-      getSubject(id),
-      getConsent(id),
-      getReadiness(id),
-      getEvidenceEvents(id),
-      getStateHistory(id),
-    ]);
+  const [subject, consent, readiness, evidence, stateHistory] = await Promise.all([
+    getSubject(id),
+    getConsent(id),
+    getReadiness(id),
+    getEvidenceEvents(id),
+    getStateHistory(id),
+  ]);
 
-  const timelineEvents = [
-    ...(consent?.timeline || []),
-    ...(evidence?.timeline || []),
-    ...(readiness?.timeline || []),
-    ...(stateHistory?.timeline || []),
-  ].sort((a, b) => eventTime(b) - eventTime(a));
+  // Force a safe, consistent event type for all timeline arrays.
+  const consentTimeline = (consent?.timeline ?? []) as TimelineEvent[];
+  const evidenceTimeline = (evidence?.timeline ?? []) as TimelineEvent[];
+  const readinessTimeline = (readiness?.timeline ?? []) as TimelineEvent[];
+  const stateTimeline = (stateHistory?.timeline ?? []) as TimelineEvent[];
+
+  const timelineEvents: TimelineEvent[] = [
+    ...consentTimeline,
+    ...evidenceTimeline,
+    ...readinessTimeline,
+    ...stateTimeline,
+  ].sort((a, b) => getEventTime(b) - getEventTime(a));
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
