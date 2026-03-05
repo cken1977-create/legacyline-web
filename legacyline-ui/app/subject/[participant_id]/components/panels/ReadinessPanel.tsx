@@ -1,58 +1,56 @@
+type ReadinessTimelineEntry = {
+  timestamp: string;
+  event: string;
+};
+
+type Readiness = {
+  readiness: number | null;
+  timeline: ReadinessTimelineEntry[];
+};
+
+type ReadinessPanelProps = {
+  readiness: Readiness;
+  onRecompute: () => void;
+};
+
 export function ReadinessPanel({
   readiness,
   onRecompute,
-}) {
+}: ReadinessPanelProps) {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-black/80 ring-1 ring-white/10">
-      <div className="absolute inset-0 bg-[url('/images/readiness.jpg')] bg-cover bg-center opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/80 to-black/75" />
+    <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900 p-4">
+      <h2 className="text-lg font-semibold text-white">Readiness</h2>
 
-      <div className="relative p-5">
-        <div className="text-xs uppercase tracking-[0.18em] text-white/60">
-          Readiness
-        </div>
+      <div className="text-gray-300">
+        <p className="mb-2">
+          <span className="font-medium text-white">Score:</span>{" "}
+          {readiness.readiness === null ? "Not computed" : readiness.readiness}
+        </p>
 
-        <div className="mt-3 flex items-end justify-between gap-3">
-          <div>
-            <div className="text-xs text-white/55">Current score</div>
-            <div className="mt-1 text-3xl font-semibold tracking-tight">
-              {readiness ? readiness.readiness : "—"}
-            </div>
-          </div>
-
-          <button
-            onClick={onRecompute}
-            className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-black hover:bg-white/90"
-          >
-            Recompute
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-1 text-xs text-white/65">
-          {readiness ? (
-            <>
-              <div>
-                <span className="text-white/45">Computed at:</span>{" "}
-                {new Date(readiness.computed_at).toLocaleString()}
-              </div>
-
-              <div>
-                <span className="text-white/45">Actor:</span>{" "}
-                {readiness.actor}
-              </div>
-
-              {readiness.reason && (
-                <div>
-                  <span className="text-white/45">Reason:</span>{" "}
-                  {readiness.reason}
-                </div>
-              )}
-            </>
+        <div className="space-y-1">
+          <p className="font-medium text-white">Timeline:</p>
+          {readiness.timeline.length === 0 ? (
+            <p className="text-gray-500 text-sm">No readiness events yet.</p>
           ) : (
-            <div>No readiness snapshot computed yet.</div>
+            readiness.timeline.map((entry, i) => (
+              <div
+                key={i}
+                className="text-sm text-gray-400 border-l border-gray-600 pl-2"
+              >
+                <span className="text-gray-300">{entry.timestamp}</span> —{" "}
+                {entry.event}
+              </div>
+            ))
           )}
         </div>
       </div>
-    </section>
+
+      <button
+        onClick={onRecompute}
+        className="rounded bg-purple-600 px-3 py-1 text-white hover:bg-purple-700"
+      >
+        Recompute Readiness
+      </button>
+    </div>
   );
 }
