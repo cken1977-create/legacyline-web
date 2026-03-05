@@ -6,7 +6,7 @@ import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
-  id: string; // <-- canonical backend id (ptc-...)
+  participant_id: string; // <-- canonical backend id (ptc-...)
   subject_number?: number;
   status?: string;
   created_at?: string;
