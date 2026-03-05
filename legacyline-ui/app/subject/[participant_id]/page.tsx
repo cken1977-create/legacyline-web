@@ -18,23 +18,14 @@ import {
 
 type TimelineKind = "consent" | "evidence" | "readiness" | "state";
 
-// Minimal type that makes TS happy AND is flexible with your backend shape.
-type TimelineEvent = {
+export type TimelineEvent = {
   id: string;
   kind: TimelineKind;
-  occurred_at?: string;  // preferred
-  created_at?: string;   // fallback
-  timestamp?: string;    // fallback
-  label?: string;
+  occurred_at: string; // required for sort
+  label: string;
   actor?: string;
   meta?: string;
 };
-
-function getEventTime(ev: TimelineEvent): number {
-  const t = ev.occurred_at || ev.created_at || ev.timestamp;
-  const ms = t ? new Date(t).getTime() : 0;
-  return Number.isFinite(ms) ? ms : 0;
-}
 
 export default async function SubjectPage({
   params,
@@ -43,51 +34,60 @@ export default async function SubjectPage({
 }) {
   const id = params.participant_id;
 
-  const [subject, consent, readiness, evidence, stateHistory] = await Promise.all([
-    getSubject(id),
-    getConsent(id),
-    getReadiness(id),
-    getEvidenceEvents(id),
-    getStateHistory(id),
-  ]);
+  const [subject, consent, readiness, evidence, stateHistory] =
+    await Promise.all([
+      getSubject(id),
+      getConsent(id),
+      getReadiness(id),
+      getEvidenceEvents(id),
+      getStateHistory(id),
+    ]);
 
-  // Force a safe, consistent event type for all timeline arrays.
-  const consentTimeline = (consent?.timeline ?? []) as TimelineEvent[];
-  const evidenceTimeline = (evidence?.timeline ?? []) as TimelineEvent[];
-  const readinessTimeline = (readiness?.timeline ?? []) as TimelineEvent[];
-  const stateTimeline = (stateHistory?.timeline ?? []) as TimelineEvent[];
-
+  // Normalize all timelines into a single typed list
   const timelineEvents: TimelineEvent[] = [
-    ...consentTimeline,
-    ...evidenceTimeline,
-    ...readinessTimeline,
-    ...stateTimeline,
-  ].sort((a, b) => getEventTime(b) - getEventTime(a));
+    ...(((consent as any)?.timeline ?? []) as TimelineEvent[]),
+    ...(((evidence as any)?.timeline ?? []) as TimelineEvent[]),
+    ...(((readiness as any)?.timeline ?? []) as TimelineEvent[]),
+    ...(((stateHistory as any)?.timeline ?? []) as TimelineEvent[]),
+  ]
+    .map((ev: any, idx: number) => ({
+      // harden fields so TypeScript + runtime both behave
+      id: String(ev?.id ?? `${ev?.kind ?? "event"}-${idx}`),
+      kind: (ev?.kind ?? "state") as TimelineKind,
+      occurred_at: String(ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()),
+      label: String(ev?.label ?? ev?.type ?? "Event"),
+      actor: ev?.actor ? String(ev.actor) : undefined,
+      meta: ev?.meta ? String(ev.meta) : undefined,
+    }))
+    .sort(
+      (a, b) =>
+        new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime()
+    );
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
-        Subject: {subject?.label || id}
+        Subject: {(subject as any)?.label || id}
       </h1>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
-          consent={consent}
+          consent={consent as any}
           onGrant={() => grantConsent(id)}
           onRevoke={() => revokeConsent(id)}
         />
 
         <ReadinessPanel
-          readiness={readiness}
+          readiness={readiness as any}
           onRecompute={() => recomputeReadiness(id)}
         />
 
         <EvidencePanel
-          events={evidence?.events || []}
+          events={(((evidence as any)?.events ?? []) as any[])}
           onAddCheckIn={() => addCheckIn(id)}
         />
 
-        <StateHistoryPanel entries={stateHistory?.entries || []} />
+        <StateHistoryPanel entries={(((stateHistory as any)?.entries ?? []) as any[])} />
       </div>
 
       <UnifiedTimeline events={timelineEvents} />
