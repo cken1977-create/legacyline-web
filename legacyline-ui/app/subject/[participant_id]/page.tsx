@@ -1,95 +1,82 @@
 "use client";
 
-import { useState } from "react";
-import Shell from "../_components/Shell";
+import { useEffect, useState } from "react";
+import Shell from "../../_components/Shell";
 
-export default function IntakePage() {
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+type Subject = {
+  id?: string;              // your API might return `id`
+  participant_id?: string;  // or it might return `participant_id`
+  subject_number: number;
+  registry_id: string;
+  status: string;
+  created_at: string;
+};
 
-  async function createSubject() {
-    setLoading(true);
-    setMessage("");
+export default function SubjectPage({ params }: { params: { id: string } }) {
+  const participantId = params.id;
 
-    try {
-      const res = await fetch(
-        "https://legacyline-core-production.up.railway.app/participants",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        }
-      );
+  const [subject, setSubject] = useState<Subject | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-      const text = await res.text(); // best for debugging + non-JSON errors
-
-      if (!res.ok) {
-        setMessage(`API ${res.status}: ${text || res.statusText}`);
-        return;
-      }
-
-      let data: any;
+  useEffect(() => {
+    async function loadSubject() {
       try {
-        data = JSON.parse(text);
-      } catch {
-        setMessage(`API returned non-JSON:\n${text}`);
-        return;
-      }
+        setError(null);
+        const res = await fetch(
+          `https://legacyline-core-production.up.railway.app/participants/${participantId}`
+        );
 
-      // Redirect to subject dashboard (the real flow)
-      if (data?.participant_id) {
-        window.location.assign(`/subject/${data.participant_id}`);
-        return;
-      }
+        const text = await res.text();
+        if (!res.ok) {
+          setError(`API ${res.status}: ${text}`);
+          return;
+        }
 
-      // Fallback: show response if no participant_id (shouldn't happen)
-      setMessage(JSON.stringify(data, null, 2));
-    } catch (err: any) {
-      setMessage(err?.message || "Error connecting to API");
-    } finally {
-      setLoading(false);
+        const data = JSON.parse(text);
+        setSubject(data);
+      } catch (e: any) {
+        setError(e?.message || "Failed to load subject");
+      }
     }
-  }
+
+    loadSubject();
+  }, [participantId]);
 
   return (
     <Shell>
       <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-        <h2 className="text-2xl font-semibold tracking-tight">Intake</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {subject ? `Subject #${subject.subject_number}` : "Subject"}
+        </h2>
 
-        <p className="mt-2 text-white/70">
-          Create a subject record and start evidence collection.
-        </p>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-            <div className="text-sm font-semibold">Subject Creation</div>
-            <div className="mt-2 text-sm text-white/65">
-              Deterministic subject number + registry ID binding.
-            </div>
+        {error && (
+          <div className="mt-4 rounded-2xl bg-red-500/10 p-4 text-sm text-red-200 ring-1 ring-red-500/20">
+            {error}
           </div>
+        )}
 
-          <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-            <div className="text-sm font-semibold">Consent + Scope</div>
-            <div className="mt-2 text-sm text-white/65">
-              Consent-based behavioral data.
+        {!subject && !error && (
+          <div className="mt-4 text-white/70">Loading subject…</div>
+        )}
+
+        {subject && (
+          <>
+            <div className="mt-4 space-y-2 text-white/80">
+              <div>Participant ID: {subject.participant_id ?? subject.id ?? participantId}</div>
+              <div>Registry ID: {subject.registry_id}</div>
+              <div>Status: {subject.status}</div>
+              <div>Created: {subject.created_at}</div>
             </div>
-          </div>
-        </div>
 
-        <button
-          onClick={createSubject}
-          disabled={loading}
-          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
-        >
-          {loading ? "Creating…" : "Create Subject"}
-        </button>
-
-        {message && (
-          <pre className="mt-6 rounded-xl bg-black/40 p-4 text-xs text-green-300 whitespace-pre-wrap">
-            {message}
-          </pre>
+            <div className="mt-8 rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
+              <div className="text-sm font-semibold">Evidence Timeline</div>
+              <div className="mt-2 text-sm text-white/60">
+                No evidence events recorded yet.
+              </div>
+            </div>
+          </>
         )}
       </div>
     </Shell>
   );
-          }
+}
