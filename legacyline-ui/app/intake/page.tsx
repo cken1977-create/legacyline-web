@@ -21,13 +21,13 @@ export default function IntakePage() {
         }
       );
 
-      const text = await res.text(); // read as text first (best debugging)
+      const text = await res.text(); // best for debugging + non-JSON errors
+
       if (!res.ok) {
-        setMessage(`API ${res.status}: ${text}`);
+        setMessage(`API ${res.status}: ${text || res.statusText}`);
         return;
       }
 
-      // try parsing JSON
       let data: any;
       try {
         data = JSON.parse(text);
@@ -36,12 +36,14 @@ export default function IntakePage() {
         return;
       }
 
-      setMessage(JSON.stringify(data, null, 2));
+      // Redirect to subject dashboard (the real flow)
+      if (data?.participant_id) {
+        window.location.assign(`/subject/${data.participant_id}`);
+        return;
+      }
 
-      // OPTIONAL: redirect to subject page when you’re ready
-      // if (data?.participant_id) {
-      //   window.location.href = `/subject/${data.participant_id}`;
-      // }
+      // Fallback: show response if no participant_id (shouldn't happen)
+      setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
     } finally {
