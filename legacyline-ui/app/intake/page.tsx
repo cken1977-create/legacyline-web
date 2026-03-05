@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
 
 export default function IntakePage() {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -16,29 +18,22 @@ export default function IntakePage() {
         "https://legacyline-core-production.up.railway.app/participants",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({}),
         }
       );
 
-      const text = await res.text();
+      const data = await res.json();
 
       if (!res.ok) {
-        setMessage(`API ${res.status}: ${text || res.statusText}`);
+        setMessage(`API ${res.status}: ${JSON.stringify(data)}`);
         return;
       }
 
-      let data: any;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        setMessage(`API returned non-JSON:\n${text}`);
-        return;
-      }
-
-      // Redirect to subject dashboard
       if (data?.id) {
-        window.location.assign(`/subject/${data.id}`);
+        router.push(`/subject/${data.id}`);
         return;
       }
 
@@ -91,4 +86,4 @@ export default function IntakePage() {
       </div>
     </Shell>
   );
-}
+      }
