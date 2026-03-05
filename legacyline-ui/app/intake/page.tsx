@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
-import { api } from "../lib/api";
+import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
   id: string; // <-- canonical backend id (ptc-...)
