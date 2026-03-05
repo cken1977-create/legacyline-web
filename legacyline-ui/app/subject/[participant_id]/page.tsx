@@ -4,7 +4,6 @@ import { EvidencePanel } from "./components/panels/EvidencePanel";
 import { StateHistoryPanel } from "./components/panels/StateHistoryPanel";
 import { UnifiedTimeline } from "./components/timeline/UnifiedTimeline";
 
-// Adjust these imports to match your actual backend structure
 import {
   getSubject,
   getConsent,
@@ -17,6 +16,19 @@ import {
   addCheckIn,
 } from "./actions";
 
+// Safe timestamp resolver so TS stops complaining and mixed timeline shapes still sort correctly
+function eventTime(ev: any): number {
+  const t =
+    ev?.occurred_at ??
+    ev?.created_at ??
+    ev?.timestamp ??
+    ev?.time ??
+    ev?.at;
+
+  const ms = t ? new Date(t).getTime() : 0;
+  return Number.isFinite(ms) ? ms : 0;
+}
+
 export default async function SubjectPage({
   params,
 }: {
@@ -24,7 +36,6 @@ export default async function SubjectPage({
 }) {
   const id = params.participant_id;
 
-  // Load all subject data in parallel
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
       getSubject(id),
@@ -34,17 +45,12 @@ export default async function SubjectPage({
       getStateHistory(id),
     ]);
 
-  // Build unified timeline (sorted newest → oldest)
   const timelineEvents = [
     ...(consent?.timeline || []),
     ...(evidence?.timeline || []),
     ...(readiness?.timeline || []),
     ...(stateHistory?.timeline || []),
-  ].sort(
-    (a, b) =>
-      new Date(b.occurred_at).getTime() -
-      new Date(a.occurred_at).getTime()
-  );
+  ].sort((a, b) => eventTime(b) - eventTime(a));
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
@@ -52,7 +58,6 @@ export default async function SubjectPage({
         Subject: {subject?.label || id}
       </h1>
 
-      {/* Panels */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent}
@@ -73,7 +78,6 @@ export default async function SubjectPage({
         <StateHistoryPanel entries={stateHistory?.entries || []} />
       </div>
 
-      {/* Unified Timeline */}
       <UnifiedTimeline events={timelineEvents} />
     </main>
   );
