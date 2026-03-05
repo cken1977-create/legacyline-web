@@ -30,7 +30,7 @@ export default function IntakePage() {
       });
 
       // Canon: redirect using returned id
-      if (data?.id) {
+      if (data?.participant_id) {
         router.push(`/subject/${data.id}`);
         return;
       }
