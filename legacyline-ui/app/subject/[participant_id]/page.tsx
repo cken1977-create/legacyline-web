@@ -5,6 +5,7 @@ import Shell from "../../_components/Shell";
 
 type Subject = {
   participant_id?: string;
+  id?: string;
   subject_number?: number;
   registry_id?: string;
   status?: string;
@@ -14,62 +15,37 @@ type Subject = {
 export default function SubjectPage({
   params,
 }: {
-  params: { participant_id?: string };
+  params: { participant_id: string };
 }) {
-  const participantId = params?.participant_id;
+  const participantId = params.participant_id;
 
   const [subject, setSubject] = useState<Subject | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadSubject(pid: string) {
+    async function loadSubject() {
       try {
-        setLoading(true);
         setError(null);
 
         const res = await fetch(
-          `https://legacyline-core-production.up.railway.app/participants/${pid}`,
-          { cache: "no-store" }
+          `https://legacyline-core-production.up.railway.app/participants/${participantId}`
         );
 
         const text = await res.text();
 
         if (!res.ok) {
-          if (!cancelled) setError(`API ${res.status}: ${text || res.statusText}`);
+          setError(`API ${res.status}: ${text || res.statusText}`);
           return;
         }
 
-        let data: Subject;
-        try {
-          data = JSON.parse(text);
-        } catch {
-          if (!cancelled) setError(`API returned non-JSON:\n${text}`);
-          return;
-        }
-
-        if (!cancelled) setSubject(data);
+        const data = JSON.parse(text);
+        setSubject(data);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Failed to load subject");
-      } finally {
-        if (!cancelled) setLoading(false);
+        setError(e?.message || "Failed to load subject");
       }
     }
 
-    // ✅ THIS prevents infinite loading
-    if (!participantId) {
-      setError("Missing participant_id in the URL. Go to Intake and create a subject first.");
-      setLoading(false);
-      return;
-    }
-
-    loadSubject(participantId);
-
-    return () => {
-      cancelled = true;
-    };
+    if (participantId) loadSubject();
   }, [participantId]);
 
   return (
@@ -79,21 +55,22 @@ export default function SubjectPage({
           {subject?.subject_number ? `Subject #${subject.subject_number}` : "Subject"}
         </h2>
 
-        {/* Debug line (keep it for now) */}
-        <div className="mt-2 text-xs text-white/40">participant_id: {participantId ?? "—"}</div>
-
-        {loading && !error && <div className="mt-4 text-white/70">Loading subject…</div>}
-
         {error && (
           <div className="mt-4 rounded-2xl bg-red-500/10 p-4 text-sm text-red-200 ring-1 ring-red-500/20">
             {error}
           </div>
         )}
 
-        {subject && !error && (
+        {!subject && !error && (
+          <div className="mt-4 text-white/70">Loading subject…</div>
+        )}
+
+        {subject && (
           <>
             <div className="mt-4 space-y-2 text-white/80">
-              <div>Participant ID: {subject.participant_id ?? participantId}</div>
+              <div>
+                Participant ID: {subject.participant_id ?? subject.id ?? participantId}
+              </div>
               <div>Registry ID: {subject.registry_id ?? "—"}</div>
               <div>Status: {subject.status ?? "—"}</div>
               <div>Created: {subject.created_at ?? "—"}</div>
