@@ -6,7 +6,7 @@ import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
-  participant_id: string; // <-- canonical backend id (ptc-...)
+  id: string; // <-- canonical backend id (ptc-...)
   subject_number?: number;
   status?: string;
   created_at?: string;
@@ -29,8 +29,8 @@ export default function IntakePage() {
         body: JSON.stringify({}),
       });
 
-      if (data?.participant_id) {
-        router.push(`/subject/${data.participant_id}`); // <-- IMPORTANT
+      if (data?.id) {
+        router.push(`/subject/${data.id}`); // <-- IMPORTANT
         return;
       }
 
