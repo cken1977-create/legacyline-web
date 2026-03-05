@@ -4,10 +4,9 @@ import { EvidencePanel } from "./components/panels/EvidencePanel";
 import { StateHistoryPanel } from "./components/panels/StateHistoryPanel";
 import { UnifiedTimeline } from "./components/timeline/UnifiedTimeline";
 
-// Import your data loaders and actions
-// (Adjust these paths to match your actual project structure)
+// Adjust these imports to match your actual backend structure
 import {
-  getSubjectData,
+  getSubject,
   getConsent,
   getReadiness,
   getEvidenceEvents,
@@ -23,51 +22,55 @@ export default async function SubjectPage({
 }: {
   params: { participant_id: string };
 }) {
-  const participantId = params.participant_id;
+  const id = params.participant_id;
 
-  // Load all subject data
+  // Load all subject data in parallel
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
-      getSubjectData(participantId),
-      getConsent(participantId),
-      getReadiness(participantId),
-      getEvidenceEvents(participantId),
-      getStateHistory(participantId),
+      getSubject(id),
+      getConsent(id),
+      getReadiness(id),
+      getEvidenceEvents(id),
+      getStateHistory(id),
     ]);
 
-  // Build unified timeline
+  // Build unified timeline (sorted newest → oldest)
   const timelineEvents = [
-    ...consent.timeline,
-    ...evidence.timeline,
-    ...readiness.timeline,
-    ...stateHistory.timeline,
-  ].sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
+    ...(consent?.timeline || []),
+    ...(evidence?.timeline || []),
+    ...(readiness?.timeline || []),
+    ...(stateHistory?.timeline || []),
+  ].sort(
+    (a, b) =>
+      new Date(b.occurred_at).getTime() -
+      new Date(a.occurred_at).getTime()
+  );
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
-        Subject: {subject.label}
+        Subject: {subject?.label || id}
       </h1>
 
       {/* Panels */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent}
-          onGrant={() => grantConsent(participantId)}
-          onRevoke={() => revokeConsent(participantId)}
+          onGrant={() => grantConsent(id)}
+          onRevoke={() => revokeConsent(id)}
         />
 
         <ReadinessPanel
           readiness={readiness}
-          onRecompute={() => recomputeReadiness(participantId)}
+          onRecompute={() => recomputeReadiness(id)}
         />
 
         <EvidencePanel
-          events={evidence.events}
-          onAddCheckIn={() => addCheckIn(participantId)}
+          events={evidence?.events || []}
+          onAddCheckIn={() => addCheckIn(id)}
         />
 
-        <StateHistoryPanel entries={stateHistory.entries} />
+        <StateHistoryPanel entries={stateHistory?.entries || []} />
       </div>
 
       {/* Unified Timeline */}
