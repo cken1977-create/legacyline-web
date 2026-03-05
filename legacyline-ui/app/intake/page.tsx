@@ -5,24 +5,47 @@ import Shell from "../_components/Shell";
 
 export default function IntakePage() {
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function createSubject() {
+    setLoading(true);
+    setMessage("");
+
     try {
       const res = await fetch(
         "https://legacyline-core-production.up.railway.app/participants",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({}),
         }
       );
 
-      const data = await res.json();
+      const text = await res.text(); // read as text first (best debugging)
+      if (!res.ok) {
+        setMessage(`API ${res.status}: ${text}`);
+        return;
+      }
+
+      // try parsing JSON
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        setMessage(`API returned non-JSON:\n${text}`);
+        return;
+      }
+
       setMessage(JSON.stringify(data, null, 2));
-    } catch (err) {
-      setMessage("Error connecting to API");
+
+      // OPTIONAL: redirect to subject page when you’re ready
+      // if (data?.participant_id) {
+      //   window.location.href = `/subject/${data.participant_id}`;
+      // }
+    } catch (err: any) {
+      setMessage(err?.message || "Error connecting to API");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -52,14 +75,15 @@ export default function IntakePage() {
         </div>
 
         <button
-        onClick={() => alert("CLICK WORKS")}
-        className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90"
+          onClick={createSubject}
+          disabled={loading}
+          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
         >
-        Create Subject
-        </button>. 
+          {loading ? "Creating…" : "Create Subject"}
+        </button>
 
         {message && (
-          <pre className="mt-6 rounded-xl bg-black/40 p-4 text-xs text-green-300">
+          <pre className="mt-6 rounded-xl bg-black/40 p-4 text-xs text-green-300 whitespace-pre-wrap">
             {message}
           </pre>
         )}
