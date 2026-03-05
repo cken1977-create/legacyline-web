@@ -1,66 +1,43 @@
+type EvidenceEvent = {
+  timestamp: string;
+  event: string;
+};
+
+type EvidencePanelProps = {
+  events: EvidenceEvent[];
+  onAddCheckIn: () => void;
+};
+
 export function EvidencePanel({
   events,
   onAddCheckIn,
-}) {
+}: EvidencePanelProps) {
   return (
-    <section className="relative overflow-hidden rounded-2xl bg-black/80 ring-1 ring-white/10">
-      <div className="absolute inset-0 bg-[url('/images/evidence.jpg')] bg-cover bg-center opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/80 to-black/75" />
+    <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900 p-4">
+      <h2 className="text-lg font-semibold text-white">Evidence Events</h2>
 
-      <div className="relative p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-xs uppercase tracking-[0.18em] text-white/60">
-              Evidence
-            </div>
-            <div className="mt-1 text-xs text-white/60">
-              Behavioral and contextual signals over time.
-            </div>
-          </div>
-
-          <button
-            onClick={onAddCheckIn}
-            className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/15"
-          >
-            Add check-in
-          </button>
-        </div>
-
-        <div className="mt-4 max-h-56 space-y-2 overflow-y-auto text-xs text-white/75">
-          {events.length === 0 && (
-            <div className="text-white/60">
-              No evidence events recorded yet.
-            </div>
-          )}
-
-          {events.map((ev) => (
+      <div className="space-y-2">
+        {events.length === 0 ? (
+          <p className="text-gray-500 text-sm">No evidence events yet.</p>
+        ) : (
+          events.map((entry, i) => (
             <div
-              key={ev.id}
-              className="rounded-xl bg-white/5 px-3 py-2 ring-1 ring-white/10"
+              key={i}
+              className="text-sm text-gray-300 border-l border-gray-600 pl-2"
             >
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-white/55">
-                  {ev.type}
-                </div>
-
-                <div className="text-[11px] text-white/45">
-                  {new Date(ev.occurred_at).toLocaleString()}
-                </div>
-              </div>
-
-              <div className="mt-1 text-[11px] text-white/65">
-                Actor: {ev.actor}
-              </div>
-
-              {ev.reason && (
-                <div className="mt-1 text-[11px] text-white/60">
-                  Reason: {ev.reason}
-                </div>
-              )}
+              <span className="text-gray-400">{entry.timestamp}</span> —{" "}
+              {entry.event}
             </div>
-          ))}
-        </div>
+          ))
+        )}
       </div>
-    </section>
+
+      <button
+        onClick={onAddCheckIn}
+        className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+      >
+        Add Check‑In
+      </button>
+    </div>
   );
 }
