@@ -662,7 +662,7 @@ function UnifiedTimeline({
 
   return (
     <section className="relative overflow-hidden rounded-2xl">                  
-    </section> bg-black/85 ring-1 ring-white/10 ${className}}>
+    </section bg-black/85 ring-1 ring-white/10 ${className}}>
       <div className="absolute inset-0 bg-[url('/images/timeline.jpg')] bg-cover bg-center opacity-35" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/85 to-black/80" />
       <div className="relative p-5">
