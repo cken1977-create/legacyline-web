@@ -3,49 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
+import { api } from "../../lib/api";
+
+type CreateParticipantResponse = {
+  id: string; // <-- your API returns "id"
+  subject_number?: number;
+  status?: string;
+  created_at?: string;
+  registry_id?: string; // if added later, fine
+};
 
 export default function IntakePage() {
   const router = useRouter();
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   async function createSubject() {
+    if (loading) return;
     setLoading(true);
     setMessage("");
 
     try {
-      const res = await fetch(
-        "https://legacyline-core-production.up.railway.app/participants",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
-        }
-      );
+      const data = await api<CreateParticipantResponse>("/participants", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
 
-      const text = await res.text();
-
-      if (!res.ok) {
-        setMessage(`API ${res.status}: ${text || res.statusText}`);
+      // Canon: redirect using returned id
+      if (data?.id) {
+        router.push(`/subject/${data.id}`);
         return;
       }
 
-      let data: any;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        setMessage(`API returned non-JSON:\n${text}`);
-        return;
-      }
-
-      // ✅ THIS is the ID your API returns
-      const pid = data?.participant_id || data?.id;
-
-      if (pid) {
-        router.push(`/subject/${pid}`);
-        return;
-      }
-
+      // fallback if API shape changes
       setMessage(JSON.stringify(data, null, 2));
     } catch (err: any) {
       setMessage(err?.message || "Error connecting to API");
@@ -67,14 +57,14 @@ export default function IntakePage() {
           <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
             <div className="text-sm font-semibold">Subject Creation</div>
             <div className="mt-2 text-sm text-white/65">
-              Deterministic subject number + registry ID binding.
+              Deterministic subject number + registry binding.
             </div>
           </div>
 
           <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
             <div className="text-sm font-semibold">Consent + Scope</div>
             <div className="mt-2 text-sm text-white/65">
-              Consent-based behavioral data.
+              Consent-based behavioral data. No credit scoring. No lending decisions.
             </div>
           </div>
         </div>
