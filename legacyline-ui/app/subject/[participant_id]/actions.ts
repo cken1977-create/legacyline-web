@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 const API_BASE =
   (process.env.NEXT_PUBLIC_API_URL?.trim() ||
-    "https://legacyline-core-production.up.railway.app").replace(/\/$/, "");
+    "https://legacyline-core-production.up.railway.app").replace(/\/+$/, "");
 
 async function apiJSON<T>(
   path: string,
