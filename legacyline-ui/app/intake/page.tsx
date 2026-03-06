@@ -39,17 +39,15 @@ export default function IntakePage() {
   const [loading, setLoading] = useState(false);
 
   const canSubmit =
-   form.first_name.trim().length > 0 &&
-   form.last_name.trim().length > 0 &&
-  (form.email.trim().length > 0 || form.phone.trim().length > 0);
+    form.first_name.trim().length > 0 &&
+    form.last_name.trim().length > 0 &&
+    (form.email.trim().length > 0 || form.phone.trim().length > 0);
 
   async function createSubject() {
     if (loading) return;
 
     if (!canSubmit) {
-      setMessage(
-        "Enter first + last name and at least one contact method."
-      );
+      setMessage("Enter first + last name and at least one contact method.");
       return;
     }
 
@@ -60,7 +58,7 @@ export default function IntakePage() {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
         email: form.email.trim(),
-        phone: form.phone ? normalizePhone(form.phone) :"",
+        phone: form.phone.trim() ? normalizePhone(form.phone) : "",
       };
 
       const data = await api<CreateParticipantResponse>("/participants", {
@@ -89,35 +87,33 @@ export default function IntakePage() {
         <h2 className="text-2xl font-semibold">Intake</h2>
 
         <div className="mt-6 grid gap-3">
-
           <input
             placeholder="First name"
             value={form.first_name}
-            onChange={(e)=>setForm({...form,first_name:e.target.value})}
+            onChange={(e) => setForm({ ...form, first_name: e.target.value })}
             className="rounded-xl bg-black/40 p-2"
           />
 
           <input
             placeholder="Last name"
             value={form.last_name}
-            onChange={(e)=>setForm({...form,last_name:e.target.value})}
+            onChange={(e) => setForm({ ...form, last_name: e.target.value })}
             className="rounded-xl bg-black/40 p-2"
           />
 
           <input
             placeholder="Email"
             value={form.email}
-            onChange={(e)=>setForm({...form,email:e.target.value})}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
             className="rounded-xl bg-black/40 p-2"
           />
 
           <input
             placeholder="Phone"
             value={form.phone}
-            onChange={(e)=>setForm({...form,phone:e.target.value})}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
             className="rounded-xl bg-black/40 p-2"
           />
-
         </div>
 
         <button
@@ -129,7 +125,7 @@ export default function IntakePage() {
         </button>
 
         {message && (
-          <pre className="mt-4 text-green-300 text-xs">
+          <pre className="mt-4 text-xs text-green-300">
             {message}
           </pre>
         )}
