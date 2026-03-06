@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 const API_BASE =
   (process.env.NEXT_PUBLIC_API_URL?.trim() ||
@@ -47,15 +48,31 @@ async function apiJSON<T>(
 
 // Helper to convert frontend ID format to backend ID format
 function toBackendId(id: string): string {
-  // Convert ptc- to pict- and . to ,
-  return id.replace('ptc-', 'pict-').replace('.', ',');
+  // Only convert if it starts with ptc-
+  if (id.startsWith('ptc-')) {
+    return id.replace('ptc-', 'pict-').replace('.', ',');
+  }
+  return id;
+}
+
+// Helper to convert backend ID to frontend ID format
+export function toFrontendId(id: string): string {
+  if (id.startsWith('pict-')) {
+    return id.replace('pict-', 'ptc-').replace(',', '.');
+  }
+  return id;
 }
 
 // -------------------- Loaders --------------------
 
 export async function getSubject(id: string) {
   const backendId = toBackendId(id);
-  return apiJSON<any>(`/participants/${backendId}`, { method: "GET" });
+  try {
+    return await apiJSON<any>(`/participants/${backendId}`, { method: "GET" });
+  } catch (error) {
+    console.error('Failed to fetch subject:', error);
+    throw error;
+  }
 }
 
 export async function getConsent(id: string) {
@@ -94,13 +111,38 @@ export async function getStateHistory(id: string) {
   }
 }
 
-// -------------------- Actions (REAL server actions) --------------------
-// These MUST accept FormData.
+// -------------------- Actions --------------------
 
 function mustSubjectId(formData: FormData) {
   const subjectId = String(formData.get("subjectId") || "").trim();
   if (!subjectId) throw new Error("Missing subjectId");
   return subjectId;
+}
+
+export async function createSubject(formData: FormData) {
+  const name = String(formData.get("name") || "");
+  const email = String(formData.get("email") || "");
+  const phone = String(formData.get("phone") || "");
+
+  try {
+    const response = await apiJSON<any>("/participants", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+      }),
+    });
+
+    // The API returns the new participant with a pict- ID
+    // Convert it to frontend format for redirect
+    const frontendId = toFrontendId(response.id);
+    revalidatePath(`/subject/${frontendId}`);
+    redirect(`/subject/${frontendId}`);
+  } catch (error) {
+    console.error("Failed to create subject:", error);
+    throw error;
+  }
 }
 
 export async function grantConsent(formData: FormData) {
