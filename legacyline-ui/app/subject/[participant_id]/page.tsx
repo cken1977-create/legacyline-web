@@ -33,14 +33,17 @@ export default async function SubjectPage({
   params: Promise<{ participant_id: string }>;
 }) {
   const { participant_id: id } = await params;
+  
+  // Convert string ID to number for database operations
+  const numericId = parseInt(id, 10);
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
-      getSubject(id),
-      getConsent(id),
-      getReadiness(id),
-      getEvidenceEvents(id),
-      getStateHistory(id),
+      getSubject(numericId),  // 👈 Pass number
+      getConsent(numericId),  // 👈 Pass number
+      getReadiness(numericId),  // 👈 Pass number
+      getEvidenceEvents(numericId),  // 👈 Pass number
+      getStateHistory(numericId),  // 👈 Pass number
     ]);
 
   const timelineEvents: TimelineEvent[] = [
@@ -65,25 +68,25 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
-  // Create wrapped action functions that handle the subjectId
+  // Create wrapped action functions that handle the subjectId as number
   const handleGrantConsent = async () => {
     "use server";
-    return grantConsent(id);
+    return grantConsent(numericId);  // 👈 Pass number
   };
 
   const handleRevokeConsent = async () => {
     "use server";
-    return revokeConsent(id);
+    return revokeConsent(numericId);  // 👈 Pass number
   };
 
   const handleAddCheckIn = async (data: any) => {
     "use server";
-    return addCheckIn(id, data);
+    return addCheckIn(numericId, data);  // 👈 Pass number
   };
 
   const handleRecomputeReadiness = async () => {
     "use server";
-    return recomputeReadiness(id);
+    return recomputeReadiness(numericId);  // 👈 Pass number
   };
 
   return (
@@ -95,21 +98,21 @@ export default async function SubjectPage({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent as any}
-          subjectId={id}
-          grantAction={handleGrantConsent}    // ✅ Now properly wrapped
-          revokeAction={handleRevokeConsent}  // ✅ Now properly wrapped
+          subjectId={numericId}  // 👈 Pass number to panels too
+          grantAction={handleGrantConsent}
+          revokeAction={handleRevokeConsent}
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
-          subjectId={id}
-          addCheckInAction={handleAddCheckIn}  // ✅ Now properly wrapped
+          subjectId={numericId}  // 👈 Pass number
+          addCheckInAction={handleAddCheckIn}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
-          subjectId={id}
-          recomputeAction={handleRecomputeReadiness}  // ✅ Now properly wrapped
+          subjectId={numericId}  // 👈 Pass number
+          recomputeAction={handleRecomputeReadiness}
         />
 
         <StateHistoryPanel
