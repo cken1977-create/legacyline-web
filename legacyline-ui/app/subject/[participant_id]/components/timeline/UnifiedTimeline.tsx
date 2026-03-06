@@ -1,6 +1,13 @@
 import { TimelineEventItem } from "./TimelineEventItem";
 import { TimelineEmptyState } from "./TimelineEmptyState";
-import type { TimelineEvent } from "../../page";
+type TimelineEvent = {
+  id: string
+  kind: "consent" | "evidence" | "readiness" | "state"
+  occurred_at: string
+  label: string
+  actor?: string
+  meta?: string
+}
 
 type Props = {
   events: TimelineEvent[];
