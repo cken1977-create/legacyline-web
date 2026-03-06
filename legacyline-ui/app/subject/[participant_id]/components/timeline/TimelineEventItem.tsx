@@ -1,5 +1,13 @@
 import { TimelineEventBadge } from "./TimelineEventBadge";
-import type { TimelineEvent } from "../../page";
+
+type TimelineEvent = {
+  id: string;
+  kind: "consent" | "evidence" | "readiness" | "state";
+  occurred_at: string;
+  label: string;
+  actor?: string;
+  meta?: string;
+};
 
 type KindLabelMap = Record<TimelineEvent["kind"], string>;
 type KindColorMap = Record<TimelineEvent["kind"], string>;
@@ -13,10 +21,13 @@ type Props = {
 export function TimelineEventItem({ ev, kindLabel, kindColor }: Props) {
   return (
     <div className="flex gap-3 rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
-      <TimelineEventBadge label={kindLabel[ev.kind]} color={kindColor[ev.kind]} />
+      <TimelineEventBadge
+        label={kindLabel[ev.kind]}
+        color={kindColor[ev.kind]}
+      />
 
       <div className="flex-1 space-y-1">
-        <div className="text-[11px] font-medium">{ev.label}</div>
+        <div className="text-[11px] font-medium text-white">{ev.label}</div>
 
         <div className="text-[11px] text-white/55">
           {new Date(ev.occurred_at).toLocaleString()}
@@ -28,7 +39,9 @@ export function TimelineEventItem({ ev, kindLabel, kindColor }: Props) {
           )}
         </div>
 
-        {ev.meta && <div className="text-[11px] text-white/60">{ev.meta}</div>}
+        {ev.meta && (
+          <div className="text-[11px] text-white/60">{ev.meta}</div>
+        )}
       </div>
     </div>
   );
