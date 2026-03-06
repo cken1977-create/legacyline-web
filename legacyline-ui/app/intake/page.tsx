@@ -6,7 +6,12 @@ import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
 type CreateParticipantResponse = {
-  id: string; // <-- canonical backend id (ptc-...)
+  // backend currently returns this:
+  participant_id?: string;
+
+  // allow older/alternate shapes too:
+  id?: string;
+
   subject_number?: number;
   status?: string;
   created_at?: string;
@@ -29,8 +34,10 @@ export default function IntakePage() {
         body: JSON.stringify({}),
       });
 
-      if (data?.id) {
-        router.push(`/subject/${data.id}`); // <-- IMPORTANT
+      const pid = data?.participant_id || data?.id;
+
+      if (pid) {
+        router.push(`/subject/${pid}`);
         return;
       }
 
