@@ -1,43 +1,88 @@
 type EvidenceEvent = {
-  timestamp: string;
-  event: string;
+  id?: string;
+  occurred_at?: string;
+  label?: string;
+  actor?: string;
+  meta?: string;
 };
 
 type EvidencePanelProps = {
   events: EvidenceEvent[];
-  onAddCheckIn: () => void;
+  subjectId: string;
+  addCheckInAction: (formData: FormData) => Promise<void>;
 };
 
-export function EvidencePanel({
+export default function EvidencePanel({
   events,
-  onAddCheckIn,
+  subjectId,
+  addCheckInAction,
 }: EvidencePanelProps) {
-  return (
-    <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900 p-4">
-      <h2 className="text-lg font-semibold text-white">Evidence Events</h2>
+  const timeline = events ?? [];
 
-      <div className="space-y-2">
-        {events.length === 0 ? (
-          <p className="text-gray-500 text-sm">No evidence events yet.</p>
-        ) : (
-          events.map((entry, i) => (
-            <div
-              key={i}
-              className="text-sm text-gray-300 border-l border-gray-600 pl-2"
-            >
-              <span className="text-gray-400">{entry.timestamp}</span> —{" "}
-              {entry.event}
-            </div>
-          ))
-        )}
+  return (
+    <section className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
+      <div className="text-sm font-semibold text-white">Evidence</div>
+
+      <div className="mt-1 text-xs text-white/60">
+        Recorded behavioral evidence and check-ins.
       </div>
 
-      <button
-        onClick={onAddCheckIn}
-        className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
-      >
-        Add Check‑In
-      </button>
-    </div>
+      <div className="mt-4 space-y-2">
+        {timeline.length === 0 && (
+          <div className="text-xs text-white/60">
+            No evidence events yet.
+          </div>
+        )}
+
+        {timeline.map((entry, idx) => {
+          const occurred =
+            entry?.occurred_at ?? new Date().toISOString();
+
+          return (
+            <div
+              key={entry.id ?? `${occurred}-${idx}`}
+              className="rounded-xl bg-black/30 p-3 ring-1 ring-white/10"
+            >
+              <div className="text-[11px] font-medium text-white">
+                {entry.label ?? "Evidence event"}
+              </div>
+
+              <div className="mt-1 text-[11px] text-white/55">
+                {new Date(occurred).toLocaleString()}
+
+                {entry.actor && (
+                  <>
+                    {" "}
+                    • <span className="text-white/65">Actor:</span>{" "}
+                    {entry.actor}
+                  </>
+                )}
+              </div>
+
+              {entry.meta && (
+                <div className="mt-1 text-[11px] text-white/60">
+                  {entry.meta}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* SERVER ACTION BUTTON */}
+
+      <div className="mt-4">
+        <form action={addCheckInAction}>
+          <input type="hidden" name="subjectId" value={subjectId} />
+
+          <button
+            type="submit"
+            className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
+          >
+            Add Check-In
+          </button>
+        </form>
+      </div>
+    </section>
   );
 }
