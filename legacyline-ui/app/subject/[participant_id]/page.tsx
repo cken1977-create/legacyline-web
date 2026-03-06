@@ -1,7 +1,7 @@
-import { ConsentPanel } from "./components/panels/ConsentPanel";
-import { ReadinessPanel } from "./components/panels/ReadinessPanel";
-import { EvidencePanel } from "./components/panels/EvidencePanel";
-import { StateHistoryPanel } from "./components/panels/StateHistoryPanel";
+import ConsentPanel from "./components/panels/ConsentPanel";
+import ReadinessPanel from "./components/panels/ReadinessPanel";
+import EvidencePanel from "./components/panels/EvidencePanel";
+import StateHistoryPanel from "./components/panels/StateHistoryPanel";
 import { UnifiedTimeline } from "./components/timeline/UnifiedTimeline";
 
 import {
@@ -21,7 +21,7 @@ type TimelineKind = "consent" | "evidence" | "readiness" | "state";
 export type TimelineEvent = {
   id: string;
   kind: TimelineKind;
-  occurred_at: string; // required for sort
+  occurred_at: string;
   label: string;
   actor?: string;
   meta?: string;
@@ -43,7 +43,6 @@ export default async function SubjectPage({
       getStateHistory(id),
     ]);
 
-  // Normalize all timelines into a single typed list
   const timelineEvents: TimelineEvent[] = [
     ...(((consent as any)?.timeline ?? []) as TimelineEvent[]),
     ...(((evidence as any)?.timeline ?? []) as TimelineEvent[]),
@@ -51,21 +50,23 @@ export default async function SubjectPage({
     ...(((stateHistory as any)?.timeline ?? []) as TimelineEvent[]),
   ]
     .map((ev: any, idx: number) => ({
-      // harden fields so TypeScript + runtime both behave
       id: String(ev?.id ?? `${ev?.kind ?? "event"}-${idx}`),
       kind: (ev?.kind ?? "state") as TimelineKind,
-      occurred_at: String(ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()),
+      occurred_at: String(
+        ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()
+      ),
       label: String(ev?.label ?? ev?.type ?? "Event"),
       actor: ev?.actor ? String(ev.actor) : undefined,
       meta: ev?.meta ? String(ev.meta) : undefined,
     }))
     .sort(
       (a, b) =>
-        new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime()
+        new Date(b.occurred_at).getTime() -
+        new Date(a.occurred_at).getTime()
     );
 
   return (
-    <main className="mx-auto max-w-5xl space-y-8 p-6">
+    <main className="mx-auto max-w-6xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
         Subject: {(subject as any)?.label || id}
       </h1>
@@ -73,21 +74,26 @@ export default async function SubjectPage({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent as any}
-          onGrant={() => grantConsent(id)}
-          onRevoke={() => revokeConsent(id)}
+          subjectId={id}
+          grantAction={grantConsent}
+          revokeAction={revokeConsent}
+        />
+
+        <EvidencePanel
+          events={((evidence as any)?.events ?? []) as any[]}
+          subjectId={id}
+          addCheckInAction={addCheckIn}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
-          onRecompute={() => recomputeReadiness(id)}
+          subjectId={id}
+          recomputeAction={recomputeReadiness}
         />
 
-        <EvidencePanel
-          events={(((evidence as any)?.events ?? []) as any[])}
-          onAddCheckIn={() => addCheckIn(id)}
+        <StateHistoryPanel
+          entries={((stateHistory as any)?.entries ?? []) as any[]}
         />
-
-        <StateHistoryPanel entries={(((stateHistory as any)?.entries ?? []) as any[])} />
       </div>
 
       <UnifiedTimeline events={timelineEvents} />
