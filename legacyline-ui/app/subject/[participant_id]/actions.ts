@@ -45,42 +45,50 @@ async function apiJSON<T>(
   }
 }
 
+// Helper to convert frontend ID format to backend ID format
+function toBackendId(id: string): string {
+  // Convert ptc- to pict- and . to ,
+  return id.replace('ptc-', 'pict-').replace('.', ',');
+}
+
 // -------------------- Loaders --------------------
 
 export async function getSubject(id: string) {
-  // This endpoint MUST exist (you already have it).
-  // If your backend returns participant_id instead of id, that's fine.
-  return apiJSON<any>(`/participants/${id}`, { method: "GET" });
+  const backendId = toBackendId(id);
+  return apiJSON<any>(`/participants/${backendId}`, { method: "GET" });
 }
 
 export async function getConsent(id: string) {
-  // If you don't have this endpoint yet, we fail soft.
+  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${id}/consent`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${backendId}/consent`, { method: "GET" });
   } catch {
     return { status: "none", timeline: [] };
   }
 }
 
 export async function getReadiness(id: string) {
+  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${id}/readiness`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${backendId}/readiness`, { method: "GET" });
   } catch {
     return { readiness: null, timeline: [] };
   }
 }
 
 export async function getEvidenceEvents(id: string) {
+  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${id}/evidence`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${backendId}/evidence`, { method: "GET" });
   } catch {
     return { events: [], timeline: [] };
   }
 }
 
 export async function getStateHistory(id: string) {
+  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${id}/state-history`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${backendId}/state-history`, { method: "GET" });
   } catch {
     return { entries: [], timeline: [] };
   }
@@ -97,9 +105,9 @@ function mustSubjectId(formData: FormData) {
 
 export async function grantConsent(formData: FormData) {
   const id = mustSubjectId(formData);
+  const backendId = toBackendId(id);
 
-  // Adjust payload as your backend expects (scope, version, etc.)
-  await apiJSON(`/participants/${id}/consent`, {
+  await apiJSON(`/participants/${backendId}/consent`, {
     method: "POST",
     body: JSON.stringify({ scope: "standard" }),
   });
@@ -109,8 +117,9 @@ export async function grantConsent(formData: FormData) {
 
 export async function revokeConsent(formData: FormData) {
   const id = mustSubjectId(formData);
+  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${id}/consent`, {
+  await apiJSON(`/participants/${backendId}/consent`, {
     method: "DELETE",
   });
 
@@ -119,8 +128,9 @@ export async function revokeConsent(formData: FormData) {
 
 export async function recomputeReadiness(formData: FormData) {
   const id = mustSubjectId(formData);
+  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${id}/compute-readiness`, {
+  await apiJSON(`/participants/${backendId}/compute-readiness`, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -130,9 +140,9 @@ export async function recomputeReadiness(formData: FormData) {
 
 export async function addCheckIn(formData: FormData) {
   const id = mustSubjectId(formData);
+  const backendId = toBackendId(id);
 
-  // You can extend this to pass a form field (event_type, notes, etc.)
-  await apiJSON(`/participants/${id}/evidence`, {
+  await apiJSON(`/participants/${backendId}/evidence`, {
     method: "POST",
     body: JSON.stringify({
       type: "check_in",
@@ -141,4 +151,4 @@ export async function addCheckIn(formData: FormData) {
   });
 
   revalidatePath(`/subject/${id}`);
-}
+      }
