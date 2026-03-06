@@ -34,16 +34,16 @@ export default async function SubjectPage({
 }) {
   const { participant_id: id } = await params;
   
-  // Keep as string - this is what the actions expect
+  // Keep as string
   const subjectId = id;
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
-      getSubject(subjectId),      // 👈 Pass string
-      getConsent(subjectId),      // 👈 Pass string
-      getReadiness(subjectId),    // 👈 Pass string
-      getEvidenceEvents(subjectId), // 👈 Pass string
-      getStateHistory(subjectId), // 👈 Pass string
+      getSubject(subjectId),
+      getConsent(subjectId),
+      getReadiness(subjectId),
+      getEvidenceEvents(subjectId),
+      getStateHistory(subjectId),
     ]);
 
   const timelineEvents: TimelineEvent[] = [
@@ -68,27 +68,6 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
-  // Create wrapped action functions that handle the subjectId as string
-  const handleGrantConsent = async () => {
-    "use server";
-    return grantConsent(subjectId);  // 👈 Pass string
-  };
-
-  const handleRevokeConsent = async () => {
-    "use server";
-    return revokeConsent(subjectId);  // 👈 Pass string
-  };
-
-  const handleAddCheckIn = async (data: any) => {
-    "use server";
-    return addCheckIn(subjectId, data);  // 👈 Pass string
-  };
-
-  const handleRecomputeReadiness = async () => {
-    "use server";
-    return recomputeReadiness(subjectId);  // 👈 Pass string
-  };
-
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
@@ -98,21 +77,34 @@ export default async function SubjectPage({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent as any}
-          subjectId={subjectId}  // 👈 Pass string
-          grantAction={handleGrantConsent}
-          revokeAction={handleRevokeConsent}
+          subjectId={subjectId}
+          // Pass the ID directly to the actions in the panel
+          grantAction={async () => {
+            "use server";
+            return grantConsent(subjectId);
+          }}
+          revokeAction={async () => {
+            "use server";
+            return revokeConsent(subjectId);
+          }}
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
-          subjectId={subjectId}  // 👈 Pass string
-          addCheckInAction={handleAddCheckIn}
+          subjectId={subjectId}
+          addCheckInAction={async (data: any) => {
+            "use server";
+            return addCheckIn(subjectId, data);
+          }}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
-          subjectId={subjectId}  // 👈 Pass string
-          recomputeAction={handleRecomputeReadiness}
+          subjectId={subjectId}
+          recomputeAction={async () => {
+            "use server";
+            return recomputeReadiness(subjectId);
+          }}
         />
 
         <StateHistoryPanel
