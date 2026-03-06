@@ -55,8 +55,8 @@ function toBackendId(id: string): string {
   return id;
 }
 
-// Helper to convert backend ID to frontend ID format
-export function toFrontendId(id: string): string {
+// Helper to convert backend ID to frontend ID format - NOT a server action, just a utility
+function toFrontendId(id: string): string {
   if (id.startsWith('pict-')) {
     return id.replace('pict-', 'ptc-').replace(',', '.');
   }
@@ -193,4 +193,4 @@ export async function addCheckIn(formData: FormData) {
   });
 
   revalidatePath(`/subject/${id}`);
-      }
+}
