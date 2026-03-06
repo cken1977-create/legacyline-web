@@ -30,9 +30,9 @@ export type TimelineEvent = {
 export default async function SubjectPage({
   params,
 }: {
-  params: Promise<{ participant_id: string }>;  // 👈 Change this to Promise
+  params: Promise<{ participant_id: string }>;
 }) {
-  const { participant_id: id } = await params;  // 👈 Await the params
+  const { participant_id: id } = await params;
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
@@ -65,6 +65,27 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
+  // Create wrapped action functions that handle the subjectId
+  const handleGrantConsent = async () => {
+    "use server";
+    return grantConsent(id);
+  };
+
+  const handleRevokeConsent = async () => {
+    "use server";
+    return revokeConsent(id);
+  };
+
+  const handleAddCheckIn = async (data: any) => {
+    "use server";
+    return addCheckIn(id, data);
+  };
+
+  const handleRecomputeReadiness = async () => {
+    "use server";
+    return recomputeReadiness(id);
+  };
+
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
@@ -75,20 +96,20 @@ export default async function SubjectPage({
         <ConsentPanel
           consent={consent as any}
           subjectId={id}
-          grantAction={grantConsent}
-          revokeAction={revokeConsent}
+          grantAction={handleGrantConsent}    // ✅ Now properly wrapped
+          revokeAction={handleRevokeConsent}  // ✅ Now properly wrapped
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
           subjectId={id}
-          addCheckInAction={addCheckIn}
+          addCheckInAction={handleAddCheckIn}  // ✅ Now properly wrapped
         />
 
         <ReadinessPanel
           readiness={readiness as any}
           subjectId={id}
-          recomputeAction={recomputeReadiness}
+          recomputeAction={handleRecomputeReadiness}  // ✅ Now properly wrapped
         />
 
         <StateHistoryPanel
