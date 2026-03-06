@@ -43,6 +43,13 @@ async function apiJSON<T>(
     const text = await res.text();
 
     if (!res.ok) {
+      // Log full error details
+      console.error("❌ Full error response:", {
+        status: res.status,
+        statusText: res.statusText,
+        body: text,
+        url: url
+      });
       throw new Error(`API ${res.status} @ ${url}: ${text || res.statusText}`);
     }
 
@@ -151,7 +158,6 @@ export async function grantConsent(formData: FormData) {
   try {
     console.log("🔵 Grant consent started for:", id);
     
-    // ✅ Exact payload matching backend requirements
     const payload = { 
       scope: "behavioral_readiness_v1",
       terms: "v1",
@@ -159,6 +165,7 @@ export async function grantConsent(formData: FormData) {
     };
     console.log("📦 Grant consent payload:", payload);
     
+    // Use the correct endpoint directly - no looping
     const result = await apiJSON(`/participants/${id}/consent`, {
       method: "POST",
       body: JSON.stringify(payload),
@@ -205,14 +212,9 @@ export async function recomputeReadiness(formData: FormData) {
   try {
     console.log("🔄 Recompute readiness started for:", id);
     
-    // Your backend might expect specific fields here
-    const payload = {
-      // Add any required fields based on your backend
-    };
-    
     const result = await apiJSON(`/participants/${id}/compute-readiness`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({}),
     });
     
     console.log(`✅ Recompute readiness successful:`, result);
@@ -231,7 +233,6 @@ export async function addCheckIn(formData: FormData) {
   try {
     console.log("📝 Add check-in started for:", id);
     
-    // ✅ Evidence endpoint payload
     const payload = {
       type: "check_in",
       note: "Manual check-in via UI",
@@ -251,4 +252,4 @@ export async function addCheckIn(formData: FormData) {
     console.error("🔥 Add check-in failed:", error);
     throw error;
   }
-}
+                              }
