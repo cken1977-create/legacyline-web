@@ -34,7 +34,6 @@ export default async function SubjectPage({
 }) {
   const { participant_id: id } = await params;
   
-  // Keep as string
   const subjectId = id;
 
   const [subject, consent, readiness, evidence, stateHistory] =
@@ -68,6 +67,36 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
+  // Create wrapper functions that create FormData
+  const handleGrantConsent = async () => {
+    "use server";
+    const formData = new FormData();
+    formData.append("subjectId", subjectId);
+    return grantConsent(formData);
+  };
+
+  const handleRevokeConsent = async () => {
+    "use server";
+    const formData = new FormData();
+    formData.append("subjectId", subjectId);
+    return revokeConsent(formData);
+  };
+
+  const handleRecomputeReadiness = async () => {
+    "use server";
+    const formData = new FormData();
+    formData.append("subjectId", subjectId);
+    return recomputeReadiness(formData);
+  };
+
+  const handleAddCheckIn = async () => {
+    "use server";
+    const formData = new FormData();
+    formData.append("subjectId", subjectId);
+    // You can add more fields here if your panel collects them
+    return addCheckIn(formData);
+  };
+
   return (
     <main className="mx-auto max-w-6xl space-y-8 p-6">
       <h1 className="text-2xl font-semibold tracking-tight text-white">
@@ -78,33 +107,20 @@ export default async function SubjectPage({
         <ConsentPanel
           consent={consent as any}
           subjectId={subjectId}
-          // Pass the ID directly to the actions in the panel
-          grantAction={async () => {
-            "use server";
-            return grantConsent(subjectId);
-          }}
-          revokeAction={async () => {
-            "use server";
-            return revokeConsent(subjectId);
-          }}
+          grantAction={handleGrantConsent}
+          revokeAction={handleRevokeConsent}
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
           subjectId={subjectId}
-          addCheckInAction={async (data: any) => {
-            "use server";
-            return addCheckIn(subjectId, data);
-          }}
+          addCheckInAction={handleAddCheckIn}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
           subjectId={subjectId}
-          recomputeAction={async () => {
-            "use server";
-            return recomputeReadiness(subjectId);
-          }}
+          recomputeAction={handleRecomputeReadiness}
         />
 
         <StateHistoryPanel
