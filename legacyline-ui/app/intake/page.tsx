@@ -59,8 +59,8 @@ export default function IntakePage() {
       const payload: CreateParticipantRequest = {
         first_name: form.first_name.trim(),
         last_name: form.last_name.trim(),
-        email: form.email.trim() || undefined,
-        phone: form.phone ? normalizePhone(form.phone) : undefined,
+        email: form.email.trim(),
+        phone: form.phone ? normalizePhone(form.phone) :"",
       };
 
       const data = await api<CreateParticipantResponse>("/participants", {
