@@ -51,41 +51,50 @@ async function apiJSON<T>(
 
 export async function getSubject(id: string) {
   try {
+    console.log(`🔍 Fetching subject: ${id}`);
     return await apiJSON<any>(`/participants/${id}`, { method: "GET" });
   } catch (error) {
-    console.error('Failed to fetch subject:', error);
+    console.error('❌ Failed to fetch subject:', error);
     throw error;
   }
 }
 
 export async function getConsent(id: string) {
   try {
+    console.log(`🔍 Fetching consent for: ${id}`);
     return await apiJSON<any>(`/participants/${id}/consent`, { method: "GET" });
   } catch {
+    console.log(`⚠️ No consent found for: ${id}, returning default`);
     return { status: "none", timeline: [] };
   }
 }
 
 export async function getReadiness(id: string) {
   try {
+    console.log(`🔍 Fetching readiness for: ${id}`);
     return await apiJSON<any>(`/participants/${id}/readiness`, { method: "GET" });
   } catch {
+    console.log(`⚠️ No readiness found for: ${id}, returning default`);
     return { readiness: null, timeline: [] };
   }
 }
 
 export async function getEvidenceEvents(id: string) {
   try {
+    console.log(`🔍 Fetching evidence for: ${id}`);
     return await apiJSON<any>(`/participants/${id}/evidence`, { method: "GET" });
   } catch {
+    console.log(`⚠️ No evidence found for: ${id}, returning default`);
     return { events: [], timeline: [] };
   }
 }
 
 export async function getStateHistory(id: string) {
   try {
+    console.log(`🔍 Fetching state history for: ${id}`);
     return await apiJSON<any>(`/participants/${id}/state-history`, { method: "GET" });
   } catch {
+    console.log(`⚠️ No state history found for: ${id}, returning default`);
     return { entries: [], timeline: [] };
   }
 }
@@ -103,6 +112,8 @@ export async function createSubject(formData: FormData) {
   const email = String(formData.get("email") || "");
   const phone = String(formData.get("phone") || "");
 
+  console.log("📝 Creating new subject:", { name, email, phone });
+
   try {
     const response = await apiJSON<any>("/participants", {
       method: "POST",
@@ -113,11 +124,11 @@ export async function createSubject(formData: FormData) {
       }),
     });
 
-    // Use the ID exactly as the API returns it
+    console.log("✅ Subject created successfully:", response);
     revalidatePath(`/subject/${response.id}`);
     redirect(`/subject/${response.id}`);
   } catch (error) {
-    console.error("Failed to create subject:", error);
+    console.error("❌ Failed to create subject:", error);
     throw error;
   }
 }
@@ -125,45 +136,165 @@ export async function createSubject(formData: FormData) {
 export async function grantConsent(formData: FormData) {
   const id = mustSubjectId(formData);
 
-  await apiJSON(`/participants/${id}/consent`, {
-    method: "POST",
-    body: JSON.stringify({ scope: "standard" }),
-  });
-
-  revalidatePath(`/subject/${id}`);
+  try {
+    console.log("🔵 Grant consent started for:", id);
+    
+    const payload = { 
+      scope: "standard",
+      participant_id: id,
+      granted_at: new Date().toISOString()
+    };
+    console.log("📦 Payload:", payload);
+    
+    // Try these endpoints in order
+    const endpoints = [
+      `/participants/${id}/consent`,
+      `/participants/${id}/grant-consent`,
+      `/participants/${id}/consent/grant`,
+      `/consent/${id}`
+    ];
+    
+    let lastError;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying endpoint: ${endpoint}`);
+        const result = await apiJSON(endpoint, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        
+        console.log(`✅ Success with endpoint: ${endpoint}`, result);
+        revalidatePath(`/subject/${id}`);
+        return result;
+      } catch (e) {
+        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
+        lastError = e;
+      }
+    }
+    
+    console.error("💥 All endpoints failed");
+    throw lastError || new Error("No consent endpoint found");
+    
+  } catch (error) {
+    console.error("🔥 Grant consent failed:", error);
+    throw error;
+  }
 }
 
 export async function revokeConsent(formData: FormData) {
   const id = mustSubjectId(formData);
 
-  await apiJSON(`/participants/${id}/consent`, {
-    method: "DELETE",
-  });
-
-  revalidatePath(`/subject/${id}`);
+  try {
+    console.log("🔴 Revoke consent started for:", id);
+    
+    const endpoints = [
+      `/participants/${id}/consent`,
+      `/participants/${id}/revoke-consent`,
+      `/participants/${id}/consent/revoke`,
+      `/consent/${id}`
+    ];
+    
+    let lastError;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying revoke endpoint: ${endpoint}`);
+        const result = await apiJSON(endpoint, {
+          method: "DELETE",
+        });
+        
+        console.log(`✅ Success revoking with endpoint: ${endpoint}`, result);
+        revalidatePath(`/subject/${id}`);
+        return result;
+      } catch (e) {
+        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
+        lastError = e;
+      }
+    }
+    
+    throw lastError || new Error("No revoke endpoint found");
+  } catch (error) {
+    console.error("🔥 Revoke consent failed:", error);
+    throw error;
+  }
 }
 
 export async function recomputeReadiness(formData: FormData) {
   const id = mustSubjectId(formData);
 
-  await apiJSON(`/participants/${id}/compute-readiness`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-
-  revalidatePath(`/subject/${id}`);
+  try {
+    console.log("🔄 Recompute readiness started for:", id);
+    
+    const endpoints = [
+      `/participants/${id}/compute-readiness`,
+      `/participants/${id}/readiness/compute`,
+      `/readiness/${id}/compute`
+    ];
+    
+    let lastError;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying recompute endpoint: ${endpoint}`);
+        const result = await apiJSON(endpoint, {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        
+        console.log(`✅ Success recomputing with endpoint: ${endpoint}`, result);
+        revalidatePath(`/subject/${id}`);
+        return result;
+      } catch (e) {
+        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
+        lastError = e;
+      }
+    }
+    
+    throw lastError || new Error("No recompute endpoint found");
+  } catch (error) {
+    console.error("🔥 Recompute readiness failed:", error);
+    throw error;
+  }
 }
 
 export async function addCheckIn(formData: FormData) {
   const id = mustSubjectId(formData);
 
-  await apiJSON(`/participants/${id}/evidence`, {
-    method: "POST",
-    body: JSON.stringify({
+  try {
+    console.log("📝 Add check-in started for:", id);
+    
+    const payload = {
       type: "check_in",
       note: "manual check-in",
-    }),
-  });
-
-  revalidatePath(`/subject/${id}`);
-}
+      timestamp: new Date().toISOString()
+    };
+    
+    const endpoints = [
+      `/participants/${id}/evidence`,
+      `/participants/${id}/check-in`,
+      `/evidence/${id}`,
+      `/participants/${id}/add-checkin`
+    ];
+    
+    let lastError;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying check-in endpoint: ${endpoint}`);
+        const result = await apiJSON(endpoint, {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        
+        console.log(`✅ Success adding check-in with endpoint: ${endpoint}`, result);
+        revalidatePath(`/subject/${id}`);
+        return result;
+      } catch (e) {
+        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
+        lastError = e;
+      }
+    }
+    
+    throw lastError || new Error("No check-in endpoint found");
+  } catch (error) {
+    console.error("🔥 Add check-in failed:", error);
+    throw error;
+  }
+      }
