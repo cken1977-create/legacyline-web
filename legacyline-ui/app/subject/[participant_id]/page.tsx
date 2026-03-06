@@ -38,18 +38,18 @@ export default async function SubjectPage({
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
-      getSubject(subjectId),
-      getConsent(subjectId),
-      getReadiness(subjectId),
-      getEvidenceEvents(subjectId),
-      getStateHistory(subjectId),
+      getSubject(subjectId).catch(() => null),
+      getConsent(subjectId).catch(() => ({ status: "none", timeline: [] })),
+      getReadiness(subjectId).catch(() => ({ readiness: null, timeline: [] })),
+      getEvidenceEvents(subjectId).catch(() => ({ events: [], timeline: [] })),
+      getStateHistory(subjectId).catch(() => ({ entries: [], timeline: [] })),
     ]);
 
   const timelineEvents: TimelineEvent[] = [
-    ...(((consent as any)?.timeline ?? []) as TimelineEvent[]),
-    ...(((evidence as any)?.timeline ?? []) as TimelineEvent[]),
-    ...(((readiness as any)?.timeline ?? []) as TimelineEvent[]),
-    ...(((stateHistory as any)?.timeline ?? []) as TimelineEvent[]),
+    ...((consent as any)?.timeline ?? []),
+    ...((evidence as any)?.timeline ?? []),
+    ...((readiness as any)?.timeline ?? []),
+    ...((stateHistory as any)?.timeline ?? []),
   ]
     .map((ev: any, idx: number) => ({
       id: String(ev?.id ?? `${ev?.kind ?? "event"}-${idx}`),
@@ -67,34 +67,29 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
-  // Create wrapper functions that create FormData
-  const handleGrantConsent = async () => {
+  // Create wrapper functions that return Promise<void> as expected by the panels
+  const handleGrantAction = async (formData: FormData) => {
     "use server";
-    const formData = new FormData();
     formData.append("subjectId", subjectId);
-    return grantConsent(formData);
+    await grantConsent(formData);
   };
 
-  const handleRevokeConsent = async () => {
+  const handleRevokeAction = async (formData: FormData) => {
     "use server";
-    const formData = new FormData();
     formData.append("subjectId", subjectId);
-    return revokeConsent(formData);
+    await revokeConsent(formData);
   };
 
-  const handleRecomputeReadiness = async () => {
+  const handleRecomputeAction = async (formData: FormData) => {
     "use server";
-    const formData = new FormData();
     formData.append("subjectId", subjectId);
-    return recomputeReadiness(formData);
+    await recomputeReadiness(formData);
   };
 
-  const handleAddCheckIn = async () => {
+  const handleAddCheckInAction = async (formData: FormData) => {
     "use server";
-    const formData = new FormData();
     formData.append("subjectId", subjectId);
-    // You can add more fields here if your panel collects them
-    return addCheckIn(formData);
+    await addCheckIn(formData);
   };
 
   return (
@@ -107,20 +102,20 @@ export default async function SubjectPage({
         <ConsentPanel
           consent={consent as any}
           subjectId={subjectId}
-          grantAction={handleGrantConsent}
-          revokeAction={handleRevokeConsent}
+          grantAction={handleGrantAction}
+          revokeAction={handleRevokeAction}
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
           subjectId={subjectId}
-          addCheckInAction={handleAddCheckIn}
+          addCheckInAction={handleAddCheckInAction}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
           subjectId={subjectId}
-          recomputeAction={handleRecomputeReadiness}
+          recomputeAction={handleRecomputeAction}
         />
 
         <StateHistoryPanel
