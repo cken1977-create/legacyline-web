@@ -1,56 +1,99 @@
 type ReadinessTimelineEntry = {
-  timestamp: string;
-  event: string;
+  id?: string;
+  occurred_at?: string;
+  label?: string;
+  actor?: string;
+  meta?: string;
 };
 
 type Readiness = {
-  readiness: number | null;
-  timeline: ReadinessTimelineEntry[];
+  readiness?: number | null;
+  timeline?: ReadinessTimelineEntry[];
 };
 
 type ReadinessPanelProps = {
   readiness: Readiness;
-  onRecompute: () => void;
+  subjectId: string;
+  recomputeAction: (formData: FormData) => Promise<void>;
 };
 
-export function ReadinessPanel({
+export default function ReadinessPanel({
   readiness,
-  onRecompute,
+  subjectId,
+  recomputeAction,
 }: ReadinessPanelProps) {
+  const score = readiness?.readiness ?? null;
+  const timeline = readiness?.timeline ?? [];
+
   return (
-    <div className="space-y-4 rounded-lg border border-gray-700 bg-gray-900 p-4">
-      <h2 className="text-lg font-semibold text-white">Readiness</h2>
+    <section className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
+      <div className="text-sm font-semibold text-white">Readiness</div>
 
-      <div className="text-gray-300">
-        <p className="mb-2">
-          <span className="font-medium text-white">Score:</span>{" "}
-          {readiness.readiness === null ? "Not computed" : readiness.readiness}
-        </p>
-
-        <div className="space-y-1">
-          <p className="font-medium text-white">Timeline:</p>
-          {readiness.timeline.length === 0 ? (
-            <p className="text-gray-500 text-sm">No readiness events yet.</p>
-          ) : (
-            readiness.timeline.map((entry, i) => (
-              <div
-                key={i}
-                className="text-sm text-gray-400 border-l border-gray-600 pl-2"
-              >
-                <span className="text-gray-300">{entry.timestamp}</span> —{" "}
-                {entry.event}
-              </div>
-            ))
-          )}
-        </div>
+      <div className="mt-1 text-xs text-white/60">
+        Computed readiness state and audit trail.
       </div>
 
-      <button
-        onClick={onRecompute}
-        className="rounded bg-purple-600 px-3 py-1 text-white hover:bg-purple-700"
-      >
-        Recompute Readiness
-      </button>
-    </div>
+      <div className="mt-4 text-sm text-white/80">
+        Score:{" "}
+        <span className="font-medium">
+          {score === null ? "Not computed" : score}
+        </span>
+      </div>
+
+      <div className="mt-4">
+        <form action={recomputeAction}>
+          <input type="hidden" name="subjectId" value={subjectId} />
+
+          <button
+            type="submit"
+            className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
+          >
+            Recompute Readiness
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-5 space-y-2">
+        {timeline.length === 0 && (
+          <div className="text-xs text-white/60">
+            No readiness events yet.
+          </div>
+        )}
+
+        {timeline.map((entry, idx) => {
+          const occurred =
+            entry?.occurred_at ?? new Date().toISOString();
+
+          return (
+            <div
+              key={entry.id ?? `${occurred}-${idx}`}
+              className="rounded-xl bg-black/30 p-3 ring-1 ring-white/10"
+            >
+              <div className="text-[11px] font-medium text-white">
+                {entry.label ?? "Readiness event"}
+              </div>
+
+              <div className="mt-1 text-[11px] text-white/55">
+                {new Date(occurred).toLocaleString()}
+
+                {entry.actor && (
+                  <>
+                    {" "}
+                    • <span className="text-white/65">Actor:</span>{" "}
+                    {entry.actor}
+                  </>
+                )}
+              </div>
+
+              {entry.meta && (
+                <div className="mt-1 text-[11px] text-white/60">
+                  {entry.meta}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
