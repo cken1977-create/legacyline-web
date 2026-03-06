@@ -48,17 +48,18 @@ async function apiJSON<T>(
 
 // Helper to convert frontend ID format to backend ID format
 function toBackendId(id: string): string {
-  // Only convert if it starts with ptc-
-  if (id.startsWith('ptc-')) {
-    return id.replace('ptc-', 'pict-').replace('.', ',');
-  }
-  return id;
+  // If it's already in backend format, return as is
+  if (id.startsWith('p2c')) return id;
+  
+  // Remove any ptc- prefix and convert to backend format
+  // This is a guess - you'll need to adjust based on actual pattern
+  return id.replace('ptc-', 'p2c');
 }
 
-// Helper to convert backend ID to frontend ID format - NOT a server action, just a utility
+// Helper to convert backend ID to frontend ID format
 function toFrontendId(id: string): string {
-  if (id.startsWith('pict-')) {
-    return id.replace('pict-', 'ptc-').replace(',', '.');
+  if (id.startsWith('p2c')) {
+    return 'ptc-' + id.substring(3);
   }
   return id;
 }
@@ -134,9 +135,9 @@ export async function createSubject(formData: FormData) {
       }),
     });
 
-    // The API returns the new participant with a pict- ID
-    // Convert it to frontend format for redirect
-    const frontendId = toFrontendId(response.id);
+    // The API returns ID in format: p2c2060306041350_077658188
+    // Convert to frontend format: ptc-2060306041350_077658188
+    const frontendId = 'ptc-' + response.id.substring(3);
     revalidatePath(`/subject/${frontendId}`);
     redirect(`/subject/${frontendId}`);
   } catch (error) {
