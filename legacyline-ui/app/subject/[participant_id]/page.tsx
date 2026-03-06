@@ -34,16 +34,16 @@ export default async function SubjectPage({
 }) {
   const { participant_id: id } = await params;
   
-  // Convert string ID to number for database operations
-  const numericId = parseInt(id, 10);
+  // Keep as string - this is what the actions expect
+  const subjectId = id;
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
-      getSubject(numericId),  // 👈 Pass number
-      getConsent(numericId),  // 👈 Pass number
-      getReadiness(numericId),  // 👈 Pass number
-      getEvidenceEvents(numericId),  // 👈 Pass number
-      getStateHistory(numericId),  // 👈 Pass number
+      getSubject(subjectId),      // 👈 Pass string
+      getConsent(subjectId),      // 👈 Pass string
+      getReadiness(subjectId),    // 👈 Pass string
+      getEvidenceEvents(subjectId), // 👈 Pass string
+      getStateHistory(subjectId), // 👈 Pass string
     ]);
 
   const timelineEvents: TimelineEvent[] = [
@@ -68,25 +68,25 @@ export default async function SubjectPage({
         new Date(a.occurred_at).getTime()
     );
 
-  // Create wrapped action functions that handle the subjectId as number
+  // Create wrapped action functions that handle the subjectId as string
   const handleGrantConsent = async () => {
     "use server";
-    return grantConsent(numericId);  // 👈 Pass number
+    return grantConsent(subjectId);  // 👈 Pass string
   };
 
   const handleRevokeConsent = async () => {
     "use server";
-    return revokeConsent(numericId);  // 👈 Pass number
+    return revokeConsent(subjectId);  // 👈 Pass string
   };
 
   const handleAddCheckIn = async (data: any) => {
     "use server";
-    return addCheckIn(numericId, data);  // 👈 Pass number
+    return addCheckIn(subjectId, data);  // 👈 Pass string
   };
 
   const handleRecomputeReadiness = async () => {
     "use server";
-    return recomputeReadiness(numericId);  // 👈 Pass number
+    return recomputeReadiness(subjectId);  // 👈 Pass string
   };
 
   return (
@@ -98,20 +98,20 @@ export default async function SubjectPage({
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <ConsentPanel
           consent={consent as any}
-          subjectId={numericId}  // 👈 Pass number to panels too
+          subjectId={subjectId}  // 👈 Pass string
           grantAction={handleGrantConsent}
           revokeAction={handleRevokeConsent}
         />
 
         <EvidencePanel
           events={((evidence as any)?.events ?? []) as any[]}
-          subjectId={numericId}  // 👈 Pass number
+          subjectId={subjectId}  // 👈 Pass string
           addCheckInAction={handleAddCheckIn}
         />
 
         <ReadinessPanel
           readiness={readiness as any}
-          subjectId={numericId}  // 👈 Pass number
+          subjectId={subjectId}  // 👈 Pass string
           recomputeAction={handleRecomputeReadiness}
         />
 
