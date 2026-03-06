@@ -1,5 +1,6 @@
 import { TimelineEventItem } from "./TimelineEventItem";
 import { TimelineEmptyState } from "./TimelineEmptyState";
+
 type TimelineEvent = {
   id: string;
   kind: "consent" | "evidence" | "readiness" | "state";
@@ -30,13 +31,15 @@ export function UnifiedTimeline({ events, className = "" }: Props) {
   };
 
   return (
-    <section className={`relative overflow-hidden bg-black/85 ring-1 ring-white/10 ${className}`}>
+    <section
+      className={`relative overflow-hidden rounded-2xl bg-black/85 ring-1 ring-white/10 ${className}`}
+    >
       <div className="absolute inset-0 bg-[url('/images/timeline.jpg')] bg-cover bg-center opacity-35" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/85 to-black/80" />
 
       <div className="relative p-5">
         <div className="text-xs uppercase tracking-[0.18em] text-white/60">
-          Unified ledger
+          Unified Ledger
         </div>
 
         <div className="mt-1 text-xs text-white/60">
@@ -47,7 +50,12 @@ export function UnifiedTimeline({ events, className = "" }: Props) {
           {events.length === 0 && <TimelineEmptyState />}
 
           {events.map((ev) => (
-            <TimelineEventItem key={ev.id} ev={ev} kindLabel={kindLabel} kindColor={kindColor} />
+            <TimelineEventItem
+              key={ev.id}
+              ev={ev}
+              kindLabel={kindLabel}
+              kindColor={kindColor}
+            />
           ))}
         </div>
       </div>
