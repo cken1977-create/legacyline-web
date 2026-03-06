@@ -39,9 +39,10 @@ export default function IntakePage() {
   const [loading, setLoading] = useState(false);
 
   const canSubmit =
-    form.first_name.trim().length > 0 &&
-    form.last_name.trim().length > 0 &&
-    (form.email.trim().length > 0 || form.phone.trim().length > 0);
+      form.first_name.trim().length > 0 &&
+      form.last_name.trim().length > 0 &&
+      ((form.email ?? "").trim().length > 0 ||
+        (form.phone ?? "").trim().length > 0);
 
   async function createSubject() {
     if (loading) return;
