@@ -115,7 +115,7 @@ export async function getStateHistory(id: string) {
 
 function mustSubjectId(formData: FormData) {
   const subjectId = String(formData.get("subjectId") || "").trim();
-  console.log("🔍 Raw subjectId from form:", subjectId); // Add this to debug
+  console.log("🔍 Raw subjectId from form:", subjectId);
   if (!subjectId) throw new Error("Missing subjectId");
   return subjectId;
 }
@@ -151,11 +151,13 @@ export async function grantConsent(formData: FormData) {
 
   try {
     console.log("🔵 Grant consent started for:", id);
-    console.log("🔍 Encoded ID:", encodeURIComponent(id)); // Add this to debug
+    console.log("🔍 Encoded ID:", encodeURIComponent(id));
     
+    // ✅ FIXED: Added terms field to match backend requirements
     const payload = { 
-      scope: "standard",
-      participant_id: id,
+      scope: "behavioral_readiness_v1",
+      terms: "v1",
+      reason: "Consent granted via UI",
       granted_at: new Date().toISOString()
     };
     console.log("📦 Payload:", payload);
@@ -311,4 +313,4 @@ export async function addCheckIn(formData: FormData) {
     console.error("🔥 Add check-in failed:", error);
     throw error;
   }
-}
+  }
