@@ -46,30 +46,12 @@ async function apiJSON<T>(
   }
 }
 
-// Helper to convert frontend ID format to backend ID format
-function toBackendId(id: string): string {
-  // If it's already in backend format, return as is
-  if (id.startsWith('p2c')) return id;
-  
-  // Remove any ptc- prefix and convert to backend format
-  // This is a guess - you'll need to adjust based on actual pattern
-  return id.replace('ptc-', 'p2c');
-}
-
-// Helper to convert backend ID to frontend ID format
-function toFrontendId(id: string): string {
-  if (id.startsWith('p2c')) {
-    return 'ptc-' + id.substring(3);
-  }
-  return id;
-}
-
 // -------------------- Loaders --------------------
+// Use the ID exactly as provided - NO CONVERSION
 
 export async function getSubject(id: string) {
-  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${backendId}`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${id}`, { method: "GET" });
   } catch (error) {
     console.error('Failed to fetch subject:', error);
     throw error;
@@ -77,36 +59,32 @@ export async function getSubject(id: string) {
 }
 
 export async function getConsent(id: string) {
-  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${backendId}/consent`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${id}/consent`, { method: "GET" });
   } catch {
     return { status: "none", timeline: [] };
   }
 }
 
 export async function getReadiness(id: string) {
-  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${backendId}/readiness`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${id}/readiness`, { method: "GET" });
   } catch {
     return { readiness: null, timeline: [] };
   }
 }
 
 export async function getEvidenceEvents(id: string) {
-  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${backendId}/evidence`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${id}/evidence`, { method: "GET" });
   } catch {
     return { events: [], timeline: [] };
   }
 }
 
 export async function getStateHistory(id: string) {
-  const backendId = toBackendId(id);
   try {
-    return await apiJSON<any>(`/participants/${backendId}/state-history`, { method: "GET" });
+    return await apiJSON<any>(`/participants/${id}/state-history`, { method: "GET" });
   } catch {
     return { entries: [], timeline: [] };
   }
@@ -135,11 +113,9 @@ export async function createSubject(formData: FormData) {
       }),
     });
 
-    // The API returns ID in format: p2c2060306041350_077658188
-    // Convert to frontend format: ptc-2060306041350_077658188
-    const frontendId = 'ptc-' + response.id.substring(3);
-    revalidatePath(`/subject/${frontendId}`);
-    redirect(`/subject/${frontendId}`);
+    // Use the ID exactly as the API returns it
+    revalidatePath(`/subject/${response.id}`);
+    redirect(`/subject/${response.id}`);
   } catch (error) {
     console.error("Failed to create subject:", error);
     throw error;
@@ -148,9 +124,8 @@ export async function createSubject(formData: FormData) {
 
 export async function grantConsent(formData: FormData) {
   const id = mustSubjectId(formData);
-  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${backendId}/consent`, {
+  await apiJSON(`/participants/${id}/consent`, {
     method: "POST",
     body: JSON.stringify({ scope: "standard" }),
   });
@@ -160,9 +135,8 @@ export async function grantConsent(formData: FormData) {
 
 export async function revokeConsent(formData: FormData) {
   const id = mustSubjectId(formData);
-  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${backendId}/consent`, {
+  await apiJSON(`/participants/${id}/consent`, {
     method: "DELETE",
   });
 
@@ -171,9 +145,8 @@ export async function revokeConsent(formData: FormData) {
 
 export async function recomputeReadiness(formData: FormData) {
   const id = mustSubjectId(formData);
-  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${backendId}/compute-readiness`, {
+  await apiJSON(`/participants/${id}/compute-readiness`, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -183,9 +156,8 @@ export async function recomputeReadiness(formData: FormData) {
 
 export async function addCheckIn(formData: FormData) {
   const id = mustSubjectId(formData);
-  const backendId = toBackendId(id);
 
-  await apiJSON(`/participants/${backendId}/evidence`, {
+  await apiJSON(`/participants/${id}/evidence`, {
     method: "POST",
     body: JSON.stringify({
       type: "check_in",
