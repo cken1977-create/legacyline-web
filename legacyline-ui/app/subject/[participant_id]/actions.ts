@@ -12,7 +12,19 @@ async function apiJSON<T>(
   options: RequestInit = {},
   timeoutMs = 15000
 ): Promise<T> {
-  const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  // Properly encode each segment of the path to handle special characters like dots
+  const segments = path.split('/').map(segment => {
+    // If the segment contains special characters, encode it
+    if (segment.includes('ptc-') || segment.includes('.') || segment.includes('_')) {
+      return encodeURIComponent(segment);
+    }
+    return segment;
+  });
+  
+  const encodedPath = segments.join('/');
+  const url = `${API_BASE}${encodedPath.startsWith("/") ? encodedPath : `/${encodedPath}`}`;
+  
+  console.log(`🌐 Fetching URL: ${url}`);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -103,6 +115,7 @@ export async function getStateHistory(id: string) {
 
 function mustSubjectId(formData: FormData) {
   const subjectId = String(formData.get("subjectId") || "").trim();
+  console.log("🔍 Raw subjectId from form:", subjectId); // Add this to debug
   if (!subjectId) throw new Error("Missing subjectId");
   return subjectId;
 }
@@ -138,6 +151,7 @@ export async function grantConsent(formData: FormData) {
 
   try {
     console.log("🔵 Grant consent started for:", id);
+    console.log("🔍 Encoded ID:", encodeURIComponent(id)); // Add this to debug
     
     const payload = { 
       scope: "standard",
@@ -297,4 +311,4 @@ export async function addCheckIn(formData: FormData) {
     console.error("🔥 Add check-in failed:", error);
     throw error;
   }
-      }
+}
