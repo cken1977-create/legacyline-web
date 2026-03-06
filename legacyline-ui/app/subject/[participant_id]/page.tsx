@@ -30,9 +30,9 @@ export type TimelineEvent = {
 export default async function SubjectPage({
   params,
 }: {
-  params: { participant_id: string };
+  params: Promise<{ participant_id: string }>;  // 👈 Change this to Promise
 }) {
-  const id = params.participant_id;
+  const { participant_id: id } = await params;  // 👈 Await the params
 
   const [subject, consent, readiness, evidence, stateHistory] =
     await Promise.all([
