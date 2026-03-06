@@ -59,7 +59,6 @@ async function apiJSON<T>(
 }
 
 // -------------------- Loaders --------------------
-// Use the ID exactly as provided - NO CONVERSION
 
 export async function getSubject(id: string) {
   try {
@@ -151,45 +150,23 @@ export async function grantConsent(formData: FormData) {
 
   try {
     console.log("🔵 Grant consent started for:", id);
-    console.log("🔍 Encoded ID:", encodeURIComponent(id));
     
-    // ✅ FIXED: Added terms field to match backend requirements
+    // ✅ Exact payload matching backend requirements
     const payload = { 
       scope: "behavioral_readiness_v1",
       terms: "v1",
-      reason: "Consent granted via UI",
-      granted_at: new Date().toISOString()
+      reason: "Consent granted via UI"
     };
-    console.log("📦 Payload:", payload);
+    console.log("📦 Grant consent payload:", payload);
     
-    // Try these endpoints in order
-    const endpoints = [
-      `/participants/${id}/consent`,
-      `/participants/${id}/grant-consent`,
-      `/participants/${id}/consent/grant`,
-      `/consent/${id}`
-    ];
+    const result = await apiJSON(`/participants/${id}/consent`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
     
-    let lastError;
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying endpoint: ${endpoint}`);
-        const result = await apiJSON(endpoint, {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        
-        console.log(`✅ Success with endpoint: ${endpoint}`, result);
-        revalidatePath(`/subject/${id}`);
-        return result;
-      } catch (e) {
-        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
-        lastError = e;
-      }
-    }
-    
-    console.error("💥 All endpoints failed");
-    throw lastError || new Error("No consent endpoint found");
+    console.log(`✅ Grant consent successful:`, result);
+    revalidatePath(`/subject/${id}`);
+    return result;
     
   } catch (error) {
     console.error("🔥 Grant consent failed:", error);
@@ -203,31 +180,19 @@ export async function revokeConsent(formData: FormData) {
   try {
     console.log("🔴 Revoke consent started for:", id);
     
-    const endpoints = [
-      `/participants/${id}/consent`,
-      `/participants/${id}/revoke-consent`,
-      `/participants/${id}/consent/revoke`,
-      `/consent/${id}`
-    ];
+    const payload = {
+      reason: "Consent revoked via UI"
+    };
     
-    let lastError;
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying revoke endpoint: ${endpoint}`);
-        const result = await apiJSON(endpoint, {
-          method: "DELETE",
-        });
-        
-        console.log(`✅ Success revoking with endpoint: ${endpoint}`, result);
-        revalidatePath(`/subject/${id}`);
-        return result;
-      } catch (e) {
-        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
-        lastError = e;
-      }
-    }
+    const result = await apiJSON(`/participants/${id}/consent`, {
+      method: "DELETE",
+      body: JSON.stringify(payload),
+    });
     
-    throw lastError || new Error("No revoke endpoint found");
+    console.log(`✅ Revoke consent successful:`, result);
+    revalidatePath(`/subject/${id}`);
+    return result;
+    
   } catch (error) {
     console.error("🔥 Revoke consent failed:", error);
     throw error;
@@ -240,31 +205,20 @@ export async function recomputeReadiness(formData: FormData) {
   try {
     console.log("🔄 Recompute readiness started for:", id);
     
-    const endpoints = [
-      `/participants/${id}/compute-readiness`,
-      `/participants/${id}/readiness/compute`,
-      `/readiness/${id}/compute`
-    ];
+    // Your backend might expect specific fields here
+    const payload = {
+      // Add any required fields based on your backend
+    };
     
-    let lastError;
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying recompute endpoint: ${endpoint}`);
-        const result = await apiJSON(endpoint, {
-          method: "POST",
-          body: JSON.stringify({}),
-        });
-        
-        console.log(`✅ Success recomputing with endpoint: ${endpoint}`, result);
-        revalidatePath(`/subject/${id}`);
-        return result;
-      } catch (e) {
-        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
-        lastError = e;
-      }
-    }
+    const result = await apiJSON(`/participants/${id}/compute-readiness`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
     
-    throw lastError || new Error("No recompute endpoint found");
+    console.log(`✅ Recompute readiness successful:`, result);
+    revalidatePath(`/subject/${id}`);
+    return result;
+    
   } catch (error) {
     console.error("🔥 Recompute readiness failed:", error);
     throw error;
@@ -277,40 +231,24 @@ export async function addCheckIn(formData: FormData) {
   try {
     console.log("📝 Add check-in started for:", id);
     
+    // ✅ Evidence endpoint payload
     const payload = {
       type: "check_in",
-      note: "manual check-in",
+      note: "Manual check-in via UI",
       timestamp: new Date().toISOString()
     };
     
-    const endpoints = [
-      `/participants/${id}/evidence`,
-      `/participants/${id}/check-in`,
-      `/evidence/${id}`,
-      `/participants/${id}/add-checkin`
-    ];
+    const result = await apiJSON(`/participants/${id}/evidence`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
     
-    let lastError;
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying check-in endpoint: ${endpoint}`);
-        const result = await apiJSON(endpoint, {
-          method: "POST",
-          body: JSON.stringify(payload),
-        });
-        
-        console.log(`✅ Success adding check-in with endpoint: ${endpoint}`, result);
-        revalidatePath(`/subject/${id}`);
-        return result;
-      } catch (e) {
-        console.log(`❌ Endpoint ${endpoint} failed:`, e instanceof Error ? e.message : e);
-        lastError = e;
-      }
-    }
+    console.log(`✅ Add check-in successful:`, result);
+    revalidatePath(`/subject/${id}`);
+    return result;
     
-    throw lastError || new Error("No check-in endpoint found");
   } catch (error) {
     console.error("🔥 Add check-in failed:", error);
     throw error;
   }
-  }
+}
