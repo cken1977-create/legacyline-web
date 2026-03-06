@@ -8,8 +8,8 @@ import { api } from "../../lib/api";
 type CreateParticipantRequest = {
   first_name: string;
   last_name: string;
-  email?: string;
-  phone?: string;
+  email: string;
+  phone: string;
 };
 
 type CreateParticipantResponse = {
@@ -39,9 +39,9 @@ export default function IntakePage() {
   const [loading, setLoading] = useState(false);
 
   const canSubmit =
-    form.first_name.trim() &&
-    form.last_name.trim() &&
-    (form.email.trim() || form.phone.trim());
+   form.first_name.trim().length > 0 &&
+   form.last_name.trim().length > 0 &&
+  (form.email.trim().length > 0 || form.phone.trim().length > 0);
 
   async function createSubject() {
     if (loading) return;
