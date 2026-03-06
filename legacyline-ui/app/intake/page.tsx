@@ -5,45 +5,79 @@ import { useRouter } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
+type CreateParticipantRequest = {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+};
+
 type CreateParticipantResponse = {
-  // backend currently returns this:
   participant_id?: string;
-
-  // allow older/alternate shapes too:
   id?: string;
-
   subject_number?: number;
   status?: string;
   created_at?: string;
   registry_id?: string;
 };
 
+function normalizePhone(input: string) {
+  return input.replace(/[^\d]/g, "");
+}
+
 export default function IntakePage() {
   const router = useRouter();
+
+  const [form, setForm] = useState<CreateParticipantRequest>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const canSubmit =
+    form.first_name.trim() &&
+    form.last_name.trim() &&
+    (form.email.trim() || form.phone.trim());
+
   async function createSubject() {
     if (loading) return;
+
+    if (!canSubmit) {
+      setMessage(
+        "Enter first + last name and at least one contact method."
+      );
+      return;
+    }
+
     setLoading(true);
-    setMessage("");
 
     try {
+      const payload: CreateParticipantRequest = {
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        email: form.email.trim() || undefined,
+        phone: form.phone ? normalizePhone(form.phone) : undefined,
+      };
+
       const data = await api<CreateParticipantResponse>("/participants", {
         method: "POST",
-        body: JSON.stringify({}),
+        body: JSON.stringify(payload),
       });
 
-      const pid = data?.participant_id || data?.id;
+      const pid = data.participant_id || data.id;
 
-      if (pid) {
-        router.push(`/subject/${pid}`);
+      if (!pid) {
+        setMessage(JSON.stringify(data, null, 2));
         return;
       }
 
-      setMessage(JSON.stringify(data, null, 2));
+      router.push(`/subject/${pid}`);
     } catch (err: any) {
-      setMessage(err?.message || "Error connecting to API");
+      setMessage(err?.message || "Connection error");
     } finally {
       setLoading(false);
     }
@@ -52,39 +86,50 @@ export default function IntakePage() {
   return (
     <Shell>
       <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-        <h2 className="text-2xl font-semibold tracking-tight">Intake</h2>
+        <h2 className="text-2xl font-semibold">Intake</h2>
 
-        <p className="mt-2 text-white/70">
-          Create a subject record and start evidence collection.
-        </p>
+        <div className="mt-6 grid gap-3">
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-            <div className="text-sm font-semibold">Subject Creation</div>
-            <div className="mt-2 text-sm text-white/65">
-              Deterministic subject number + registry ID binding.
-            </div>
-          </div>
+          <input
+            placeholder="First name"
+            value={form.first_name}
+            onChange={(e)=>setForm({...form,first_name:e.target.value})}
+            className="rounded-xl bg-black/40 p-2"
+          />
 
-          <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-            <div className="text-sm font-semibold">Consent + Scope</div>
-            <div className="mt-2 text-sm text-white/65">
-              Consent-based behavioral data. No credit scoring. No lending
-              decisions.
-            </div>
-          </div>
+          <input
+            placeholder="Last name"
+            value={form.last_name}
+            onChange={(e)=>setForm({...form,last_name:e.target.value})}
+            className="rounded-xl bg-black/40 p-2"
+          />
+
+          <input
+            placeholder="Email"
+            value={form.email}
+            onChange={(e)=>setForm({...form,email:e.target.value})}
+            className="rounded-xl bg-black/40 p-2"
+          />
+
+          <input
+            placeholder="Phone"
+            value={form.phone}
+            onChange={(e)=>setForm({...form,phone:e.target.value})}
+            className="rounded-xl bg-black/40 p-2"
+          />
+
         </div>
 
         <button
           onClick={createSubject}
           disabled={loading}
-          className="mt-7 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+          className="mt-6 rounded-xl bg-white px-4 py-2 text-black"
         >
-          {loading ? "Creating…" : "Create Subject"}
+          {loading ? "Creating..." : "Create Subject"}
         </button>
 
         {message && (
-          <pre className="mt-6 rounded-xl bg-black/40 p-4 text-xs text-green-300 whitespace-pre-wrap">
+          <pre className="mt-4 text-green-300 text-xs">
             {message}
           </pre>
         )}
