@@ -212,7 +212,7 @@ export async function recomputeReadiness(formData: FormData) {
   try {
     console.log("🔄 Recompute readiness started for:", id);
     
-    const result = await apiJSON(`/participants/${id}/compute-readiness`, {
+    const result = await apiJSON(`/participants/${id}/readiness/compute`, {
       method: "POST",
       body: JSON.stringify({}),
     });
