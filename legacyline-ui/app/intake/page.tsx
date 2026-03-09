@@ -74,7 +74,7 @@ export default function IntakePage() {
         return;
       }
 
-      router.push(`/subject/${pid}`);
+      router.push(`/intake/${pid}`);
     } catch (err: any) {
       setMessage(err?.message || "Connection error");
     } finally {
