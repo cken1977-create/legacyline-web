@@ -122,7 +122,7 @@ export default function IntakePage() {
           disabled={loading}
           className="mt-6 rounded-xl bg-white px-4 py-2 text-black"
         >
-          {loading ? "Creating..." : "Create Subject"}
+          {loading ? "Getting started..." : "Begin My Intake"}
         </button>
 
         {message && (
