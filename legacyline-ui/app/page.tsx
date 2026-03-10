@@ -127,4 +127,37 @@ export default function HomePage() {
       </footer>
     </main>
   );
+function FeatureLine({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#C8A84B] text-[#1A3A5C]">
+        <span className="text-xl font-bold">✓</span>
+      </div>
+      <p className="text-2xl font-medium leading-tight">{text}</p>
+    </div>
+  );
+}
+
+function InfoCard({ image, title, description }: { image: string; title: string; description: string }) {
+  return (
+    <div className="rounded-2xl border border-[#ece5d8] bg-[#fffdfa] p-8 shadow-sm">
+      <div className="flex justify-center">
+        <Image src={image} alt={title} width={120} height={120} className="h-[120px] w-[120px] object-contain" />
+      </div>
+      <h4 className="mt-6 text-center text-3xl font-semibold leading-tight text-[#1A3A5C]">{title}</h4>
+      <div className="mx-auto mt-4 h-[2px] w-24 bg-[#C8A84B]" />
+      <p className="mt-5 text-center text-lg leading-8 text-[#334866]">{description}</p>
+    </div>
+  );
+}
+
+function FooterCol({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div>
+      <div className="text-xl font-semibold">{title}</div>
+      <div className="mt-4 space-y-2 text-base text-white/80">
+        {items.map((item) => <div key={item}>{item}</div>)}
+      </div>
+    </div>
+  );
 }
