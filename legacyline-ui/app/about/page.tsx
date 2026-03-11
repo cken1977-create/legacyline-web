@@ -88,14 +88,21 @@ export default function AboutPage() {
       </section>
       <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
-          <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4">
             <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
             <div className="text-3xl font-semibold">LEGACYLINE</div>
-          </div>
-          {[["Contact", "info@legacylinehq.com"], ["About", "About"], ["Certification", "Certification"], ["Solutions", "Solutions"]].map(([title, item]) => (
-            <div key={title}>
-              <div className="text-xl font-semibold">{title}</div>
-              <div className="mt-4 text-base text-white/80">{item}</div>
+          </Link>
+          {[
+            { title: "Contact", label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" },
+            { title: "About", label: "About", href: "/about" },
+            { title: "Certification", label: "Certification", href: "/certification" },
+            { title: "Solutions", label: "Solutions", href: "/solutions" },
+          ].map(item => (
+            <div key={item.title}>
+              <div className="text-xl font-semibold">{item.title}</div>
+              <Link href={item.href} className="mt-4 block text-base text-white/80 hover:text-[#C8A84B] transition">
+                {item.label}
+              </Link>
             </div>
           ))}
         </div>
@@ -105,4 +112,4 @@ export default function AboutPage() {
       </footer>
     </main>
   );
-      }
+}
