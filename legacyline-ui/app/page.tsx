@@ -127,6 +127,7 @@ export default function HomePage() {
       </footer>
     </main>
   );
+}
 function FeatureLine({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-4">
