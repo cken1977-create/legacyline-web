@@ -1,27 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
+import Navbar from "./_components/Navbar";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#f6f3ee] text-[#1A3A5C]">
-      {/* HEADER */}
-      <header className="border-b-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
-          <div className="flex items-center gap-4">
-            <Image src="/logo-shield.png" alt="Legacyline" width={52} height={52} className="h-12 w-12 object-contain" />
-            <div className="text-3xl font-semibold tracking-wide">LEGACYLINE</div>
-          </div>
-          <nav className="hidden items-center gap-10 text-sm font-medium md:flex">
-            <Link href="/" className="hover:text-[#C8A84B]">HOME</Link>
-            <Link href="#about" className="hover:text-[#C8A84B]">ABOUT</Link>
-            <Link href="#solutions" className="hover:text-[#C8A84B]">SOLUTIONS</Link>
-            <Link href="#certification" className="hover:text-[#C8A84B]">CERTIFICATION</Link>
-          </nav>
-          <Link href="/intake" className="rounded-2xl bg-[#C8A84B] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
-            LOGIN
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -73,21 +57,9 @@ export default function HomePage() {
             <span className="text-[#C8A84B]">MEASURED. PROVEN.</span>
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <InfoCard
-              image="/logo-columns.png"
-              title="Evaluate Participant Readiness"
-              description="Measure behavioral, housing, employment, and financial readiness."
-            />
-            <InfoCard
-              image="/logo-shield.png"
-              title="Institutional Accountability"
-              description="Assess and certify institutional performance and evaluator standards."
-            />
-            <InfoCard
-              image="/logo-seal.png"
-              title="Readiness Snapshot"
-              description="See readiness across life domains, evidence events, and certified evaluators."
-            />
+            <InfoCard image="/logo-columns.png" title="Evaluate Participant Readiness" description="Measure behavioral, housing, employment, and financial readiness." />
+            <InfoCard image="/logo-shield.png" title="Institutional Accountability" description="Assess and certify institutional performance and evaluator standards." />
+            <InfoCard image="/logo-seal.png" title="Readiness Snapshot" description="See readiness across life domains, evidence events, and certified evaluators." />
           </div>
         </div>
       </section>
@@ -128,6 +100,7 @@ export default function HomePage() {
     </main>
   );
 }
+
 function FeatureLine({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-4">
