@@ -7,7 +7,6 @@ export default function SolutionsPage() {
     <main className="min-h-screen bg-[#f6f3ee] text-[#1A3A5C]">
       <Navbar />
 
-      {/* HERO */}
       <section className="bg-[#1A3A5C] text-white px-6 py-20 md:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <div className="inline-flex items-center gap-2 border border-[#C8A84B]/40 rounded-full px-4 py-1.5 mb-8">
@@ -25,7 +24,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* SOLUTION 1 — Individual */}
       <section className="px-6 py-20 md:px-10">
         <div className="mx-auto max-w-5xl">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -85,7 +83,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* SOLUTION 2 — OBR */}
       <section className="bg-white px-6 py-20 md:px-10 border-y border-[#e6dfd2]">
         <div className="mx-auto max-w-5xl">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -137,7 +134,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* SOLUTION 3 — Corrections */}
       <section className="px-6 py-20 md:px-10">
         <div className="mx-auto max-w-5xl">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -188,7 +184,6 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="bg-[#1A3A5C] text-white px-6 py-20 md:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to get started?</h2>
@@ -200,38 +195,30 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-      <Footer />
+      <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
+        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
+          <Link href="/" className="flex items-center gap-4">
+            <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
+            <div className="text-3xl font-semibold">LEGACYLINE</div>
+          </Link>
+          {[
+            { title: "Contact", label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" },
+            { title: "About", label: "About", href: "/about" },
+            { title: "Certification", label: "Certification", href: "/certification" },
+            { title: "Solutions", label: "Solutions", href: "/solutions" },
+          ].map(item => (
+            <div key={item.title}>
+              <div className="text-xl font-semibold">{item.title}</div>
+              <Link href={item.href} className="mt-4 block text-base text-white/80 hover:text-[#C8A84B] transition">
+                {item.label}
+              </Link>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
+          © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
+        </div>
+      </footer>
     </main>
   );
-}
-
-function Footer() {
-  return (
-    <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
-        <div className="flex items-center gap-4">
-          <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
-          <div className="text-3xl font-semibold">LEGACYLINE</div>
-        </div>
-        <FooterCol title="Contact" items={["info@legacylinehq.com"]} />
-        <FooterCol title="About" items={["About"]} />
-        <FooterCol title="Certification" items={["Certification"]} />
-        <FooterCol title="Solutions" items={["Solutions"]} />
-      </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-        © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
-      </div>
-    </footer>
-  );
-}
-
-function FooterCol({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div>
-      <div className="text-xl font-semibold">{title}</div>
-      <div className="mt-4 space-y-2 text-base text-white/80">
-        {items.map((item) => <div key={item}>{item}</div>)}
-      </div>
-    </div>
-  );
-                    }
+                  }
