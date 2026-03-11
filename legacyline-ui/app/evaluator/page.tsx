@@ -81,7 +81,7 @@ export default function EvaluatorPage() {
   const [selectedId, setSelectedId] = useState<string>("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterValue>("all");
-  const [actionMessage, setActionMessage] = useState("");
+  const [actionMessage, setActionMessage] = useState(false);
 
   async function loadSubmissions() {
     try {
@@ -135,11 +135,48 @@ export default function EvaluatorPage() {
     rows.find((row) => row.id === selectedId) ||
     null;
 
-  function handleAction(name: string) {
-    setActionMessage(
-      `${name} is ready to wire once PATCH /admin/intake-submissions/{id}/status is live.`
+  async function handleAction(
+  status: "approved" | "request_info" | "rejected"
+) {
+  if (!selected) return;
+
+  try {
+    setActionLoading(true);
+    setActionMessage("");
+
+    await api(`/admin/intake-submissions/${selected.id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status,
+        reviewed_by: "Evaluator",
+        review_notes:
+          status === "approved"
+            ? "Approved by evaluator."
+            : status === "request_info"
+            ? "Additional information requested by evaluator."
+            : "Rejected by evaluator.",
+      }),
+    });
+
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === selected.id ? { ...row, status } : row
+      )
     );
+
+    setActionMessage(
+      `Submission ${status.replace("_", " ")} successfully.`
+    );
+
+    await loadSubmissions();
+  } catch (err: any) {
+    setActionMessage(
+      err?.message || "Failed to update submission status."
+    );
+  } finally {
+    setActionLoading(false);
   }
+    }
 
   return (
     <Shell>
