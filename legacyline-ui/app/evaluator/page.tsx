@@ -22,8 +22,6 @@ type IntakeSubmission = {
   employer_name: string;
   monthly_income: string;
   submitted_at: string;
-
-  // optional future fields
   status?: "pending" | "under_review" | "approved" | "request_info" | "rejected";
   gov_id_url?: string;
   selfie_url?: string;
@@ -75,22 +73,38 @@ function DetailRow({
   );
 }
 
+function DocStub({ title }: { title: string }) {
+  return (
+    <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
+      <div className="text-sm font-medium text-white">{title}</div>
+      <div className="mt-2 text-xs text-white/50">
+        Pending document URL wiring
+      </div>
+    </div>
+  );
+}
+
 export default function EvaluatorPage() {
   const [rows, setRows] = useState<IntakeSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string>("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterValue>("all");
-  const [actionMessage, setActionMessage] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   async function loadSubmissions() {
     try {
       setLoading(true);
+      setActionMessage("");
+
       const data = await api<IntakeSubmission[]>("/admin/intake-submissions");
+
       const normalized = (data || []).map((row) => ({
         ...row,
         status: row.status || "pending",
       }));
+
       setRows(normalized);
 
       if (!selectedId && normalized.length > 0) {
@@ -136,47 +150,48 @@ export default function EvaluatorPage() {
     null;
 
   async function handleAction(
-  status: "approved" | "request_info" | "rejected"
-) {
-  if (!selected) return;
+    status: "approved" | "request_info" | "rejected"
+  ) {
+    if (!selected) return;
 
-  try {
-    setActionLoading(true);
-    setActionMessage("");
+    try {
+      setActionLoading(true);
+      setActionMessage("");
 
-    await api(`/admin/intake-submissions/${selected.id}/status`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        status,
-        reviewed_by: "Evaluator",
-        review_notes:
-          status === "approved"
-            ? "Approved by evaluator."
-            : status === "request_info"
-            ? "Additional information requested by evaluator."
-            : "Rejected by evaluator.",
-      }),
-    });
+      await api(`/admin/intake-submissions/${selected.id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status,
+          reviewed_by: "Evaluator",
+          review_notes:
+            status === "approved"
+              ? "Approved by evaluator."
+              : status === "request_info"
+              ? "Additional information requested by evaluator."
+              : "Rejected by evaluator.",
+        }),
+      });
 
-    setRows((prev) =>
-      prev.map((row) =>
-        row.id === selected.id ? { ...row, status } : row
-      )
-    );
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === selected.id ? { ...row, status } : row
+        )
+      );
 
-    setActionMessage(
-      `Submission ${status.replace("_", " ")} successfully.`
-    );
+      setActionMessage(
+        `Submission ${status.replace("_", " ")} successfully.`
+      );
 
-    await loadSubmissions();
-  } catch (err: any) {
-    setActionMessage(
-      err?.message || "Failed to update submission status."
-    );
-  } finally {
-    setActionLoading(false);
-  }
+      await loadSubmissions();
+    } catch (err: any) {
+      console.error(err);
+      setActionMessage(
+        err?.message || "Failed to update submission status."
+      );
+    } finally {
+      setActionLoading(false);
     }
+  }
 
   return (
     <Shell>
@@ -224,7 +239,6 @@ export default function EvaluatorPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
-          {/* LEFT: QUEUE */}
           <div className="rounded-3xl bg-white/5 p-5 ring-1 ring-white/10">
             <div className="flex items-center justify-between">
               <div>
@@ -319,7 +333,6 @@ export default function EvaluatorPage() {
             </div>
           </div>
 
-          {/* RIGHT: DETAIL */}
           <div className="rounded-3xl bg-white/5 p-6 ring-1 ring-white/10">
             {!selected ? (
               <div className="rounded-2xl bg-black/30 p-6 text-sm text-white/60 ring-1 ring-white/10">
@@ -430,34 +443,33 @@ export default function EvaluatorPage() {
                     Evaluator Actions
                   </div>
                   <div className="mt-2 text-sm text-white/55">
-                    These buttons are production-shaped and ready to wire into
-                    the backend status transition endpoint.
+                    Move this submission through the evaluator workflow.
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
-                   <button
-                   onClick={() => handleAction("approved")}
-                   disabled={actionLoading}
-                   className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:opacity-50"
+                    <button
+                      onClick={() => handleAction("approved")}
+                      disabled={actionLoading}
+                      className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:opacity-50"
                     >
-                   {actionLoading ? "Working..." : "Approve"}
-                   </button>
+                      {actionLoading ? "Working..." : "Approve"}
+                    </button>
 
-                   <button
-                   onClick={() => handleAction("request_info")}
-                   disabled={actionLoading}
-                   className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 disabled:opacity-50"
-                   >
-                   {actionLoading ? "Working..." : "Request Info"}
-                   </button>
+                    <button
+                      onClick={() => handleAction("request_info")}
+                      disabled={actionLoading}
+                      className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 disabled:opacity-50"
+                    >
+                      {actionLoading ? "Working..." : "Request Info"}
+                    </button>
 
-                   <button
-                    onClick={() => handleAction("rejected")}
-                    disabled={actionLoading}
-                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
-                       >
-                     {actionLoading ? "Working..." : "Reject"}
-                   </button>
+                    <button
+                      onClick={() => handleAction("rejected")}
+                      disabled={actionLoading}
+                      className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
+                    >
+                      {actionLoading ? "Working..." : "Reject"}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -467,13 +479,4 @@ export default function EvaluatorPage() {
       </div>
     </Shell>
   );
-}
-
-function DocStub({ title }: { title: string }) {
-  return (
-    <div className="rounded-xl bg-white/5 p-4 ring-1 ring-white/10">
-      <div className="text-sm font-medium text-white">{title}</div>
-      <div className="mt-2 text-xs text-white/50">Pending document URL wiring</div>
-    </div>
-  );
-      }
+        }
