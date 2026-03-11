@@ -435,26 +435,29 @@ export default function EvaluatorPage() {
                   </div>
 
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <button
-                      onClick={() => handleAction("Approve")}
-                      className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400"
+                   <button
+                   onClick={() => handleAction("approved")}
+                   disabled={actionLoading}
+                   className="rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-400 disabled:opacity-50"
                     >
-                      Approve
-                    </button>
+                   {actionLoading ? "Working..." : "Approve"}
+                   </button>
 
-                    <button
-                      onClick={() => handleAction("Request Info")}
-                      className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400"
-                    >
-                      Request Info
-                    </button>
+                   <button
+                   onClick={() => handleAction("request_info")}
+                   disabled={actionLoading}
+                   className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-400 disabled:opacity-50"
+                   >
+                   {actionLoading ? "Working..." : "Request Info"}
+                   </button>
 
-                    <button
-                      onClick={() => handleAction("Reject")}
-                      className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400"
-                    >
-                      Reject
-                    </button>
+                   <button
+                    onClick={() => handleAction("rejected")}
+                    disabled={actionLoading}
+                    className="rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-50"
+                       >
+                     {actionLoading ? "Working..." : "Reject"}
+                   </button>
                   </div>
                 </div>
               </div>
