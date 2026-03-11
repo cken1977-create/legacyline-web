@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "./_components/Navbar"
 
 export default function Navbar() {
   return (
