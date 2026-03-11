@@ -28,14 +28,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="relative z-10 flex justify-center md:justify-end">
-            <Image
-              src="/legacyline_laptop_mockup.png"
-              alt="Legacyline dashboard"
-              width={560}
-              height={560}
-              className="w-full max-w-[540px] object-contain drop-shadow-2xl"
-              priority
-            />
+            <Image src="/legacyline_laptop_mockup.png" alt="Legacyline dashboard" width={560} height={560} className="w-full max-w-[540px] object-contain drop-shadow-2xl" priority />
           </div>
         </div>
       </section>
@@ -43,23 +36,23 @@ export default function HomePage() {
       {/* FEATURE STRIP */}
       <section className="mx-auto max-w-7xl px-6 py-4 md:px-10">
         <div className="grid gap-8 border-y border-[#1A3A5C]/10 py-8 text-[#1A3A5C] md:grid-cols-3">
-          <FeatureLine text="Evaluate Participant Readiness" />
-          <FeatureLine text="Institutional Accountability" />
-          <FeatureLine text="Certify Evaluator Standards" />
+          <FeatureLine text="Evaluate Participant Readiness" href="/solutions" />
+          <FeatureLine text="Institutional Accountability" href="/solutions" />
+          <FeatureLine text="Certify Evaluator Standards" href="/certification" />
         </div>
       </section>
 
       {/* CARDS */}
-      <section id="solutions" className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
+      <section className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
         <div className="rounded-[28px] border border-[#e6dfd2] bg-white/90 p-8 shadow-[0_10px_30px_rgba(26,58,92,0.08)] md:p-10">
           <h2 className="text-center text-3xl font-semibold tracking-[0.12em] md:text-4xl">
             <span className="text-[#1A3A5C]">READINESS.</span>{" "}
             <span className="text-[#C8A84B]">MEASURED. PROVEN.</span>
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <InfoCard image="/logo-columns.png" title="Evaluate Participant Readiness" description="Measure behavioral, housing, employment, and financial readiness." />
-            <InfoCard image="/logo-shield.png" title="Institutional Accountability" description="Assess and certify institutional performance and evaluator standards." />
-            <InfoCard image="/logo-seal.png" title="Readiness Snapshot" description="See readiness across life domains, evidence events, and certified evaluators." />
+            <InfoCard image="/logo-columns.png" title="Evaluate Participant Readiness" description="Measure behavioral, housing, employment, and financial readiness." href="/solutions" />
+            <InfoCard image="/logo-shield.png" title="Institutional Accountability" description="Assess and certify institutional performance and evaluator standards." href="/solutions" />
+            <InfoCard image="/logo-seal.png" title="Readiness Snapshot" description="See readiness across life domains, evidence events, and certified evaluators." href="/certification" />
           </div>
         </div>
       </section>
@@ -84,14 +77,14 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
-          <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4">
             <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
             <div className="text-3xl font-semibold">LEGACYLINE</div>
-          </div>
-          <FooterCol title="Contact" items={["info@legacylinehq.com"]} />
-          <FooterCol title="About" items={["About"]} />
-          <FooterCol title="Certification" items={["Certification"]} />
-          <FooterCol title="Solutions" items={["Solutions"]} />
+          </Link>
+          <FooterCol title="Contact" items={[{ label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" }]} />
+          <FooterCol title="About" items={[{ label: "About", href: "/about" }]} />
+          <FooterCol title="Certification" items={[{ label: "Certification", href: "/certification" }]} />
+          <FooterCol title="Solutions" items={[{ label: "Solutions", href: "/solutions" }]} />
         </div>
         <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
           © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
@@ -101,36 +94,40 @@ export default function HomePage() {
   );
 }
 
-function FeatureLine({ text }: { text: string }) {
+function FeatureLine({ text, href }: { text: string; href: string }) {
   return (
-    <div className="flex items-start gap-4">
+    <Link href={href} className="flex items-start gap-4 hover:opacity-80 transition">
       <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#C8A84B] text-[#1A3A5C]">
         <span className="text-xl font-bold">✓</span>
       </div>
       <p className="text-2xl font-medium leading-tight">{text}</p>
-    </div>
+    </Link>
   );
 }
 
-function InfoCard({ image, title, description }: { image: string; title: string; description: string }) {
+function InfoCard({ image, title, description, href }: { image: string; title: string; description: string; href: string }) {
   return (
-    <div className="rounded-2xl border border-[#ece5d8] bg-[#fffdfa] p-8 shadow-sm">
+    <Link href={href} className="block rounded-2xl border border-[#ece5d8] bg-[#fffdfa] p-8 shadow-sm hover:border-[#C8A84B]/40 transition">
       <div className="flex justify-center">
         <Image src={image} alt={title} width={120} height={120} className="h-[120px] w-[120px] object-contain" />
       </div>
       <h4 className="mt-6 text-center text-3xl font-semibold leading-tight text-[#1A3A5C]">{title}</h4>
       <div className="mx-auto mt-4 h-[2px] w-24 bg-[#C8A84B]" />
       <p className="mt-5 text-center text-lg leading-8 text-[#334866]">{description}</p>
-    </div>
+    </Link>
   );
 }
 
-function FooterCol({ title, items }: { title: string; items: string[] }) {
+function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
     <div>
       <div className="text-xl font-semibold">{title}</div>
       <div className="mt-4 space-y-2 text-base text-white/80">
-        {items.map((item) => <div key={item}>{item}</div>)}
+        {items.map((item) => (
+          <Link key={item.label} href={item.href} className="block hover:text-[#C8A84B] transition">
+            {item.label}
+          </Link>
+        ))}
       </div>
     </div>
   );
