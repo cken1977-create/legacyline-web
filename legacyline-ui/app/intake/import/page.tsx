@@ -5,11 +5,22 @@ import Shell from "../../_components/Shell";
 
 export default function IntakeImportPage() {
   const [fileName, setFileName] = useState("");
+  const [csvText, setCsvText] = useState("");
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result;
+      if (typeof text === "string") {
+        setCsvText(text);
+      }
+    };
+    reader.readAsText(file);
   }
 
   return (
@@ -34,6 +45,12 @@ export default function IntakeImportPage() {
           <div className="mt-4 text-green-300 text-sm">
             Selected file: {fileName}
           </div>
+        )}
+
+        {csvText && (
+          <pre className="mt-4 max-h-64 overflow-auto rounded-xl bg-black/40 p-4 text-xs text-white/80">
+            {csvText}
+          </pre>
         )}
       </div>
     </Shell>
