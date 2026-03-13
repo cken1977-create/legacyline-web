@@ -147,25 +147,16 @@ export default function IntakeImportPage() {
     setLoading(true);
     setMessage("");
 
-    let success = 0;
-    let failed = 0;
-
     try {
-      for (const row of validRows) {
-        try {
-          await api("/participants", {
-            method: "POST",
-            body: JSON.stringify(row),
-          });
-          success++;
-        } catch {
-          failed++;
-        }
-      }
+     const result = await api<{ imported: number; failed: number; total: number }>("/participants/import", {
+     method: "POST",
+     body: JSON.stringify(validRows),
+    });
 
-      setMessage(
-        `Import complete. Successful: ${success}. Failed: ${failed}. Invalid rows skipped: ${invalidRows.length}.`
-      );
+     setMessage(
+    `Import complete. Imported: ${result.imported}. Failed: ${result.failed}. Invalid rows skipped: ${invalidRows.length}.`
+     );
+    }
     } catch (err: any) {
       setMessage(err?.message || "Import failed.");
     } finally {
