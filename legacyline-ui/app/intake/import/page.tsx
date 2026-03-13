@@ -138,30 +138,32 @@ export default function IntakeImportPage() {
   );
 
   async function handleImport() {
-    if (loading) return;
-    if (validRows.length === 0) {
-      setMessage("No valid rows found. CSV must include first_name, last_name, and dob.");
-      return;
-    }
+  if (loading) return;
+  if (validRows.length === 0) {
+    setMessage("No valid rows found. CSV must include first_name, last_name, and dob.");
+    return;
+  }
 
-    setLoading(true);
-    setMessage("");
+  setLoading(true);
+  setMessage("");
 
-    try {
-     const result = await api<{ imported: number; failed: number; total: number }>("/participants/import", {
-     method: "POST",
-     body: JSON.stringify(validRows),
-    });
+  try {
+    const result = await api<{ imported: number; failed: number; total: number }>(
+      "/participants/import",
+      {
+        method: "POST",
+        body: JSON.stringify(validRows),
+      }
+    );
 
-     setMessage(
-    `Import complete. Imported: ${result.imported}. Failed: ${result.failed}. Invalid rows skipped: ${invalidRows.length}.`
-     );
-    }
-    } catch (err: any) {
-      setMessage(err?.message || "Import failed.");
-    } finally {
-      setLoading(false);
-    }
+    setMessage(
+      `Import complete. Imported: ${result.imported}. Failed: ${result.failed}. Invalid rows skipped: ${invalidRows.length}.`
+    );
+  } catch (err: any) {
+    setMessage(err?.message || "Import failed.");
+  } finally {
+    setLoading(false);
+  }
   }
 
   return (
