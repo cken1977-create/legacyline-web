@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Shell from "../../_components/Shell";
-import { api } from "../../lib/api";
+import { api } from "../../../lib/api";
 
 type CsvRow = Record<string, string>;
 
