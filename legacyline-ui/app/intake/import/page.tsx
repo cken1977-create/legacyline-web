@@ -148,7 +148,7 @@ export default function IntakeImportPage() {
   setMessage("");
 
   try {
-    const result = await api<{ imported: number; failed: number; total: number }>(
+    const result = await api<{ imported: number; failed: number; total: number; first_error?: string }>(
       "/participants/import",
       {
         method: "POST",
@@ -157,8 +157,8 @@ export default function IntakeImportPage() {
     );
 
     setMessage(
-      `Import complete. Imported: ${result.imported}. Failed: ${result.failed}. Invalid rows skipped: ${invalidRows.length}.`
-    );
+  `Import complete. Imported: ${result.imported}. Failed: ${result.failed}. Invalid rows skipped: ${invalidRows.length}.${result.first_error ? ` First error: ${result.first_error}` : ""}`
+);
   } catch (err: any) {
     setMessage(err?.message || "Import failed.");
   } finally {
