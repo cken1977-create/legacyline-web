@@ -19,7 +19,23 @@ async function getParticipants(): Promise<Participant[]> {
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return data.submissions ?? data ?? [];
+    const all = data.submissions ?? data ?? [];
+    
+    // Only show valid BRSA lifecycle participants
+    const validStatuses = [
+      "registered",
+      "data_collecting", 
+      "under_review",
+      "evaluated",
+      "certified",
+      "revoked"
+    ];
+    
+    return all.filter((p: Participant) => 
+      validStatuses.includes(p.status) && 
+      p.first_name && 
+      p.first_name.trim() !== ""
+    );
   } catch {
     return [];
   }
