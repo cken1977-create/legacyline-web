@@ -3,6 +3,7 @@ import ConsentPanel from "./components/panels/ConsentPanel";
 import ReadinessPanel from "./components/panels/ReadinessPanel";
 import EvidencePanel from "./components/panels/EvidencePanel";
 import StateHistoryPanel from "./components/panels/StateHistoryPanel";
+import StateTransitionPanel from "./components/panels/StateTransitionPanel";
 import { UnifiedTimeline } from "./components/timeline/UnifiedTimeline";
 
 import {
@@ -15,6 +16,7 @@ import {
   revokeConsent,
   recomputeReadiness,
   addCheckIn,
+  transitionState,
 } from "./actions";
 
 type TimelineKind = "consent" | "evidence" | "readiness" | "state";
@@ -104,6 +106,11 @@ export default async function SubjectPage({
     await addCheckIn(formData);
   };
 
+  const handleTransition = async (to: string, reason: string) => {
+    "use server";
+    await transitionState(subjectId, to, reason);
+  };
+
   return (
     <Shell>
       <div className="space-y-6">
@@ -148,6 +155,13 @@ export default async function SubjectPage({
             </div>
           </div>
         </div>
+
+        {/* Evaluator Actions — full width */}
+        <StateTransitionPanel
+          currentStatus={status}
+          subjectId={subjectId}
+          onTransition={handleTransition}
+        />
 
         {/* Panels Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
