@@ -1,3 +1,4 @@
+import Shell from "../../_components/Shell";
 import ConsentPanel from "./components/panels/ConsentPanel";
 import ReadinessPanel from "./components/panels/ReadinessPanel";
 import EvidencePanel from "./components/panels/EvidencePanel";
@@ -27,13 +28,21 @@ export type TimelineEvent = {
   meta?: string;
 };
 
+const STATUS_MAP: Record<string, { label: string; classes: string }> = {
+  registered: { label: "Registered", classes: "bg-blue-500/15 text-blue-400 ring-blue-500/25" },
+  data_collecting: { label: "Data Collection", classes: "bg-yellow-500/15 text-yellow-400 ring-yellow-500/25" },
+  under_review: { label: "Under Review", classes: "bg-orange-500/15 text-orange-400 ring-orange-500/25" },
+  evaluated: { label: "Evaluated", classes: "bg-purple-500/15 text-purple-400 ring-purple-500/25" },
+  certified: { label: "Certified", classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
+  revoked: { label: "Revoked", classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
+};
+
 export default async function SubjectPage({
   params,
 }: {
   params: Promise<{ participant_id: string }>;
 }) {
   const { participant_id: id } = await params;
-  
   const subjectId = id;
 
   const [subject, consent, readiness, evidence, stateHistory] =
@@ -45,6 +54,16 @@ export default async function SubjectPage({
       getStateHistory(subjectId).catch(() => ({ entries: [], timeline: [] })),
     ]);
 
+  const s = subject as any;
+  const fullName = s?.first_name && s?.last_name
+    ? `${s.first_name} ${s.last_name}`
+    : s?.first_name ?? "Unknown Participant";
+  const status = s?.status ?? "registered";
+  const statusConfig = STATUS_MAP[status] ?? { label: status, classes: "bg-white/10 text-white/60 ring-white/10" };
+  const org = s?.organization ?? "—";
+  const dob = s?.dob ?? s?.date_of_birth ?? null;
+  const subjectNumber = s?.subject_number ?? null;
+
   const timelineEvents: TimelineEvent[] = [
     ...((consent as any)?.timeline ?? []),
     ...((evidence as any)?.timeline ?? []),
@@ -54,20 +73,13 @@ export default async function SubjectPage({
     .map((ev: any, idx: number) => ({
       id: String(ev?.id ?? `${ev?.kind ?? "event"}-${idx}`),
       kind: (ev?.kind ?? "state") as TimelineKind,
-      occurred_at: String(
-        ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()
-      ),
+      occurred_at: String(ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()),
       label: String(ev?.label ?? ev?.type ?? "Event"),
       actor: ev?.actor ? String(ev.actor) : undefined,
       meta: ev?.meta ? String(ev.meta) : undefined,
     }))
-    .sort(
-      (a, b) =>
-        new Date(b.occurred_at).getTime() -
-        new Date(a.occurred_at).getTime()
-    );
+    .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
 
-  // Create wrapper functions that return Promise<void> as expected by the panels
   const handleGrantAction = async (formData: FormData) => {
     "use server";
     formData.append("subjectId", subjectId);
@@ -93,37 +105,77 @@ export default async function SubjectPage({
   };
 
   return (
-    <main className="mx-auto max-w-6xl space-y-8 p-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-white">
-        Subject: {(subject as any)?.label || id}
-      </h1>
+    <Shell>
+      <div className="space-y-6">
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <ConsentPanel
-          consent={consent as any}
-          subjectId={subjectId}
-          grantAction={handleGrantAction}
-          revokeAction={handleRevokeAction}
-        />
+        {/* Participant Identity Block */}
+        <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/40">
+                Participant Profile
+              </p>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white">
+                {fullName}
+              </h1>
+              <p className="mt-1 text-sm text-white/55">
+                {org.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+              </p>
+            </div>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusConfig.classes}`}>
+              {statusConfig.label}
+            </span>
+          </div>
 
-        <EvidencePanel
-          events={((evidence as any)?.events ?? []) as any[]}
-          subjectId={subjectId}
-          addCheckInAction={handleAddCheckInAction}
-        />
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
+              <div className="text-xs text-white/50">Subject Number</div>
+              <div className="mt-1 font-mono text-lg font-semibold text-[#C8A84B]">
+                {subjectNumber ?? "—"}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
+              <div className="text-xs text-white/50">Date of Birth</div>
+              <div className="mt-1 text-lg font-semibold text-white">
+                {dob ?? "—"}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
+              <div className="text-xs text-white/50">Participant ID</div>
+              <div className="mt-1 font-mono text-xs text-white/60 break-all">
+                {subjectId}
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <ReadinessPanel
-          readiness={readiness as any}
-          subjectId={subjectId}
-          recomputeAction={handleRecomputeAction}
-        />
+        {/* Panels Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <ConsentPanel
+            consent={consent as any}
+            subjectId={subjectId}
+            grantAction={handleGrantAction}
+            revokeAction={handleRevokeAction}
+          />
+          <EvidencePanel
+            events={((evidence as any)?.events ?? []) as any[]}
+            subjectId={subjectId}
+            addCheckInAction={handleAddCheckInAction}
+          />
+          <ReadinessPanel
+            readiness={readiness as any}
+            subjectId={subjectId}
+            recomputeAction={handleRecomputeAction}
+          />
+          <StateHistoryPanel
+            entries={((stateHistory as any)?.entries ?? []) as any[]}
+          />
+        </div>
 
-        <StateHistoryPanel
-          entries={((stateHistory as any)?.entries ?? []) as any[]}
-        />
+        {/* Unified Timeline */}
+        <UnifiedTimeline events={timelineEvents} />
+
       </div>
-
-      <UnifiedTimeline events={timelineEvents} />
-    </main>
+    </Shell>
   );
 }
