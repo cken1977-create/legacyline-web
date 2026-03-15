@@ -164,6 +164,7 @@ function Dashboard({ participants, evaluator, onNav, onOpenProfile }: {
 }
 
 function DecisionQueue({ participants, onOpenProfile }: {
+function DecisionQueue({ participants, onOpenProfile }: {
   participants: Participant[];
   onOpenProfile: (p: Participant) => void;
 }) {
@@ -178,56 +179,82 @@ function DecisionQueue({ participants, onOpenProfile }: {
   });
 
   return (
-    <div style={{ padding: "28px 32px", maxWidth: 1080, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>Decision Queue</div>
-          <div style={{ fontSize: 13, color: C.gray, marginTop: 4 }}>{filtered.length} case{filtered.length !== 1 ? "s" : ""}</div>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or ID..."
-            style={{ padding: "7px 12px", borderRadius: 4, fontSize: 12, background: C.navyDeep, border: `1px solid ${C.surfaceHi}`, color: C.white, outline: "none", width: 200 }} />
+    <div style={{ padding: "24px 16px", maxWidth: 1080, margin: "0 auto" }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>Decision Queue</div>
+        <div style={{ fontSize: 13, color: C.gray, marginTop: 4 }}>{filtered.length} case{filtered.length !== 1 ? "s" : ""}</div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search name or ID..."
+          style={{ padding: "10px 14px", borderRadius: 6, fontSize: 13, background: C.navyDeep, border: `1px solid ${C.surfaceHi}`, color: C.white, outline: "none", width: "100%" }}
+        />
+        <div style={{ display: "flex", gap: 8 }}>
           {["under_review", "data_collecting", "all"].map((f) => (
-            <button key={f} onClick={() => setFilter(f)} style={{ padding: "6px 14px", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", background: filter === f ? C.gold : "none", color: filter === f ? C.navyDeep : C.gray, border: `1px solid ${filter === f ? C.gold : C.surfaceHi}` }}>
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{ flex: 1, padding: "8px 6px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", background: filter === f ? C.gold : "none", color: filter === f ? C.navyDeep : C.gray, border: `1px solid ${filter === f ? C.gold : C.surfaceHi}` }}
+            >
               {f === "under_review" ? "Needs Action" : f === "data_collecting" ? "Collecting" : "All"}
             </button>
           ))}
         </div>
       </div>
-      <div style={{ background: C.surface, border: `1px solid ${C.surfaceHi}`, borderRadius: 8, overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "160px 1fr 140px 160px 110px 110px", padding: "10px 20px", background: C.navyDeep, borderBottom: `1px solid ${C.surfaceHi}` }}>
-          {["Registry ID", "Name", "State", "Organization", "Last Updated", ""].map((h) => (
-            <div key={h} style={{ fontSize: 10, fontWeight: 700, color: C.gray, letterSpacing: "0.1em", textTransform: "uppercase" }}>{h}</div>
-          ))}
+
+      {filtered.length === 0 && (
+        <div style={{ padding: "40px 20px", textAlign: "center", color: C.gray, fontSize: 13, background: C.surface, borderRadius: 8, border: `1px solid ${C.surfaceHi}` }}>
+          No cases match the current filter.
         </div>
-        {filtered.length === 0 && <div style={{ padding: "40px 20px", textAlign: "center", color: C.gray, fontSize: 13 }}>No cases match the current filter.</div>}
-        {filtered.map((p, i) => (
-          <div key={p.id}
-            style={{ display: "grid", gridTemplateColumns: "160px 1fr 140px 160px 110px 110px", padding: "13px 20px", alignItems: "center", borderBottom: i < filtered.length - 1 ? `1px solid ${C.surfaceHi}` : "none" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = C.surfaceHi)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-            <div style={{ fontSize: 11, color: C.gold, fontFamily: "monospace", fontWeight: 600 }}>{p.registry_id || "—"}</div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: C.white }}>{p.first_name} {p.last_name}</div>
-              <div style={{ fontSize: 10, color: C.gray }}>{p.id}</div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {filtered.map((p) => (
+          <div
+            key={p.id}
+            onClick={() => onOpenProfile(p)}
+            style={{ background: C.surface, border: `1px solid ${C.surfaceHi}`, borderRadius: 8, padding: "16px", cursor: "pointer" }}
+            onMouseEnter={(e) => (e.currentTarget.style.border = `1px solid ${C.gold}55`)}
+            onMouseLeave={(e) => (e.currentTarget.style.border = `1px solid ${C.surfaceHi}`)}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.white }}>
+                  {p.first_name} {p.last_name}
+                </div>
+                <div style={{ fontSize: 10, color: C.gold, fontFamily: "monospace", marginTop: 2 }}>
+                  {p.registry_id || "Registry ID pending"}
+                </div>
+              </div>
+              <StateBadge state={p.status} />
             </div>
-            <div><StateBadge state={p.status} /></div>
-            <div style={{ fontSize: 11, color: C.grayLight }}>{p.organization || "—"}</div>
-            <div style={{ fontSize: 11, color: C.gray }}>{relativeTime(p.created_at)}</div>
-            <div>
-              <button onClick={() => onOpenProfile(p)}
-                style={{ padding: "5px 12px", borderRadius: 4, fontSize: 11, fontWeight: 700, cursor: "pointer", background: "none", color: C.gold, border: `1px solid ${C.gold}55` }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = C.gold; e.currentTarget.style.color = C.navyDeep; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = C.gold; }}>
-                Open Case
-              </button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 10, color: C.gray, textTransform: "uppercase", letterSpacing: "0.07em" }}>Organization</div>
+                <div style={{ fontSize: 12, color: C.grayLight, marginTop: 2 }}>{p.organization || "—"}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: C.gray, textTransform: "uppercase", letterSpacing: "0.07em" }}>Last Updated</div>
+                <div style={{ fontSize: 12, color: C.grayLight, marginTop: 2 }}>{relativeTime(p.created_at)}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: C.gray, textTransform: "uppercase", letterSpacing: "0.07em" }}>Participant ID</div>
+                <div style={{ fontSize: 11, color: C.gray, marginTop: 2, fontFamily: "monospace" }}>{p.id}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <div style={{ fontSize: 11, color: C.gold, fontWeight: 600 }}>Tap to open →</div>
+              </div>
             </div>
           </div>
         ))}
       </div>
     </div>
-  );
+   );
   }
+
   function ParticipantProfile({ participant, onBack, actorEmail }: {
   participant: Participant;
   onBack: () => void;
