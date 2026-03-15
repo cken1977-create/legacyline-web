@@ -152,7 +152,7 @@ export default function IndividualSignupPage() {
              <button
                type="button"
                onClick={() => setShowConfirmPassword((prev) => !prev)}
-               className="absolute inset-y-0 right-3 text-sm font-medium text-[#C8A84B]"
+               className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
             >
              {showConfirmPassword ? "Hide" : "Show"}
             </button>
