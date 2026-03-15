@@ -164,7 +164,6 @@ function Dashboard({ participants, evaluator, onNav, onOpenProfile }: {
 }
 
 function DecisionQueue({ participants, onOpenProfile }: {
-function DecisionQueue({ participants, onOpenProfile }: {
   participants: Participant[];
   onOpenProfile: (p: Participant) => void;
 }) {
