@@ -324,7 +324,7 @@ function DecisionQueue({ participants, onOpenProfile }: {
       <button onClick={onBack} style={{ background: "none", border: "none", color: C.gray, cursor: "pointer", fontSize: 12, padding: 0, marginBottom: 16 }}>
         ← Back to Queue
       </button>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 18, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "var(--profile-cols, 1fr)", gap: 18, alignItems: "start" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -519,6 +519,7 @@ export default function EvaluatorPage() {
           * { box-sizing: border-box; }
           textarea::placeholder { color: #8899AA; }
           input::placeholder { color: #8899AA; }
+          @media (min-width: 768px) { :root { --profile-cols: 1fr 320px; } }
         `}</style>
         <EvaluatorHeader evaluator={evaluator} activeView={view} onNav={handleNav} />
         {loading && <div style={{ padding: 40, textAlign: "center", color: "#8899AA", fontSize: 13 }}>Loading participants...</div>}
