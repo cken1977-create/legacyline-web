@@ -7,6 +7,7 @@ export default function IndividualLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -62,18 +63,27 @@ export default function IndividualLoginPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Password
-              </label>
+             <label className="mb-1.5 block text-xs font-medium text-white/60">
+              Password
+            </label>
+             <div className="relative">
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+               type={showPassword ? "text" : "password"}
+               value={password}
+               onChange={(e) => setPassword(e.target.value)}
+               placeholder="••••••••"
                 required
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
+               className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+             />
+              <button
+               type="button"
+               onClick={() => setShowPassword((prev) => !prev)}
+               className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
+            >
+             {showPassword ? "Hide" : "Show"}
+            </button>
+           </div>
+          </div>
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 
