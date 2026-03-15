@@ -114,32 +114,50 @@ export default function IndividualSignupPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Password
+             <label className="mb-1.5 block text-xs font-medium text-white/60">
+              Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password"
-                required
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
+              <div className="relative">
+             <input
+               type={showPassword ? "text" : "password"}
+               value={password}
+               onChange={(e) => setPassword(e.target.value)}
+               placeholder="Create a password"
+               required
+               className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+             />
+              <button
+               type="button"
+               onClick={() => setShowPassword((prev) => !prev)}
+               className="absolute inset-y-0 right-3 text-sm font-medium text-[#C8A84B]"
+             >
+              {showPassword ? "Hide" : "Show"}
+              </button>
             </div>
+          </div>
 
             <div>
               <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your password"
-                required
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
+               Confirm Password
+             </label>
+          <div className="relative">
+             <input
+               type={showConfirmPassword ? "text" : "password"}
+               value={confirmPassword}
+               onChange={(e) => setConfirmPassword(e.target.value)}
+               placeholder="Confirm your password"
+               required
+               className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+           />
+             <button
+               type="button"
+               onClick={() => setShowConfirmPassword((prev) => !prev)}
+               className="absolute inset-y-0 right-3 text-sm font-medium text-[#C8A84B]"
+            >
+             {showConfirmPassword ? "Hide" : "Show"}
+            </button>
+          </div>
+        </div>
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 
