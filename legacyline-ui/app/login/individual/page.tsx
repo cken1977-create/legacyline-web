@@ -22,7 +22,7 @@ export default function IndividualLoginPage() {
     });
 
     if (res.ok) {
-      router.push("/dashboard/individual");
+      router.push("/about");
     } else {
       setError("Invalid credentials. Please try again.");
       setLoading(false);
