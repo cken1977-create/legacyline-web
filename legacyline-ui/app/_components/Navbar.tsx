@@ -17,7 +17,7 @@ export default function Navbar() {
           <Link href="/certification" className="hover:text-[#C8A84B] transition">CERTIFICATION</Link>
         </nav>
 
-        <Link href="/intake" className="rounded-2xl bg-[#C8A84B] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
+        <Link href="/login" className="rounded-2xl bg-[#C8A84B] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">
           LOGIN
         </Link>
       </div>
