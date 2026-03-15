@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { email, password } = body;
 
     // Temporary test login
-    if (email === "test@legacyline.com" && password === "password123") {
+    if (email === "test@legacyline.com" && password === "Legacylinetest2026") {
       return NextResponse.json({ success: true }, { status: 200 });
     }
 
