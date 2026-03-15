@@ -18,11 +18,23 @@ export async function POST(req: Request) {
     });
 
     const text = await res.text();
-    const data = text ? JSON.parse(text) : null;
+
+    let data: any = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = null;
+    }
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: data?.error || data?.message || "Unable to create account." },
+        {
+          error:
+            data?.error ||
+            data?.message ||
+            text ||
+            "Unable to create account.",
+        },
         { status: res.status }
       );
     }
@@ -45,9 +57,11 @@ export async function POST(req: Request) {
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
-      { error: "Unable to create account." },
+      {
+        error: error?.message || "Unable to create account.",
+      },
       { status: 500 }
     );
   }
