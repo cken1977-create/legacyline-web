@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PROTECTED = ["/dashboard", ];
+const PROTECTED = ["/dashboard"];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -9,7 +9,9 @@ export function proxy(req: NextRequest) {
   if (!isProtected) return NextResponse.next();
 
   const org = req.cookies.get("ll_org")?.value;
-  if (!org) {
+  const user = req.cookies.get("ll_user")?.value;
+
+  if (!org && !user) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);
@@ -19,5 +21,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*" ],
+  matcher: ["/dashboard/:path*"],
 };
