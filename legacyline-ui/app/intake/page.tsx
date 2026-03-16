@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
@@ -28,6 +28,7 @@ function normalizePhone(input: string) {
 
 export default function IntakePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [form, setForm] = useState<CreateParticipantRequest>({
     first_name: "",
@@ -39,6 +40,21 @@ export default function IntakePage() {
 
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Pre-fill from signup params
+  useEffect(() => {
+    const first = searchParams.get("first_name");
+    const last = searchParams.get("last_name");
+    const em = searchParams.get("email");
+    if (first || last || em) {
+      setForm((prev) => ({
+        ...prev,
+        first_name: first || prev.first_name,
+        last_name: last || prev.last_name,
+        email: em || prev.email,
+      }));
+    }
+  }, [searchParams]);
 
   const canSubmit =
     form.first_name.trim().length > 0 &&
@@ -89,7 +105,9 @@ export default function IntakePage() {
     <Shell>
       <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
         <h2 className="text-2xl font-semibold tracking-tight">Begin Your Intake</h2>
-        <p className="mt-2 text-sm text-white/60">Enter your information to get started with your readiness assessment.</p>
+        <p className="mt-2 text-sm text-white/60">
+          Enter your information to get started with your readiness assessment.
+        </p>
 
         <div className="mt-6 grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -162,4 +180,4 @@ export default function IntakePage() {
       </div>
     </Shell>
   );
-            }
+              }
