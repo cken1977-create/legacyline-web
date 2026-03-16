@@ -40,9 +40,15 @@ export default function IndividualSignupPage() {
     });
 
     if (res.ok) {
-      router.push("/intake");
-      return;
-    }
+      const data = await res.json().catch(() => null);
+      const params = new URLSearchParams({
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+   });
+   router.push(`/intake?${params.toString()}`);
+   return;
+  }
 
     const data = await res.json().catch(() => null);
     setError(data?.error || "Unable to create account.");
