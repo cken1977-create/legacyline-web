@@ -134,7 +134,7 @@ export default async function SubjectPage({
             </span>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
             <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
               <div className="text-xs text-white/50">Subject Number</div>
               <div className="mt-1 font-mono text-lg font-semibold text-[#C8A84B]">
