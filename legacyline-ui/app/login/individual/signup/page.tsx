@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 export default function IndividualSignupPage() {
   const router = useRouter();
 
-  const [firstname, setFirstName] = useState("");
-  const [lastname, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -30,12 +30,10 @@ export default function IndividualSignupPage() {
 
     const res = await fetch("/api/auth/signup/individual", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        firstName,
-        lastName,
+        first_name: firstName,
+        last_name: lastName,
         email,
         password,
       }),
@@ -71,9 +69,7 @@ export default function IndividualSignupPage() {
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">
-                  First Name
-                </label>
+                <label className="mb-1.5 block text-xs font-medium text-white/60">First Name</label>
                 <input
                   type="text"
                   value={firstName}
@@ -83,11 +79,8 @@ export default function IndividualSignupPage() {
                   className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
                 />
               </div>
-
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">
-                  Last Name
-                </label>
+                <label className="mb-1.5 block text-xs font-medium text-white/60">Last Name</label>
                 <input
                   type="text"
                   value={lastName}
@@ -100,9 +93,7 @@ export default function IndividualSignupPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Email
-              </label>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Email</label>
               <input
                 type="email"
                 value={email}
@@ -114,50 +105,46 @@ export default function IndividualSignupPage() {
             </div>
 
             <div>
-             <label className="mb-1.5 block text-xs font-medium text-white/60">
-              Password
-              </label>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Password</label>
               <div className="relative">
-             <input
-               type={showPassword ? "text" : "password"}
-               value={password}
-               onChange={(e) => setPassword(e.target.value)}
-               placeholder="Create a password"
-               required
-               className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-             />
-              <button
-               type="button"
-               onClick={() => setShowPassword((prev) => !prev)}
-               className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
-             >
-              {showPassword ? "Hide" : "Show"}
-              </button>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
-          </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-               Confirm Password
-             </label>
-          <div className="relative">
-             <input
-               type={showConfirmPassword ? "text" : "password"}
-               value={confirmPassword}
-               onChange={(e) => setConfirmPassword(e.target.value)}
-               placeholder="Confirm your password"
-               required
-               className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-           />
-             <button
-               type="button"
-               onClick={() => setShowConfirmPassword((prev) => !prev)}
-               className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
-            >
-             {showConfirmPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-        </div>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 
@@ -172,10 +159,7 @@ export default function IndividualSignupPage() {
 
           <p className="mt-6 text-center text-sm text-white/50">
             Already have an account?{" "}
-            <Link
-              href="/login/individual"
-              className="text-[#C8A84B] hover:underline"
-            >
+            <Link href="/login/individual" className="text-[#C8A84B] hover:underline">
               Sign in
             </Link>
           </p>
@@ -187,4 +171,4 @@ export default function IndividualSignupPage() {
       </div>
     </div>
   );
-                  }
+                }
