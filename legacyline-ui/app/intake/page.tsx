@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
@@ -26,7 +26,7 @@ function normalizePhone(input: string) {
   return input.replace(/[^\d]/g, "");
 }
 
-export default function IntakePage() {
+function IntakeForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -41,7 +41,6 @@ export default function IntakePage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Pre-fill from signup params
   useEffect(() => {
     const first = searchParams.get("first_name");
     const last = searchParams.get("last_name");
@@ -179,5 +178,13 @@ export default function IntakePage() {
         </button>
       </div>
     </Shell>
+  );
+}
+
+export default function IntakePage() {
+  return (
+    <Suspense fallback={null}>
+      <IntakeForm />
+    </Suspense>
   );
               }
