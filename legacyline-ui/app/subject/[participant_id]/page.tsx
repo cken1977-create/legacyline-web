@@ -31,12 +31,12 @@ export type TimelineEvent = {
 };
 
 const STATUS_MAP: Record<string, { label: string; classes: string }> = {
-  registered: { label: "Registered", classes: "bg-blue-500/15 text-blue-400 ring-blue-500/25" },
-  data_collecting: { label: "Data Collection", classes: "bg-yellow-500/15 text-yellow-400 ring-yellow-500/25" },
-  under_review: { label: "Under Review", classes: "bg-orange-500/15 text-orange-400 ring-orange-500/25" },
-  evaluated: { label: "Evaluated", classes: "bg-purple-500/15 text-purple-400 ring-purple-500/25" },
-  certified: { label: "Certified", classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
-  revoked: { label: "Revoked", classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
+  registered:      { label: "Registered",      classes: "bg-blue-500/15 text-blue-400 ring-blue-500/25" },
+  data_collecting: { label: "Data Collection",  classes: "bg-yellow-500/15 text-yellow-400 ring-yellow-500/25" },
+  under_review:    { label: "Under Review",     classes: "bg-orange-500/15 text-orange-400 ring-orange-500/25" },
+  evaluated:       { label: "Evaluated",        classes: "bg-purple-500/15 text-purple-400 ring-purple-500/25" },
+  certified:       { label: "Certified",        classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
+  revoked:         { label: "Revoked",          classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
 };
 
 export default async function SubjectPage({
@@ -65,6 +65,7 @@ export default async function SubjectPage({
   const org = s?.organization ?? "—";
   const dob = s?.dob ?? s?.date_of_birth ?? null;
   const subjectNumber = s?.subject_number ?? null;
+  const registryId = s?.registry_id ?? null;
 
   const timelineEvents: TimelineEvent[] = [
     ...((consent as any)?.timeline ?? []),
@@ -153,7 +154,24 @@ export default async function SubjectPage({
                 {subjectId}
               </div>
             </div>
+            <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
+              <div className="text-xs text-white/50">Registry ID</div>
+              <div className="mt-1 font-mono text-sm font-semibold text-[#C8A84B] break-all">
+                {registryId ?? "—"}
+              </div>
+            </div>
           </div>
+
+          {registryId && (
+            <div className="mt-4">
+              <a
+                href={`/verify?rid=${registryId}`}
+                className="text-xs text-[#C8A84B] hover:underline"
+              >
+                Verify your readiness standing →
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Evaluator Actions — full width */}
@@ -192,4 +210,3 @@ export default async function SubjectPage({
       </div>
     </Shell>
   );
-}
