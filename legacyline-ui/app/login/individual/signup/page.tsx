@@ -1,190 +1,179 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Shell from "../_components/Shell";
-import { api } from "../../lib/api";
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-type CreateParticipantRequest = {
-  first_name: string;
-  last_name: string;
-  dob: string;
-  email: string;
-  phone: string;
-};
-
-type CreateParticipantResponse = {
-  participant_id?: string;
-  id?: string;
-  subject_number?: number;
-  status?: string;
-  created_at?: string;
-  registry_id?: string;
-};
-
-function normalizePhone(input: string) {
-  return input.replace(/[^\d]/g, "");
-}
-
-function IntakeForm() {
+export default function IndividualSignupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [form, setForm] = useState<CreateParticipantRequest>({
-    first_name: "",
-    last_name: "",
-    dob: "",
-    email: "",
-    phone: "",
-  });
-
-  const [message, setMessage] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const first = searchParams.get("first_name");
-    const last = searchParams.get("last_name");
-    const em = searchParams.get("email");
-    if (first || last || em) {
-      setForm((prev) => ({
-        ...prev,
-        first_name: first || prev.first_name,
-        last_name: last || prev.last_name,
-        email: em || prev.email,
-      }));
-    }
-  }, [searchParams]);
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
 
-  const canSubmit =
-    form.first_name.trim().length > 0 &&
-    form.last_name.trim().length > 0 &&
-    form.dob.trim().length > 0 &&
-    ((form.email ?? "").trim().length > 0 ||
-      (form.phone ?? "").trim().length > 0);
-
-  async function createSubject() {
-    if (loading) return;
-    if (!canSubmit) {
-      setMessage("Enter first name, last name, date of birth, and at least one contact method.");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     setLoading(true);
 
-    try {
-      const payload: CreateParticipantRequest = {
-        first_name: form.first_name.trim(),
-        last_name: form.last_name.trim(),
-        dob: form.dob.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() ? normalizePhone(form.phone) : "",
-      };
+    const res = await fetch("/api/auth/signup/individual", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+      }),
+    });
 
-      const data = await api<CreateParticipantResponse>("/participants", {
-        method: "POST",
-        body: JSON.stringify(payload),
+    if (res.ok) {
+      const params = new URLSearchParams({
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
       });
-
-      const pid = data.participant_id || data.id;
-
-      if (!pid) {
-        setMessage(JSON.stringify(data, null, 2));
-        return;
-      }
-
-      router.push(`/intake/${pid}`);
-    } catch (err: any) {
-      setMessage(err?.message || "Connection error");
-    } finally {
-      setLoading(false);
+      router.push(`/intake?${params.toString()}`);
+      return;
     }
+
+    const data = await res.json().catch(() => null);
+    setError(data?.error || "Unable to create account.");
+    setLoading(false);
   }
 
   return (
-    <Shell>
-      <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-        <h2 className="text-2xl font-semibold tracking-tight">Begin Your Intake</h2>
-        <p className="mt-2 text-sm text-white/60">
-          Enter your information to get started with your readiness assessment.
-        </p>
-
-        <div className="mt-6 grid gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">First Name</label>
-              <input
-                placeholder="First name"
-                value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">Last Name</label>
-              <input
-                placeholder="Last name"
-                value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
+            <span className="text-2xl font-semibold tracking-tight text-white">L</span>
           </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/60">Date of Birth</label>
-            <input
-              type="date"
-              value={form.dob}
-              onChange={(e) => setForm({ ...form, dob: e.target.value })}
-              className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/60">Email</label>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-white/60">Phone</label>
-            <input
-              type="tel"
-              placeholder="(832) 555-0100"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-            />
-          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-white">Legacyline</h1>
+          <p className="mt-1 text-sm text-white/50">Create your individual account</p>
         </div>
 
-        {message && (
-          <div className="mt-4 rounded-2xl bg-red-500/10 p-4 ring-1 ring-red-500/30 text-sm text-red-300">
-            {message}
-          </div>
-        )}
+        <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
+          <h2 className="text-lg font-semibold text-white">Individual Sign Up</h2>
+          <p className="mt-1 text-sm text-white/50">
+            Create your account to access your documents and progress tracking.
+          </p>
 
-        <button
-          onClick={createSubject}
-          disabled={loading || !canSubmit}
-          className="mt-6 w-full rounded-xl bg-[#C8A84B] py-3 text-sm font-semibold text-black hover:bg-[#dcc47a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? "Getting started..." : "Begin My Intake"}
-        </button>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-white/60">First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-white/60">Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last name"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/60">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 pr-20 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 px-2 text-sm font-medium text-[#C8A84B]"
+                >
+                  {showConfirmPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+
+            {error && <p className="text-xs text-red-400">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-[#C8A84B] py-3 text-sm font-semibold text-black hover:bg-[#dcc47a] disabled:opacity-50 transition-colors"
+            >
+              {loading ? "Creating account..." : "Create Account"}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-white/50">
+            Already have an account?{" "}
+            <Link href="/login/individual" className="text-[#C8A84B] hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-white/30">
+          © {new Date().getFullYear()} Legacyline · Powered by BRSA doctrine
+        </p>
       </div>
-    </Shell>
+    </div>
   );
-}
-
-export default function IntakePage() {
-  return (
-    <Suspense fallback={null}>
-      <IntakeForm />
-    </Suspense>
-  );
-  }
+                    }
