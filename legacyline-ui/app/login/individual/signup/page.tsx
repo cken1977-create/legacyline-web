@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 export default function IndividualSignupPage() {
   const router = useRouter();
 
-  const [firstname, setfirstName] = useState("");
-  const [lastname, setlastName] = useState("");
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
