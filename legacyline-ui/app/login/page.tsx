@@ -27,7 +27,7 @@ export default function LoginChooserPage() {
             </p>
             <div className="mt-6 flex flex-col gap-3">
               <Link
-                href="/login/signup/individual"
+                href="/login/individual/signup"
                 className="inline-flex w-full items-center justify-center rounded-xl bg-[#C8A84B] px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-[#dcc47a]"
               >
                 Create Account
