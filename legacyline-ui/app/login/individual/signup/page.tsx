@@ -42,7 +42,7 @@ export default function IndividualSignupPage() {
     });
 
     if (res.ok) {
-      router.push("/dashboard/individual");
+      router.push("/intake");
       return;
     }
 
