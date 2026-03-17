@@ -1,4 +1,3 @@
-// app/evaluator/page.tsx
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -87,11 +86,19 @@ const C = {
 };
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 10, fontWeight: 700, color: C.gray, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>{children}</div>;
+  return (
+    <div style={{ fontSize: 10, fontWeight: 700, color: C.gray, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14 }}>
+      {children}
+    </div>
+  );
 }
 
 function Card({ children, gold = false, style = {} }: { children: React.ReactNode; gold?: boolean; style?: React.CSSProperties }) {
-  return <div style={{ background: C.surface, border: `1px solid ${gold ? C.gold + "44" : C.surfaceHi}`, borderRadius: 8, padding: 20, ...style }}>{children}</div>;
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${gold ? C.gold + "44" : C.surfaceHi}`, borderRadius: 8, padding: 20, ...style }}>
+      {children}
+    </div>
+  );
 }
 
 function MetricCard({ label, value, highlight, onClick }: { label: string; value: number; highlight?: boolean; onClick?: () => void }) {
@@ -148,7 +155,8 @@ function Dashboard({ participants, evaluator, onNav, onOpenProfile }: {
           </button>
         </div>
         {recent.map((p, i) => (
-          <div key={p.id} onClick={() => onOpenProfile(p)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < recent.length - 1 ? `1px solid ${C.surfaceHi}` : "none", cursor: "pointer" }}>
+          <div key={p.id} onClick={() => onOpenProfile(p)}
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: i < recent.length - 1 ? `1px solid ${C.surfaceHi}` : "none", cursor: "pointer" }}>
             <div style={{ flex: 1 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: C.white }}>{p.first_name} {p.last_name}</span>
               <span style={{ fontSize: 11, color: C.gray, marginLeft: 10 }}>{p.registry_id}</span>
@@ -183,50 +191,33 @@ function DecisionQueue({ participants, onOpenProfile }: {
         <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>Decision Queue</div>
         <div style={{ fontSize: 13, color: C.gray, marginTop: 4 }}>{filtered.length} case{filtered.length !== 1 ? "s" : ""}</div>
       </div>
-
       <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name or ID..."
-          style={{ padding: "10px 14px", borderRadius: 6, fontSize: 13, background: C.navyDeep, border: `1px solid ${C.surfaceHi}`, color: C.white, outline: "none", width: "100%" }}
-        />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or ID..."
+          style={{ padding: "10px 14px", borderRadius: 6, fontSize: 13, background: C.navyDeep, border: `1px solid ${C.surfaceHi}`, color: C.white, outline: "none", width: "100%" }} />
         <div style={{ display: "flex", gap: 8 }}>
           {["under_review", "data_collecting", "all"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              style={{ flex: 1, padding: "8px 6px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", background: filter === f ? C.gold : "none", color: filter === f ? C.navyDeep : C.gray, border: `1px solid ${filter === f ? C.gold : C.surfaceHi}` }}
-            >
+            <button key={f} onClick={() => setFilter(f)}
+              style={{ flex: 1, padding: "8px 6px", borderRadius: 6, cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", background: filter === f ? C.gold : "none", color: filter === f ? C.navyDeep : C.gray, border: `1px solid ${filter === f ? C.gold : C.surfaceHi}` }}>
               {f === "under_review" ? "Needs Action" : f === "data_collecting" ? "Collecting" : "All"}
             </button>
           ))}
         </div>
       </div>
-
       {filtered.length === 0 && (
         <div style={{ padding: "40px 20px", textAlign: "center", color: C.gray, fontSize: 13, background: C.surface, borderRadius: 8, border: `1px solid ${C.surfaceHi}` }}>
           No cases match the current filter.
         </div>
       )}
-
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {filtered.map((p) => (
-          <div
-            key={p.id}
-            onClick={() => onOpenProfile(p)}
+          <div key={p.id} onClick={() => onOpenProfile(p)}
             style={{ background: C.surface, border: `1px solid ${C.surfaceHi}`, borderRadius: 8, padding: "16px", cursor: "pointer" }}
             onMouseEnter={(e) => (e.currentTarget.style.border = `1px solid ${C.gold}55`)}
-            onMouseLeave={(e) => (e.currentTarget.style.border = `1px solid ${C.surfaceHi}`)}
-          >
+            onMouseLeave={(e) => (e.currentTarget.style.border = `1px solid ${C.surfaceHi}`)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.white }}>
-                  {p.first_name} {p.last_name}
-                </div>
-                <div style={{ fontSize: 10, color: C.gold, fontFamily: "monospace", marginTop: 2 }}>
-                  {p.registry_id || "Registry ID pending"}
-                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.white }}>{p.first_name} {p.last_name}</div>
+                <div style={{ fontSize: 10, color: C.gold, fontFamily: "monospace", marginTop: 2 }}>{p.registry_id || "Registry ID pending"}</div>
               </div>
               <StateBadge state={p.status} />
             </div>
@@ -251,10 +242,10 @@ function DecisionQueue({ participants, onOpenProfile }: {
         ))}
       </div>
     </div>
-   );
-  }
+  );
+}
 
-  function ParticipantProfile({ participant, onBack, actorEmail }: {
+function ParticipantProfile({ participant, onBack, actorEmail }: {
   participant: Participant;
   onBack: () => void;
   actorEmail: string;
@@ -292,8 +283,9 @@ function DecisionQueue({ participants, onOpenProfile }: {
   }, [participant.id, fetchData]);
 
   async function handleTransition() {
-    if (!selectedTo) return;
-    if (TRANSITION_REQUIRES_REASON.has(selectedTo) && !reason.trim()) {
+    const target = allowed.length === 1 ? allowed[0] : selectedTo;
+    if (!target) return;
+    if (TRANSITION_REQUIRES_REASON.has(target) && !reason.trim()) {
       setTransitionMsg({ ok: false, text: "A reason is required for this transition." });
       return;
     }
@@ -302,13 +294,13 @@ function DecisionQueue({ participants, onOpenProfile }: {
     try {
       await api(`/participants/${participant.id}/state`, {
         method: "POST",
-        body: JSON.stringify({ to: selectedTo, reason: reason.trim() }),
+        body: JSON.stringify({ to: target, reason: reason.trim() || `Transitioned to ${target} by evaluator` }),
         headers: { "X-Actor": actorEmail },
       });
-      setCurrentStatus(selectedTo);
+      setCurrentStatus(target);
       setSelectedTo("");
       setReason("");
-      setTransitionMsg({ ok: true, text: `Transitioned to ${selectedTo.replace(/_/g, " ")}.` });
+      setTransitionMsg({ ok: true, text: `✓ Transitioned to ${target.replace(/_/g, " ")}.` });
       await fetchData();
     } catch (err: any) {
       setTransitionMsg({ ok: false, text: err?.message ?? "Transition failed." });
@@ -320,11 +312,13 @@ function DecisionQueue({ participants, onOpenProfile }: {
   const score = readiness?.readiness ?? null;
 
   return (
-    <div style={{ padding: "24px 32px", maxWidth: 1080, margin: "0 auto" }}>
+    <div style={{ padding: "24px 16px", maxWidth: 1080, margin: "0 auto" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: C.gray, cursor: "pointer", fontSize: 12, padding: 0, marginBottom: 16 }}>
         ← Back to Queue
       </button>
       <div style={{ display: "grid", gridTemplateColumns: "var(--profile-cols, 1fr)", gap: 18, alignItems: "start" }}>
+
+        {/* Left column */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -335,7 +329,7 @@ function DecisionQueue({ participants, onOpenProfile }: {
               </div>
               <StateBadge state={currentStatus} large />
             </div>
-            <div style={{ display: "flex", gap: 24, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.surfaceHi}` }}>
+            <div style={{ display: "flex", gap: 24, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${C.surfaceHi}`, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontSize: 10, color: C.gray, textTransform: "uppercase", letterSpacing: "0.08em" }}>Organization</div>
                 <div style={{ fontSize: 12, color: C.white, marginTop: 2 }}>{participant.organization || "—"}</div>
@@ -351,33 +345,33 @@ function DecisionQueue({ participants, onOpenProfile }: {
             </div>
           </Card>
 
-          {!loadingData && (
-            <Card style={{ border: `1px solid ${C.teal}33` }}>
-              <SectionTitle>Readiness Score</SectionTitle>
-              {score !== null ? (
-                <>
-                  <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginBottom: 14 }}>
-                    <div style={{ fontSize: 48, fontWeight: 900, color: C.teal, fontFamily: "monospace", lineHeight: 1 }}>{score}</div>
-                    <div style={{ paddingBottom: 6 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: C.white }}>{scoreLabel(score)}</div>
-                      <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
-                        Trajectory:{" "}
-                        <span style={{ color: readiness?.trajectory === "improving" ? "#34D399" : C.grayLight, textTransform: "capitalize" }}>
-                          {readiness?.trajectory ?? "—"}
-                        </span>
-                      </div>
+          <Card style={{ border: `1px solid ${C.teal}33` }}>
+            <SectionTitle>Readiness Score</SectionTitle>
+            {loadingData ? (
+              <div style={{ fontSize: 12, color: C.gray }}>Loading...</div>
+            ) : score !== null ? (
+              <>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 14, marginBottom: 14 }}>
+                  <div style={{ fontSize: 48, fontWeight: 900, color: C.teal, fontFamily: "monospace", lineHeight: 1 }}>{score}</div>
+                  <div style={{ paddingBottom: 6 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.white }}>{scoreLabel(score)}</div>
+                    <div style={{ fontSize: 12, color: C.gray, marginTop: 2 }}>
+                      Trajectory:{" "}
+                      <span style={{ color: readiness?.trajectory === "improving" ? "#34D399" : C.grayLight, textTransform: "capitalize" }}>
+                        {readiness?.trajectory ?? "—"}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ fontSize: 10, color: C.gray }}>
-                    Computed by Legacyline Behavioral Pattern Engine ·{" "}
-                    {readiness?.computed_at ? new Date(readiness.computed_at).toLocaleString() : "—"}
-                  </div>
-                </>
-              ) : (
-                <div style={{ fontSize: 13, color: C.gray }}>No readiness snapshot yet. Compute one after evidence is collected.</div>
-              )}
-            </Card>
-          )}
+                </div>
+                <div style={{ fontSize: 10, color: C.gray }}>
+                  Computed by Legacyline Behavioral Pattern Engine ·{" "}
+                  {readiness?.computed_at ? new Date(readiness.computed_at).toLocaleString() : "—"}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: C.gray }}>No readiness snapshot yet. Compute one after evidence is collected.</div>
+            )}
+          </Card>
 
           <Card>
             <SectionTitle>State History</SectionTitle>
@@ -403,11 +397,15 @@ function DecisionQueue({ participants, onOpenProfile }: {
           </Card>
         </div>
 
+        {/* Right column — Evaluator Actions */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <Card gold>
             <SectionTitle>Evaluator Actions</SectionTitle>
             {transitionMsg && (
-              <div style={{ padding: "10px 12px", borderRadius: 4, marginBottom: 14, fontSize: 12, background: transitionMsg.ok ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)", border: `1px solid ${transitionMsg.ok ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`, color: transitionMsg.ok ? "#34D399" : "#F87171" }}>
+              <div style={{ padding: "10px 12px", borderRadius: 4, marginBottom: 14, fontSize: 12,
+                background: transitionMsg.ok ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+                border: `1px solid ${transitionMsg.ok ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
+                color: transitionMsg.ok ? "#34D399" : "#F87171" }}>
                 {transitionMsg.text}
               </div>
             )}
@@ -425,7 +423,8 @@ function DecisionQueue({ participants, onOpenProfile }: {
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {allowed.map((s) => (
                         <label key={s} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                          <input type="radio" name="transition" value={s} checked={selectedTo === s} onChange={() => setSelectedTo(s)} style={{ accentColor: C.gold }} />
+                          <input type="radio" name="transition" value={s} checked={selectedTo === s}
+                            onChange={() => setSelectedTo(s)} style={{ accentColor: C.gold }} />
                           <StateBadge state={s} large />
                         </label>
                       ))}
@@ -439,12 +438,27 @@ function DecisionQueue({ participants, onOpenProfile }: {
                       {selectedTo && TRANSITION_REQUIRES_REASON.has(selectedTo) ? "(required)" : "(optional)"}
                     </span>
                   </div>
-                  <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Document rationale..." rows={3}
-                    style={{ width: "100%", padding: 10, borderRadius: 4, background: C.navyDeep, border: `1px solid ${C.surfaceHi}`, color: C.white, fontSize: 12, resize: "vertical", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                  <textarea value={reason} onChange={(e) => setReason(e.target.value)}
+                    placeholder="Document rationale..." rows={3}
+                    style={{ width: "100%", padding: 10, borderRadius: 4, background: C.navyDeep,
+                      border: `1px solid ${C.surfaceHi}`, color: C.white, fontSize: 12,
+                      resize: "vertical", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
                 </div>
-                <button onClick={handleTransition} disabled={transitioning || (allowed.length > 1 && !selectedTo)}
-                  style={{ width: "100%", padding: "9px", borderRadius: 4, cursor: "pointer", background: (transitioning || (allowed.length > 1 && !selectedTo)) ? C.surfaceHi : C.gold, color: C.navyDeep, fontSize: 12, fontWeight: 800, border: "none", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  {transitioning ? "Recording..." : allowed.length === 1 ? `Advance to ${allowed[0].replace(/_/g, " ")}` : selectedTo ? `Transition to ${selectedTo.replace(/_/g, " ")}` : "Select transition"}
+                <button
+                  type="button"
+                  onClick={handleTransition}
+                  disabled={transitioning || (allowed.length > 1 && !selectedTo)}
+                  style={{ width: "100%", padding: "12px", borderRadius: 4, cursor: transitioning || (allowed.length > 1 && !selectedTo) ? "not-allowed" : "pointer",
+                    background: (transitioning || (allowed.length > 1 && !selectedTo)) ? C.surfaceHi : C.gold,
+                    color: C.navyDeep, fontSize: 13, fontWeight: 800, border: "none",
+                    letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  {transitioning
+                    ? "Recording..."
+                    : allowed.length === 1
+                    ? `Advance to ${allowed[0].replace(/_/g, " ")}`
+                    : selectedTo
+                    ? `Transition to ${selectedTo.replace(/_/g, " ")}`
+                    : "Select transition"}
                 </button>
               </>
             ) : (
@@ -453,8 +467,8 @@ function DecisionQueue({ participants, onOpenProfile }: {
               </div>
             )}
             <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${C.surfaceHi}`, display: "flex", gap: 8 }}>
-              <button style={{ flex: 1, padding: 8, borderRadius: 4, cursor: "pointer", background: "none", color: C.gray, border: `1px solid ${C.surfaceHi}`, fontSize: 11, fontWeight: 600 }}>Add Note</button>
-              <button style={{ flex: 1, padding: 8, borderRadius: 4, cursor: "pointer", background: "none", color: "#F87171", border: "1px solid rgba(248,113,113,0.3)", fontSize: 11, fontWeight: 600 }}>Flag for Admin</button>
+              <button type="button" style={{ flex: 1, padding: 8, borderRadius: 4, cursor: "pointer", background: "none", color: C.gray, border: `1px solid ${C.surfaceHi}`, fontSize: 11, fontWeight: 600 }}>Add Note</button>
+              <button type="button" style={{ flex: 1, padding: 8, borderRadius: 4, cursor: "pointer", background: "none", color: "#F87171", border: "1px solid rgba(248,113,113,0.3)", fontSize: 11, fontWeight: 600 }}>Flag for Admin</button>
             </div>
           </Card>
 
@@ -470,15 +484,15 @@ function DecisionQueue({ participants, onOpenProfile }: {
   );
 }
 
-export default function EvaluatorPage() {
-  const [view, setView] = useState<View>("dashboard");
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [selectedP, setSelectedP] = useState<Participant | null>(null);
-  const [evaluator, setEvaluator] = useState<Evaluator | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+ export default function EvaluatorPage() {
+   const [view, setView] = useState<View>("dashboard");
+   const [participants, setParticipants] = useState<Participant[]>([]);
+   const [selectedP, setSelectedP] = useState<Participant | null>(null);
+   const [evaluator, setEvaluator] = useState<Evaluator | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState("");
 
-  const PILOT_EVALUATOR_EMAIL = process.env.NEXT_PUBLIC_EVALUATOR_EMAIL ?? "";
+   const PILOT_EVALUATOR_EMAIL = process.env.NEXT_PUBLIC_EVALUATOR_EMAIL ?? "";
 
   useEffect(() => {
     async function boot() {
@@ -526,8 +540,10 @@ export default function EvaluatorPage() {
         {!loading && error && <div style={{ padding: 40, textAlign: "center", color: "#F87171", fontSize: 13 }}>{error}</div>}
         {!loading && !error && view === "dashboard" && <Dashboard participants={participants} evaluator={evaluator} onNav={handleNav} onOpenProfile={openProfile} />}
         {!loading && !error && view === "queue" && <DecisionQueue participants={participants} onOpenProfile={openProfile} />}
-        {!loading && !error && view === "profile" && selectedP && <ParticipantProfile participant={selectedP} onBack={() => setView("queue")} actorEmail={evaluator?.email ?? "evaluator"} />}
+        {!loading && !error && view === "profile" && selectedP && (
+          <ParticipantProfile participant={selectedP} onBack={() => { setView("queue"); setSelectedP(null); }} actorEmail={evaluator?.email ?? "evaluator"} />
+        )}
       </div>
     </Shell>
   );
-                  }
+}
