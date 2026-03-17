@@ -16,7 +16,6 @@ import {
   revokeConsent,
   recomputeReadiness,
   addCheckIn,
-  transitionState,
 } from "./actions";
 
 type TimelineKind = "consent" | "evidence" | "readiness" | "state";
@@ -107,10 +106,7 @@ export default async function SubjectPage({
     await addCheckIn(formData);
   };
 
-  const handleTransition = async (to: string, reason: string) => {
-    "use server";
-    await transitionState(subjectId, to, reason);
-  };
+  
 
   return (
     <Shell>
@@ -178,7 +174,6 @@ export default async function SubjectPage({
         <StateTransitionPanel
           currentStatus={status}
           subjectId={subjectId}
-          onTransition={handleTransition}
         />
 
         {/* Panels Grid */}
