@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-type StateTransitionPanelProps = {
-  currentStatus: string;
-  subjectId: string;
-  onTransition: (to: string, reason: string) => Promise<void>;
-};
+import { useRouter } from "next/navigation";
+import { transitionState } from "../../actions";
 
 const TRANSITION_LABELS: Record<string, { label: string; color: string; description: string }> = {
   data_collecting: {
@@ -37,12 +33,12 @@ const TRANSITION_LABELS: Record<string, { label: string; color: string; descript
 };
 
 const TRANSITIONS: Record<string, string[]> = {
-  registered: ["data_collecting"],
+  registered:      ["data_collecting"],
   data_collecting: ["under_review"],
-  under_review: ["data_collecting", "evaluated"],
-  evaluated: ["certified"],
-  certified: ["revoked"],
-  revoked: [],
+  under_review:    ["data_collecting", "evaluated"],
+  evaluated:       ["certified"],
+  certified:       ["revoked"],
+  revoked:         [],
 };
 
 const STATUS_STEPS = [
@@ -53,11 +49,13 @@ const STATUS_STEPS = [
   "certified",
 ];
 
-export default function StateTransitionPanel({
-  currentStatus,
-  subjectId,
-  onTransition,
-}: StateTransitionPanelProps) {
+type Props = {
+  currentStatus: string;
+  subjectId: string;
+};
+
+export default function StateTransitionPanel({ currentStatus, subjectId }: Props) {
+  const router = useRouter();
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -69,9 +67,14 @@ export default function StateTransitionPanel({
     setLoading(to);
     setMessage("");
     try {
-      await onTransition(to, reason || `Transitioned to ${to} by evaluator`);
+      await transitionState(
+        subjectId,
+        to,
+        reason.trim() || `Transitioned to ${to} by evaluator`
+      );
       setMessage(`✓ Status updated to ${to.replace(/_/g, " ")}`);
       setReason("");
+      router.refresh();
     } catch (err: any) {
       setMessage(`Error: ${err?.message ?? "Transition failed"}`);
     } finally {
@@ -92,9 +95,7 @@ export default function StateTransitionPanel({
           <div key={step} className="flex items-center gap-1 flex-1">
             <div
               className={`h-2 flex-1 rounded-full transition-colors ${
-                idx <= currentIndex
-                  ? "bg-[#C8A84B]"
-                  : "bg-white/10"
+                idx <= currentIndex ? "bg-[#C8A84B]" : "bg-white/10"
               }`}
             />
           </div>
@@ -104,18 +105,26 @@ export default function StateTransitionPanel({
         {currentStatus.replace(/_/g, " ")}
       </div>
 
+      {/* Current state display */}
+      <div className="mt-4 flex items-center gap-3">
+        <div className="text-xs text-white/40">Current state</div>
+        <div className="rounded-lg bg-white/10 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10 uppercase tracking-wider">
+          {currentStatus.replace(/_/g, " ")}
+        </div>
+      </div>
+
       {/* Reason Input */}
       {allowed.length > 0 && (
         <div className="mt-4">
           <label className="mb-1.5 block text-xs font-medium text-white/60">
             Reason (optional)
           </label>
-          <input
-            type="text"
+          <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="e.g. All documents verified"
-            className="w-full rounded-xl bg-black/30 px-3 py-2 text-xs text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
+            placeholder="Document rationale..."
+            rows={3}
+            className="w-full rounded-xl bg-black/30 px-3 py-2 text-xs text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60 resize-none"
           />
         </div>
       )}
@@ -133,14 +142,24 @@ export default function StateTransitionPanel({
         ) : (
           allowed.map((to) => {
             const config = TRANSITION_LABELS[to];
+            const isLoading = loading === to;
             return (
               <button
                 key={to}
+                type="button"
                 onClick={() => handleTransition(to)}
                 disabled={loading !== null}
-                className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold ring-1 transition-colors disabled:opacity-50 ${config.color}`}
+                className={`w-full rounded-xl px-4 py-3 text-left text-sm font-semibold ring-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${config.color}`}
               >
-                <div>{config.label}</div>
+                <div className="flex items-center justify-between">
+                  <span>{isLoading ? "Updating…" : config.label}</span>
+                  {isLoading && (
+                    <svg className="animate-spin h-4 w-4 ml-2 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                  )}
+                </div>
                 <div className="mt-0.5 text-xs font-normal opacity-70">
                   {config.description}
                 </div>
@@ -151,10 +170,16 @@ export default function StateTransitionPanel({
       </div>
 
       {message && (
-        <div className={`mt-3 text-xs ${message.startsWith("✓") ? "text-emerald-400" : "text-red-400"}`}>
+        <div
+          className={`mt-3 rounded-xl px-3 py-2 text-xs font-medium ${
+            message.startsWith("✓")
+              ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20"
+              : "bg-red-500/10 text-red-400 ring-1 ring-red-500/20"
+          }`}
+        >
           {message}
         </div>
       )}
     </section>
   );
-        }
+                      }
