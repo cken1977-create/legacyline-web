@@ -472,7 +472,11 @@ function ParticipantProfile({ participant, onBack, actorEmail }: {
               <button type="button" style={{ flex: 1, padding: 8, borderRadius: 4, cursor: "pointer", background: "none", color: "#F87171", border: "1px solid rgba(248,113,113,0.3)", fontSize: 11, fontWeight: 600 }}>Flag for Admin</button>
             </div>
           </Card>
-
+  <EvaluationPanel
+            participantId={participant.id}
+            actorEmail={actorEmail}
+            currentStatus={currentStatus}
+        />
           <Card>
             <SectionTitle>Details</SectionTitle>
             <KV label="Phone" value={participant.phone} />
