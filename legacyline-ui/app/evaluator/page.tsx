@@ -5,6 +5,7 @@ import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 import { StateBadge } from "./components/StateBadge";
 import { EvaluatorHeader } from "./components/EvaluatorHeader";
+import EvaluationPanel from "./components/EvaluationPanel";
 
 type Evaluator = {
   evaluator_id: string;
