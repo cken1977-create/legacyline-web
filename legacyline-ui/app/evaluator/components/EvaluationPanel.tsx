@@ -9,39 +9,79 @@ const C = {
   surfaceHi: "#1E3D5A", teal: "#2DD4BF",
 };
 
-// ✅ ADD THIS TYPE — this fixes the Vercel build
+// --- REQUIRED TYPES (fixes Vercel build) ---
 type EvaluationPanelProps = {
   participantId: string;
   actorEmail: string;
   currentStatus: string;
 };
 
+type EvaluationResponse = {
+  evaluation?: {
+    domain_scores?: any[];
+    doc_checklist?: any[];
+    narrative_notes?: string;
+    recommended_next?: string;
+    attestation?: string;
+    status?: string;
+  };
+};
+
+type AIEvalResponse = {
+  PreEvaluationBrief: {
+    Summary: string;
+    KeyStrengths: string[];
+    KeyGaps: string[];
+    MissingInputs: string[];
+    ImmediateActionItems: string[];
+  };
+  DomainAnalysis: {
+    Housing: string;
+    Workforce: string;
+    Financial: string;
+    Behavioral: string;
+  };
+  NarrativeDraft: string;
+  RecommendedActions: string[];
+  Explainability: {
+    ScoreSummary: string;
+    FactorsSupporting: string[];
+    FactorsLimiting: string[];
+    EvidenceUsed: string[];
+    ConfidenceNotes: string[];
+  };
+  ConfidenceScore: string;
+  AnomalyFlags: string[];
+};
+
+// --- COMPONENT ---
 export default function EvaluationPanel({
   participantId,
   actorEmail,
   currentStatus,
 }: EvaluationPanelProps) {
 
-  const [evaluation, setEvaluation] = useState(null);
-  const [domainScores, setDomainScores] = useState([]);
-  const [docChecklist, setDocChecklist] = useState([]);
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const [domainScores, setDomainScores] = useState<any[]>([]);
+  const [docChecklist, setDocChecklist] = useState<any[]>([]);
   const [narrative, setNarrative] = useState("");
   const [recommended, setRecommended] = useState("");
   const [attestation, setAttestation] = useState("");
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState(null);
+  const [msg, setMsg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // --- AI Evaluation State ---
-  const [aiEval, setAiEval] = useState(null);
+  const [aiEval, setAiEval] = useState<AIEvalResponse | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
 
+  // --- LOAD EXISTING EVALUATION ---
   useEffect(() => {
     async function load() {
       try {
-        const res = await api(`/participants/${participantId}/evaluation`);
+        const res: EvaluationResponse = await api(`/participants/${participantId}/evaluation`);
         if (res.evaluation) {
           const ev = res.evaluation;
           setEvaluation(ev);
@@ -58,23 +98,25 @@ export default function EvaluationPanel({
     load();
   }, [participantId]);
 
+  // --- GENERATE AI EVALUATION ---
   async function generateAI() {
     setAiLoading(true);
     setAiError("");
     try {
-      const out = await api(`/ai/evaluate/individual/${participantId}`, {
+      const out: AIEvalResponse = await api(`/ai/evaluate/individual/${participantId}`, {
         method: "POST",
         headers: { "X-Actor": actorEmail },
       });
       setAiEval(out);
-    } catch (err) {
+    } catch (err: any) {
       setAiError(err?.message ?? "AI evaluation failed.");
     } finally {
       setAiLoading(false);
     }
   }
 
-  async function save(submit) {
+  // --- SAVE OR SUBMIT ---
+  async function save(submit: boolean) {
     submit ? setSubmitting(true) : setSaving(true);
     setMsg(null);
     try {
@@ -90,17 +132,19 @@ export default function EvaluationPanel({
         }),
         headers: { "X-Actor": actorEmail },
       });
+
       setMsg({
         ok: true,
         text: submit
           ? "✓ Evaluation submitted to BRSA Standards Authority for approval."
           : "✓ Draft saved.",
       });
+
       if (submit) {
-        const res = await api(`/participants/${participantId}/evaluation`);
+        const res: EvaluationResponse = await api(`/participants/${participantId}/evaluation`);
         if (res.evaluation) setEvaluation(res.evaluation);
       }
-    } catch (err) {
+    } catch (err: any) {
       setMsg({ ok: false, text: err?.message ?? "Save failed." });
     } finally {
       setSaving(false);
@@ -127,7 +171,7 @@ export default function EvaluationPanel({
         borderRadius: 8,
         padding: 20,
       }}>
-        {/* ... your entire existing form stays unchanged ... */}
+        {/* ... your existing form stays unchanged ... */}
       </div>
 
       {/* RIGHT: AI EVALUATOR PANEL */}
@@ -186,17 +230,14 @@ export default function EvaluationPanel({
 
         {aiEval && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* PRE-EVALUATION BRIEF */}
             <Section title="Pre‑Evaluation Brief">
               <p style={{ color: C.white, fontSize: 12 }}>{aiEval.PreEvaluationBrief.Summary}</p>
-
               <SubList label="Strengths" items={aiEval.PreEvaluationBrief.KeyStrengths} />
               <SubList label="Gaps" items={aiEval.PreEvaluationBrief.KeyGaps} />
               <SubList label="Missing Inputs" items={aiEval.PreEvaluationBrief.MissingInputs} />
               <SubList label="Immediate Actions" items={aiEval.PreEvaluationBrief.ImmediateActionItems} />
             </Section>
 
-            {/* DOMAIN ANALYSIS */}
             <Section title="Domain Analysis">
               <SubField label="Housing" value={aiEval.DomainAnalysis.Housing} />
               <SubField label="Workforce" value={aiEval.DomainAnalysis.Workforce} />
@@ -204,7 +245,6 @@ export default function EvaluationPanel({
               <SubField label="Behavioral" value={aiEval.DomainAnalysis.Behavioral} />
             </Section>
 
-            {/* NARRATIVE DRAFT */}
             <Section title="Narrative Draft">
               <p style={{ color: C.white, fontSize: 12, whiteSpace: "pre-wrap" }}>
                 {aiEval.NarrativeDraft}
@@ -212,13 +252,11 @@ export default function EvaluationPanel({
               <ApplyButton onClick={() => setNarrative(aiEval.NarrativeDraft)} />
             </Section>
 
-            {/* RECOMMENDED ACTIONS */}
             <Section title="Recommended Actions">
               <SubList items={aiEval.RecommendedActions} />
               <ApplyButton onClick={() => setRecommended(aiEval.RecommendedActions.join("\n"))} />
             </Section>
 
-            {/* EXPLAINABILITY */}
             <Section title="Explainability">
               <SubField label="Score Summary" value={aiEval.Explainability.ScoreSummary} />
               <SubList label="Supporting Factors" items={aiEval.Explainability.FactorsSupporting} />
@@ -227,7 +265,6 @@ export default function EvaluationPanel({
               <SubList label="Confidence Notes" items={aiEval.Explainability.ConfidenceNotes} />
             </Section>
 
-            {/* CONFIDENCE + ANOMALIES */}
             <Section title="Confidence & Anomalies">
               <SubField label="Confidence Score" value={aiEval.ConfidenceScore} />
               <SubList label="Anomaly Flags" items={aiEval.AnomalyFlags} />
@@ -239,7 +276,8 @@ export default function EvaluationPanel({
   );
 }
 
-function Section({ title, children }) {
+// --- UI HELPERS ---
+function Section({ title, children }: { title: string; children: any }) {
   return (
     <div style={{
       padding: 12,
@@ -262,7 +300,7 @@ function Section({ title, children }) {
   );
 }
 
-function SubList({ label, items }) {
+function SubList({ label, items }: { label?: string; items: string[] }) {
   if (!items?.length) return null;
   return (
     <div style={{ marginBottom: 8 }}>
@@ -282,7 +320,7 @@ function SubList({ label, items }) {
   );
 }
 
-function SubField({ label, value }) {
+function SubField({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div style={{ marginBottom: 8 }}>
@@ -296,7 +334,7 @@ function SubField({ label, value }) {
   );
 }
 
-function ApplyButton({ onClick }) {
+function ApplyButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
