@@ -9,11 +9,19 @@ const C = {
   surfaceHi: "#1E3D5A", teal: "#2DD4BF",
 };
 
+// ✅ ADD THIS TYPE — this fixes the Vercel build
+type EvaluationPanelProps = {
+  participantId: string;
+  actorEmail: string;
+  currentStatus: string;
+};
+
 export default function EvaluationPanel({
   participantId,
   actorEmail,
   currentStatus,
-}) {
+}: EvaluationPanelProps) {
+
   const [evaluation, setEvaluation] = useState(null);
   const [domainScores, setDomainScores] = useState([]);
   const [docChecklist, setDocChecklist] = useState([]);
@@ -307,4 +315,4 @@ function ApplyButton({ onClick }) {
       Apply to Form
     </button>
   );
-      }
+}
