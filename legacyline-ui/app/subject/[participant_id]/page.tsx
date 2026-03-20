@@ -31,12 +31,68 @@ export type TimelineEvent = {
 
 const STATUS_MAP: Record<string, { label: string; classes: string }> = {
   registered:      { label: "Registered",      classes: "bg-blue-500/15 text-blue-400 ring-blue-500/25" },
-  data_collecting: { label: "Data Collection",  classes: "bg-yellow-500/15 text-yellow-400 ring-yellow-500/25" },
-  under_review:    { label: "Under Review",     classes: "bg-orange-500/15 text-orange-400 ring-orange-500/25" },
-  evaluated:       { label: "Evaluated",        classes: "bg-purple-500/15 text-purple-400 ring-purple-500/25" },
-  certified:       { label: "Certified",        classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
-  revoked:         { label: "Revoked",          classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
+  data_collecting: { label: "Data Collection", classes: "bg-yellow-500/15 text-yellow-400 ring-yellow-500/25" },
+  under_review:    { label: "Under Review",    classes: "bg-orange-500/15 text-orange-400 ring-orange-500/25" },
+  evaluated:       { label: "Evaluated",       classes: "bg-purple-500/15 text-purple-400 ring-purple-500/25" },
+  certified:       { label: "Certified",       classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
+  revoked:         { label: "Revoked",         classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
 };
+
+// --- AI CASE BRIEF TYPES + FETCH ---
+
+type DocumentReference = {
+  present: boolean;
+  bucket: string;
+  path: string;
+};
+
+type AICaseBrief = {
+  participant: {
+    participant_id: string;
+    subject_number: number;
+    first_name: string;
+    last_name: string;
+    dob: string;
+    current_state: string;
+    created_at: string;
+  };
+  consent: {
+    status: string;
+    updated_at: string;
+    scope: string[];
+  };
+  intake: {
+    employment_status: string;
+    monthly_income: string;
+    housing_type: string;
+    monthly_housing_cost: string;
+    city: string;
+    state: string;
+    documents: {
+      gov_id: DocumentReference;
+      selfie: DocumentReference;
+      bank_statement: DocumentReference;
+    };
+  };
+  missing_data: string[];
+  risk_flags: string[];
+};
+
+async function getAICaseBrief(subjectId: string): Promise<AICaseBrief | null> {
+  try {
+    const base = process.env.NEXT_PUBLIC_CORE_API_URL;
+    if (!base) return null;
+
+    const res = await fetch(`${base}/ai/individual/${subjectId}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) return null;
+    return (await res.json()) as AICaseBrief;
+  } catch {
+    return null;
+  }
+}
 
 export default async function SubjectPage({
   params,
@@ -46,21 +102,25 @@ export default async function SubjectPage({
   const { participant_id: id } = await params;
   const subjectId = id;
 
-  const [subject, consent, readiness, evidence, stateHistory] =
+  const [subject, consent, readiness, evidence, stateHistory, aiBrief] =
     await Promise.all([
       getSubject(subjectId).catch(() => null),
       getConsent(subjectId).catch(() => ({ status: "none", timeline: [] })),
       getReadiness(subjectId).catch(() => ({ readiness: null, timeline: [] })),
       getEvidenceEvents(subjectId).catch(() => ({ events: [], timeline: [] })),
       getStateHistory(subjectId).catch(() => ({ entries: [], timeline: [] })),
+      getAICaseBrief(subjectId),
     ]);
 
   const s = subject as any;
-  const fullName = s?.first_name && s?.last_name
-    ? `${s.first_name} ${s.last_name}`
-    : s?.first_name ?? "Unknown Participant";
+  const fullName =
+    s?.first_name && s?.last_name
+      ? `${s.first_name} ${s.last_name}`
+      : s?.first_name ?? "Unknown Participant";
   const status = s?.status ?? "registered";
-  const statusConfig = STATUS_MAP[status] ?? { label: status, classes: "bg-white/10 text-white/60 ring-white/10" };
+  const statusConfig =
+    STATUS_MAP[status] ??
+    { label: status, classes: "bg-white/10 text-white/60 ring-white/10" };
   const org = s?.organization ?? "—";
   const dob = s?.dob ?? s?.date_of_birth ?? null;
   const subjectNumber = s?.subject_number ?? null;
@@ -75,12 +135,18 @@ export default async function SubjectPage({
     .map((ev: any, idx: number) => ({
       id: String(ev?.id ?? `${ev?.kind ?? "event"}-${idx}`),
       kind: (ev?.kind ?? "state") as TimelineKind,
-      occurred_at: String(ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString()),
+      occurred_at: String(
+        ev?.occurred_at ?? ev?.created_at ?? new Date().toISOString(),
+      ),
       label: String(ev?.label ?? ev?.type ?? "Event"),
       actor: ev?.actor ? String(ev.actor) : undefined,
       meta: ev?.meta ? String(ev.meta) : undefined,
     }))
-    .sort((a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.occurred_at).getTime() -
+        new Date(a.occurred_at).getTime(),
+    );
 
   const handleGrantAction = async (formData: FormData) => {
     "use server";
@@ -106,12 +172,9 @@ export default async function SubjectPage({
     await addCheckIn(formData);
   };
 
-  
-
   return (
     <Shell>
       <div className="space-y-6">
-
         {/* Participant Identity Block */}
         <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
           <div className="flex items-start justify-between gap-4">
@@ -123,10 +186,14 @@ export default async function SubjectPage({
                 {fullName}
               </h1>
               <p className="mt-1 text-sm text-white/55">
-                {org.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                {org
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c: string) => c.toUpperCase())}
               </p>
             </div>
-            <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusConfig.classes}`}>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusConfig.classes}`}
+            >
               {statusConfig.label}
             </span>
           </div>
@@ -146,13 +213,13 @@ export default async function SubjectPage({
             </div>
             <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
               <div className="text-xs text-white/50">Participant ID</div>
-              <div className="mt-1 font-mono text-xs text-white/60 break-all">
+              <div className="mt-1 break-all font-mono text-xs text-white/60">
                 {subjectId}
               </div>
             </div>
             <div className="rounded-2xl bg-black/30 p-4 ring-1 ring-white/10">
               <div className="text-xs text-white/50">Registry ID</div>
-              <div className="mt-1 font-mono text-sm font-semibold text-[#C8A84B] break-all">
+              <div className="mt-1 break-all font-mono text-sm font-semibold text-[#C8A84B]">
                 {registryId ?? "—"}
               </div>
             </div>
@@ -170,11 +237,136 @@ export default async function SubjectPage({
           )}
         </div>
 
+        {/* AI Case Brief */}
+        <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
+          <h2 className="text-2xl font-semibold">AI Case Brief</h2>
+          <p className="mt-2 text-white/70">
+            Structured case context from participant, intake, consent, and
+            document status.
+          </p>
+
+          {!aiBrief && (
+            <div className="mt-4 text-sm text-white/60">
+              AI case brief is not available yet for this participant.
+            </div>
+          )}
+
+          {aiBrief && (
+            <div className="mt-6 grid gap-6">
+              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
+                <div className="text-sm uppercase tracking-wide text-white/50">
+                  Case Summary
+                </div>
+                <div className="mt-3 text-lg font-medium">
+                  Case Status: {aiBrief.participant.current_state || "Unknown"}
+                </div>
+                <div className="mt-2 text-white/80">
+                  {aiBrief.missing_data.length > 0
+                    ? `Key issues: ${aiBrief.missing_data.join(", ")}`
+                    : "No missing requirements detected."}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
+                <div className="text-sm uppercase tracking-wide text-white/50">
+                  Missing Requirements
+                </div>
+
+                {aiBrief.missing_data.length === 0 ? (
+                  <div className="mt-3 text-green-300">
+                    No missing requirements.
+                  </div>
+                ) : (
+                  <ul className="mt-3 space-y-2 text-white/85">
+                    {aiBrief.missing_data.map((item) => (
+                      <li key={item}>❌ {item.replaceAll("_", " ")}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
+                <div className="text-sm uppercase tracking-wide text-white/50">
+                  Document Status
+                </div>
+
+                <div className="mt-4 grid gap-3">
+                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                    <span>Government ID</span>
+                    <span
+                      className={
+                        aiBrief.intake.documents.gov_id.present
+                          ? "text-green-300"
+                          : "text-yellow-300"
+                      }
+                    >
+                      {aiBrief.intake.documents.gov_id.present
+                        ? "Present"
+                        : "Missing"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                    <span>Identity Selfie</span>
+                    <span
+                      className={
+                        aiBrief.intake.documents.selfie.present
+                          ? "text-green-300"
+                          : "text-yellow-300"
+                      }
+                    >
+                      {aiBrief.intake.documents.selfie.present
+                        ? "Present"
+                        : "Missing"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+                    <span>Bank Statement</span>
+                    <span
+                      className={
+                        aiBrief.intake.documents.bank_statement.present
+                          ? "text-green-300"
+                          : "text-yellow-300"
+                      }
+                    >
+                      {aiBrief.intake.documents.bank_statement.present
+                        ? "Present"
+                        : "Missing"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
+                <div className="text-sm uppercase tracking-wide text-white/50">
+                  Quick Recommendation
+                </div>
+                <div className="mt-3 text-lg font-medium text-amber-300">
+                  {aiBrief.missing_data.length > 0
+                    ? "Do not advance case yet. Resolve missing requirements first."
+                    : "Case appears ready for evaluator review."}
+                </div>
+              </div>
+
+              {aiBrief.risk_flags.length > 0 && (
+                <div className="rounded-2xl bg-red-500/10 p-5 ring-1 ring-red-400/20">
+                  <div className="text-sm uppercase tracking-wide text-red-300">
+                    Risk Flags
+                  </div>
+                  <ul className="mt-3 space-y-2 text-red-200">
+                    {aiBrief.risk_flags.map((flag) => (
+                      <li key={flag}>⚠ {flag}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Evaluator Actions — full width */}
-        <StateTransitionPanel
-          currentStatus={status}
-          subjectId={subjectId}
-        />
+        <StateTransitionPanel currentStatus={status} subjectId={subjectId} />
 
         {/* Panels Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -201,7 +393,6 @@ export default async function SubjectPage({
 
         {/* Unified Timeline */}
         <UnifiedTimeline events={timelineEvents} />
-
       </div>
     </Shell>
   );
