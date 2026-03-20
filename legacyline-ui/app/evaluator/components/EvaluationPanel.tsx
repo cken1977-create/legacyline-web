@@ -107,6 +107,16 @@ export default function EvaluationPanel({
         method: "POST",
         headers: { "X-Actor": actorEmail },
       });
+      if (!out || typeof out !== "object") {
+  setAiError("Invalid AI response");
+  return;
+}
+
+if ((out as any).raw) {
+  console.log("RAW AI RESPONSE:", (out as any).raw);
+  setAiError("AI returned unexpected format. Check logs.");
+  return;
+}
       setAiEval(out);
     } catch (err: any) {
       setAiError(err?.message ?? "AI evaluation failed.");
