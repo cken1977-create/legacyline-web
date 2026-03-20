@@ -103,7 +103,7 @@ export default function EvaluationPanel({
     setAiLoading(true);
     setAiError("");
     try {
-      const out: AIEvalResponse = await api(`/ai/evaluate/individual/${participantId}`, {
+      const out: any = await api(`/ai/evaluate/individual/${participantId}`, {
         method: "POST",
         headers: { "X-Actor": actorEmail },
       });
