@@ -168,8 +168,11 @@ if ((out as any).raw) {
 
   const canEvaluate = ["under_review", "evaluated"].includes(currentStatus);
 
-  if (loading) return null;
-  if (!canEvaluate && !evaluation) return null;
+  if (loading) return <div style={{ color: "white" }}>Loading...</div>;
+
+if (!canEvaluate && !evaluation) {
+  return <div style={{ color: "white" }}>No evaluation available</div>;
+}
 
   return (
     <div style={{ display: "flex", gap: 20 }}>
