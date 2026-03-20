@@ -239,131 +239,13 @@ export default async function SubjectPage({
 
         {/* AI Case Brief */}
         <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-          <h2 className="text-2xl font-semibold">AI Case Brief</h2>
-          <p className="mt-2 text-white/70">
-            Structured case context from participant, intake, consent, and
-            document status.
-          </p>
+  <h2 className="text-2xl font-semibold">AI Case Brief</h2>
+  <p className="mt-2 text-white/70">
+    Temporarily disabled for debugging.
+  </p>
+</div>
 
-          {!aiBrief && (
-            <div className="mt-4 text-sm text-white/60">
-              AI case brief is not available yet for this participant.
-            </div>
-          )}
-
-          {aiBrief && (
-            <div className="mt-6 grid gap-6">
-              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-                <div className="text-sm uppercase tracking-wide text-white/50">
-                  Case Summary
-                </div>
-                <div className="mt-3 text-lg font-medium">
-                  Case Status: {aiBrief.participant.current_state || "Unknown"}
-                </div>
-                <div className="mt-2 text-white/80">
-                  {aiBrief.missing_data.length > 0
-                    ? `Key issues: ${aiBrief.missing_data.join(", ")}`
-                    : "No missing requirements detected."}
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-                <div className="text-sm uppercase tracking-wide text-white/50">
-                  Missing Requirements
-                </div>
-
-                {aiBrief.missing_data.length === 0 ? (
-                  <div className="mt-3 text-green-300">
-                    No missing requirements.
-                  </div>
-                ) : (
-                  <ul className="mt-3 space-y-2 text-white/85">
-                    {aiBrief.missing_data.map((item) => (
-                      <li key={item}>❌ {item.replaceAll("_", " ")}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-                <div className="text-sm uppercase tracking-wide text-white/50">
-                  Document Status
-                </div>
-
-                <div className="mt-4 grid gap-3">
-                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
-                    <span>Government ID</span>
-                    <span
-                      className={
-                        aiBrief.intake.documents.gov_id.present
-                          ? "text-green-300"
-                          : "text-yellow-300"
-                      }
-                    >
-                      {aiBrief.intake.documents.gov_id.present
-                        ? "Present"
-                        : "Missing"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
-                    <span>Identity Selfie</span>
-                    <span
-                      className={
-                        aiBrief.intake.documents.selfie.present
-                          ? "text-green-300"
-                          : "text-yellow-300"
-                      }
-                    >
-                      {aiBrief.intake.documents.selfie.present
-                        ? "Present"
-                        : "Missing"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
-                    <span>Bank Statement</span>
-                    <span
-                      className={
-                        aiBrief.intake.documents.bank_statement.present
-                          ? "text-green-300"
-                          : "text-yellow-300"
-                      }
-                    >
-                      {aiBrief.intake.documents.bank_statement.present
-                        ? "Present"
-                        : "Missing"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-black/30 p-5 ring-1 ring-white/10">
-                <div className="text-sm uppercase tracking-wide text-white/50">
-                  Quick Recommendation
-                </div>
-                <div className="mt-3 text-lg font-medium text-amber-300">
-                  {aiBrief.missing_data.length > 0
-                    ? "Do not advance case yet. Resolve missing requirements first."
-                    : "Case appears ready for evaluator review."}
-                </div>
-              </div>
-
-              {aiBrief.risk_flags.length > 0 && (
-                <div className="rounded-2xl bg-red-500/10 p-5 ring-1 ring-red-400/20">
-                  <div className="text-sm uppercase tracking-wide text-red-300">
-                    Risk Flags
-                  </div>
-                  <ul className="mt-3 space-y-2 text-red-200">
-                    {aiBrief.risk_flags.map((flag) => (
-                      <li key={flag}>⚠ {flag}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+              
 
         {/* Evaluator Actions — full width */}
         <StateTransitionPanel currentStatus={status} subjectId={subjectId} />
