@@ -9,7 +9,6 @@ const C = {
   surfaceHi: "#1E3D5A", teal: "#2DD4BF",
 };
 
-// --- REQUIRED TYPES (fixes Vercel build) ---
 type EvaluationPanelProps = {
   participantId: string;
   actorEmail: string;
@@ -28,42 +27,61 @@ type EvaluationResponse = {
 };
 
 type AIEvalResponse = {
-  PreEvaluationBrief: {
-    Summary: string;
-    KeyStrengths: string[];
-    KeyGaps: string[];
-    MissingInputs: string[];
-    ImmediateActionItems: string[];
+  pre_evaluation_brief: {
+    summary: string;
+    key_strengths: string[];
+    key_gaps: string[];
+    missing_inputs: string[];
+    immediate_action_items: string[];
   };
-  DomainAnalysis: {
-    Housing: string;
-    Workforce: string;
-    Financial: string;
-    Behavioral: string;
+  domain_analysis: {
+    housing: string;
+    workforce: string;
+    financial: string;
+    behavioral: string;
   };
-  NarrativeDraft: string;
-  RecommendedActions: string[];
-  Explainability: {
-    ScoreSummary: string;
-    FactorsSupporting: string[];
-    FactorsLimiting: string[];
-    EvidenceUsed: string[];
-    ConfidenceNotes: string[];
+  narrative_draft: string;
+  recommended_actions: string[];
+  explainability: {
+    score_summary: string;
+    factors_supporting: string[];
+    factors_limiting: string[];
+    evidence_used: string[];
+    confidence_notes: string[];
   };
-  ConfidenceScore: string;
-  AnomalyFlags: string[];
+  confidence_score: number;
+  anomaly_flags: string[];
 };
 
-// --- COMPONENT ---
+const DOMAIN_LABELS = [
+  { key: "housing_readiness", label: "Housing Readiness" },
+  { key: "workforce_readiness", label: "Workforce Readiness" },
+  { key: "financial_readiness", label: "Financial Readiness" },
+  { key: "behavioral_readiness", label: "Behavioral Readiness" },
+];
+
+const DOC_ITEMS = [
+  { key: "gov_id", label: "Government-Issued ID" },
+  { key: "selfie", label: "Identity Selfie" },
+  { key: "bank_statement", label: "Bank Statement" },
+  { key: "intake_complete", label: "Intake Form Complete" },
+];
+
 export default function EvaluationPanel({
   participantId,
   actorEmail,
   currentStatus,
 }: EvaluationPanelProps) {
-
   const [evaluation, setEvaluation] = useState<any>(null);
-  const [domainScores, setDomainScores] = useState<any[]>([]);
-  const [docChecklist, setDocChecklist] = useState<any[]>([]);
+  const [domainScores, setDomainScores] = useState<any[]>([
+    { domain: "housing_readiness", score: 50, notes: "" },
+    { domain: "workforce_readiness", score: 50, notes: "" },
+    { domain: "financial_readiness", score: 50, notes: "" },
+    { domain: "behavioral_readiness", score: 50, notes: "" },
+  ]);
+  const [docChecklist, setDocChecklist] = useState<any[]>(
+    DOC_ITEMS.map((d) => ({ item: d.key, checked: false }))
+  );
   const [narrative, setNarrative] = useState("");
   const [recommended, setRecommended] = useState("");
   const [attestation, setAttestation] = useState("");
@@ -72,12 +90,10 @@ export default function EvaluationPanel({
   const [msg, setMsg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // --- AI Evaluation State ---
   const [aiEval, setAiEval] = useState<AIEvalResponse | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
 
-  // --- LOAD EXISTING EVALUATION ---
   useEffect(() => {
     async function load() {
       try {
@@ -98,7 +114,6 @@ export default function EvaluationPanel({
     load();
   }, [participantId]);
 
-  // --- GENERATE AI EVALUATION ---
   async function generateAI() {
     setAiLoading(true);
     setAiError("");
@@ -108,15 +123,9 @@ export default function EvaluationPanel({
         headers: { "X-Actor": actorEmail },
       });
       if (!out || typeof out !== "object") {
-  setAiError("Invalid AI response");
-  return;
-}
-
-if ((out as any).raw) {
-  console.log("RAW AI RESPONSE:", (out as any).raw);
-  setAiError("AI returned unexpected format. Check logs.");
-  return;
-}
+        setAiError("Invalid AI response");
+        return;
+      }
       setAiEval(out);
     } catch (err: any) {
       setAiError(err?.message ?? "AI evaluation failed.");
@@ -125,7 +134,6 @@ if ((out as any).raw) {
     }
   }
 
-  // --- SAVE OR SUBMIT ---
   async function save(submit: boolean) {
     submit ? setSubmitting(true) : setSaving(true);
     setMsg(null);
@@ -142,14 +150,12 @@ if ((out as any).raw) {
         }),
         headers: { "X-Actor": actorEmail },
       });
-
       setMsg({
         ok: true,
         text: submit
           ? "✓ Evaluation submitted to BRSA Standards Authority for approval."
           : "✓ Draft saved.",
       });
-
       if (submit) {
         const res: EvaluationResponse = await api(`/participants/${participantId}/evaluation`);
         if (res.evaluation) setEvaluation(res.evaluation);
@@ -162,66 +168,224 @@ if ((out as any).raw) {
     }
   }
 
-  const isLocked =
-    evaluation?.status === "submitted" ||
-    evaluation?.status === "approved";
+  function setScore(domain: string, score: number) {
+    setDomainScores((prev) =>
+      prev.map((d) => (d.domain === domain ? { ...d, score } : d))
+    );
+  }
 
+  function setNotes(domain: string, notes: string) {
+    setDomainScores((prev) =>
+      prev.map((d) => (d.domain === domain ? { ...d, notes } : d))
+    );
+  }
+
+  function toggleDoc(key: string) {
+    setDocChecklist((prev) =>
+      prev.map((d) => (d.item === key ? { ...d, checked: !d.checked } : d))
+    );
+  }
+
+  const isLocked = evaluation?.status === "submitted" || evaluation?.status === "approved";
   const canEvaluate = ["under_review", "evaluated"].includes(currentStatus);
 
-  if (loading) return <div style={{ color: "white" }}>Loading...</div>;
-
-if (!canEvaluate && !evaluation) {
-  return <div style={{ color: "white" }}>No evaluation available</div>;
-}
+  if (loading) return <div style={{ color: "white", padding: 20 }}>Loading evaluation...</div>;
+  if (!canEvaluate && !evaluation) return <div style={{ color: "white", padding: 20 }}>No evaluation available for this participant.</div>;
 
   return (
-    <div style={{ display: "flex", gap: 20 }}>
+    <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+
       {/* LEFT: Evaluation Form */}
       <div style={{
-        flex: 1,
-        background: C.surface,
+        flex: 1, background: C.surface,
         border: `1px solid ${C.gold}44`,
-        borderRadius: 8,
-        padding: 20,
+        borderRadius: 8, padding: 20,
       }}>
-        {/* ... your existing form stays unchanged ... */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 16 }}>
+          Evaluation Record
+        </div>
+
+        {evaluation?.status && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "4px 12px", borderRadius: 999,
+            background: evaluation.status === "submitted" ? `${C.gold}22` : `${C.teal}22`,
+            border: `1px solid ${evaluation.status === "submitted" ? C.gold : C.teal}55`,
+            color: evaluation.status === "submitted" ? C.gold : C.teal,
+            fontSize: 11, fontWeight: 700, letterSpacing: "0.08em",
+            textTransform: "uppercase", marginBottom: 20,
+          }}>
+            {evaluation.status.toUpperCase()}
+          </div>
+        )}
+
+        {/* Domain Scores */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Domain Scores (0–100)
+          </div>
+          {DOMAIN_LABELS.map(({ key, label }) => {
+            const entry = domainScores.find((d) => d.domain === key) || { score: 50, notes: "" };
+            return (
+              <div key={key} style={{ marginBottom: 18 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, color: C.white, fontWeight: 500 }}>{label}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{entry.score}</span>
+                </div>
+                <input
+                  type="range" min={0} max={100} value={entry.score}
+                  disabled={isLocked}
+                  onChange={(e) => setScore(key, Number(e.target.value))}
+                  style={{ width: "100%", accentColor: C.gold, marginBottom: 6 }}
+                />
+                <input
+                  placeholder="Notes (optional)"
+                  value={entry.notes}
+                  disabled={isLocked}
+                  onChange={(e) => setNotes(key, e.target.value)}
+                  style={{
+                    width: "100%", background: "rgba(0,0,0,0.2)",
+                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4,
+                    padding: "6px 10px", color: C.white, fontSize: 12,
+                    outline: "none", boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Doc Checklist */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Document Checklist
+          </div>
+          {DOC_ITEMS.map(({ key, label }) => {
+            const entry = docChecklist.find((d) => d.item === key);
+            return (
+              <label key={key} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, cursor: isLocked ? "default" : "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={entry?.checked ?? false}
+                  disabled={isLocked}
+                  onChange={() => toggleDoc(key)}
+                  style={{ accentColor: C.gold, width: 16, height: 16 }}
+                />
+                <span style={{ fontSize: 13, color: entry?.checked ? C.white : C.gray }}>{label}</span>
+              </label>
+            );
+          })}
+        </div>
+
+        {/* Narrative */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Narrative Assessment
+          </div>
+          <textarea
+            rows={5} value={narrative} disabled={isLocked}
+            onChange={(e) => setNarrative(e.target.value)}
+            placeholder="Document your assessment of this participant..."
+            style={{
+              width: "100%", background: "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+              padding: "10px 12px", color: C.white, fontSize: 13,
+              outline: "none", resize: "vertical", boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Recommended Next Steps */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Recommended Next Steps
+          </div>
+          <textarea
+            rows={3} value={recommended} disabled={isLocked}
+            onChange={(e) => setRecommended(e.target.value)}
+            placeholder="What should happen next for this participant..."
+            style={{
+              width: "100%", background: "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+              padding: "10px 12px", color: C.white, fontSize: 13,
+              outline: "none", resize: "vertical", boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {/* Attestation */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Evaluator Attestation
+          </div>
+          <input
+            placeholder="Your name or evaluator ID"
+            value={attestation} disabled={isLocked}
+            onChange={(e) => setAttestation(e.target.value)}
+            style={{
+              width: "100%", background: "rgba(0,0,0,0.2)",
+              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
+              padding: "10px 12px", color: C.white, fontSize: 13,
+              outline: "none", boxSizing: "border-box",
+            }}
+          />
+        </div>
+
+        {msg && (
+          <div style={{
+            padding: "10px 14px", borderRadius: 6, marginBottom: 16, fontSize: 13,
+            background: msg.ok ? "rgba(45,212,191,0.1)" : "rgba(248,113,113,0.1)",
+            border: `1px solid ${msg.ok ? C.teal : "#F87171"}55`,
+            color: msg.ok ? C.teal : "#F87171",
+          }}>
+            {msg.text}
+          </div>
+        )}
+
+        {!isLocked && (
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => save(false)} disabled={saving}
+              style={{
+                flex: 1, padding: "11px 0", borderRadius: 6,
+                background: "transparent", border: `1px solid ${C.gold}66`,
+                color: C.gold, fontWeight: 600, fontSize: 13, cursor: "pointer",
+              }}
+            >
+              {saving ? "Saving..." : "Save Draft"}
+            </button>
+            <button
+              onClick={() => save(true)} disabled={submitting || !attestation}
+              style={{
+                flex: 2, padding: "11px 0", borderRadius: 6,
+                background: C.gold, border: "none",
+                color: C.navyDeep, fontWeight: 700, fontSize: 13, cursor: "pointer",
+              }}
+            >
+              {submitting ? "Submitting..." : "Submit to BRSA Authority"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* RIGHT: AI EVALUATOR PANEL */}
       <div style={{
-        width: 360,
-        background: C.navyDeep,
+        width: 360, background: C.navyDeep,
         border: `1px solid ${C.gold}33`,
-        borderRadius: 8,
-        padding: 16,
-        overflowY: "auto",
-        maxHeight: "calc(100vh - 120px)",
+        borderRadius: 8, padding: 16,
+        overflowY: "auto", maxHeight: "calc(100vh - 120px)",
+        flexShrink: 0,
       }}>
-        <div style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: C.gray,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          marginBottom: 12,
-        }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.gray, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>
           Evaluator AI Assistant
         </div>
 
         <button
-          onClick={generateAI}
-          disabled={aiLoading}
+          onClick={generateAI} disabled={aiLoading}
           style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: 4,
-            background: C.gold,
-            color: C.navyDeep,
-            fontWeight: 700,
-            letterSpacing: "0.05em",
-            cursor: "pointer",
-            marginBottom: 14,
-            border: "none",
+            width: "100%", padding: "10px 12px", borderRadius: 4,
+            background: C.gold, color: C.navyDeep, fontWeight: 700,
+            letterSpacing: "0.05em", cursor: "pointer", marginBottom: 14, border: "none",
           }}
         >
           {aiLoading ? "Generating..." : "Generate AI Evaluation"}
@@ -229,13 +393,9 @@ if (!canEvaluate && !evaluation) {
 
         {aiError && (
           <div style={{
-            padding: 10,
-            background: "rgba(248,113,113,0.1)",
-            border: "1px solid rgba(248,113,113,0.3)",
-            color: "#F87171",
-            borderRadius: 4,
-            marginBottom: 14,
-            fontSize: 12,
+            padding: 10, background: "rgba(248,113,113,0.1)",
+            border: "1px solid rgba(248,113,113,0.3)", color: "#F87171",
+            borderRadius: 4, marginBottom: 14, fontSize: 12,
           }}>
             {aiError}
           </div>
@@ -243,45 +403,49 @@ if (!canEvaluate && !evaluation) {
 
         {aiEval && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
             <Section title="Pre‑Evaluation Brief">
-              <p style={{ color: C.white, fontSize: 12 }}>{aiEval.PreEvaluationBrief.Summary}</p>
-              <SubList label="Strengths" items={aiEval.PreEvaluationBrief.KeyStrengths} />
-              <SubList label="Gaps" items={aiEval.PreEvaluationBrief.KeyGaps} />
-              <SubList label="Missing Inputs" items={aiEval.PreEvaluationBrief.MissingInputs} />
-              <SubList label="Immediate Actions" items={aiEval.PreEvaluationBrief.ImmediateActionItems} />
+              <p style={{ color: C.white, fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
+                {aiEval.pre_evaluation_brief.summary}
+              </p>
+              <SubList label="Strengths" items={aiEval.pre_evaluation_brief.key_strengths} />
+              <SubList label="Gaps" items={aiEval.pre_evaluation_brief.key_gaps} />
+              <SubList label="Missing Inputs" items={aiEval.pre_evaluation_brief.missing_inputs} />
+              <SubList label="Immediate Actions" items={aiEval.pre_evaluation_brief.immediate_action_items} />
             </Section>
 
             <Section title="Domain Analysis">
-              <SubField label="Housing" value={aiEval.DomainAnalysis.Housing} />
-              <SubField label="Workforce" value={aiEval.DomainAnalysis.Workforce} />
-              <SubField label="Financial" value={aiEval.DomainAnalysis.Financial} />
-              <SubField label="Behavioral" value={aiEval.DomainAnalysis.Behavioral} />
+              <SubField label="Housing" value={aiEval.domain_analysis.housing} />
+              <SubField label="Workforce" value={aiEval.domain_analysis.workforce} />
+              <SubField label="Financial" value={aiEval.domain_analysis.financial} />
+              <SubField label="Behavioral" value={aiEval.domain_analysis.behavioral} />
             </Section>
 
             <Section title="Narrative Draft">
-              <p style={{ color: C.white, fontSize: 12, whiteSpace: "pre-wrap" }}>
-                {aiEval.NarrativeDraft}
+              <p style={{ color: C.white, fontSize: 12, whiteSpace: "pre-wrap", lineHeight: 1.6, marginBottom: 8 }}>
+                {aiEval.narrative_draft}
               </p>
-              <ApplyButton onClick={() => setNarrative(aiEval.NarrativeDraft)} />
+              <ApplyButton onClick={() => setNarrative(aiEval!.narrative_draft)} />
             </Section>
 
             <Section title="Recommended Actions">
-              <SubList items={aiEval.RecommendedActions} />
-              <ApplyButton onClick={() => setRecommended(aiEval.RecommendedActions.join("\n"))} />
+              <SubList items={aiEval.recommended_actions} />
+              <ApplyButton onClick={() => setRecommended(aiEval!.recommended_actions.join("\n"))} />
             </Section>
 
             <Section title="Explainability">
-              <SubField label="Score Summary" value={aiEval.Explainability.ScoreSummary} />
-              <SubList label="Supporting Factors" items={aiEval.Explainability.FactorsSupporting} />
-              <SubList label="Limiting Factors" items={aiEval.Explainability.FactorsLimiting} />
-              <SubList label="Evidence Used" items={aiEval.Explainability.EvidenceUsed} />
-              <SubList label="Confidence Notes" items={aiEval.Explainability.ConfidenceNotes} />
+              <SubField label="Score Summary" value={aiEval.explainability.score_summary} />
+              <SubList label="Supporting Factors" items={aiEval.explainability.factors_supporting} />
+              <SubList label="Limiting Factors" items={aiEval.explainability.factors_limiting} />
+              <SubList label="Evidence Used" items={aiEval.explainability.evidence_used} />
+              <SubList label="Confidence Notes" items={aiEval.explainability.confidence_notes} />
             </Section>
 
             <Section title="Confidence & Anomalies">
-              <SubField label="Confidence Score" value={aiEval.ConfidenceScore} />
-              <SubList label="Anomaly Flags" items={aiEval.AnomalyFlags} />
+              <SubField label="Confidence Score" value={String(aiEval.confidence_score)} />
+              <SubList label="Anomaly Flags" items={aiEval.anomaly_flags ?? []} />
             </Section>
+
           </div>
         )}
       </div>
@@ -289,22 +453,15 @@ if (!canEvaluate && !evaluation) {
   );
 }
 
-// --- UI HELPERS ---
 function Section({ title, children }: { title: string; children: any }) {
   return (
     <div style={{
-      padding: 12,
-      background: "#0F2236",
-      borderRadius: 6,
+      padding: 12, background: "#0F2236", borderRadius: 6,
       border: "1px solid rgba(200,168,75,0.15)",
     }}>
       <div style={{
-        fontSize: 11,
-        fontWeight: 700,
-        color: "#C8A84B",
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-        marginBottom: 8,
+        fontSize: 11, fontWeight: 700, color: "#C8A84B",
+        letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8,
       }}>
         {title}
       </div>
@@ -317,16 +474,10 @@ function SubList({ label, items }: { label?: string; items: string[] }) {
   if (!items?.length) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      {label && (
-        <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 4 }}>
-          {label}
-        </div>
-      )}
+      {label && <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 4 }}>{label}</div>}
       <ul style={{ paddingLeft: 16, margin: 0 }}>
         {items.map((x, i) => (
-          <li key={i} style={{ color: "#F4F6F9", fontSize: 12, marginBottom: 2 }}>
-            {x}
-          </li>
+          <li key={i} style={{ color: "#F4F6F9", fontSize: 12, marginBottom: 2 }}>{x}</li>
         ))}
       </ul>
     </div>
@@ -337,12 +488,8 @@ function SubField({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 2 }}>
-        {label}
-      </div>
-      <div style={{ color: "#F4F6F9", fontSize: 12, whiteSpace: "pre-wrap" }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 2 }}>{label}</div>
+      <div style={{ color: "#F4F6F9", fontSize: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{value}</div>
     </div>
   );
 }
@@ -352,18 +499,12 @@ function ApplyButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       style={{
-        marginTop: 8,
-        padding: "6px 10px",
-        borderRadius: 4,
-        background: "#C8A84B",
-        color: "#0B1C30",
-        fontSize: 11,
-        fontWeight: 700,
-        cursor: "pointer",
-        border: "none",
+        marginTop: 8, padding: "6px 10px", borderRadius: 4,
+        background: "#C8A84B", color: "#0B1C30",
+        fontSize: 11, fontWeight: 700, cursor: "pointer", border: "none",
       }}
     >
       Apply to Form
     </button>
   );
-}
+      }
