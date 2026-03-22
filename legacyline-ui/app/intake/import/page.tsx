@@ -21,7 +21,7 @@ type ParticipantImportPayload = {
   citizenship_status: string;
   program: string;
   country_of_origin: string;
-  organization: string;
+  organization_id: string;
 };
 
 function normalizePhone(input: string) {
@@ -84,7 +84,7 @@ function mapRowToParticipant(row: CsvRow): ParticipantImportPayload {
     citizenship_status: getValue(row, ["citizenship_status", "citizenship status", "status"]),
     program: getValue(row, ["program", "program_track", "program track"]),
     country_of_origin: getValue(row, ["country_of_origin", "country of origin", "country"]),
-    organization: getValue(row, ["organization", "org"]) || "vizionz_sankofa",
+    organization_id: getValue(row, ["organization_id", "organization", "org"]),
   };
 }
 
