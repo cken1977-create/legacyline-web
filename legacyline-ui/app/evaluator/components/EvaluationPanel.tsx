@@ -7,6 +7,7 @@ const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
   white: "#F4F6F9", gray: "#8899AA", surface: "#162E4A",
   surfaceHi: "#1E3D5A", teal: "#2DD4BF",
+  red: "#F87171", yellow: "#FBBF24", green: "#34D399",
 };
 
 type EvaluationPanelProps = {
@@ -67,6 +68,21 @@ const DOC_ITEMS = [
   { key: "intake_complete", label: "Intake Form Complete" },
 ];
 
+function confidenceLabel(score: number): { label: string; color: string; bg: string } {
+  if (score < 0.6) return {
+    label: "Low Confidence — Requires careful human judgment",
+    color: C.yellow, bg: "rgba(251,191,36,0.1)",
+  };
+  if (score < 0.8) return {
+    label: "Moderate Confidence — Review recommended",
+    color: C.white, bg: "rgba(255,255,255,0.05)",
+  };
+  return {
+    label: "High Confidence — Aligned with readiness model",
+    color: C.green, bg: "rgba(52,211,153,0.1)",
+  };
+}
+
 export default function EvaluationPanel({
   participantId,
   actorEmail,
@@ -89,6 +105,7 @@ export default function EvaluationPanel({
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showSummary, setShowSummary] = useState(false);
 
   const [aiEval, setAiEval] = useState<AIEvalResponse | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -137,6 +154,7 @@ export default function EvaluationPanel({
   async function save(submit: boolean) {
     submit ? setSubmitting(true) : setSaving(true);
     setMsg(null);
+    setShowSummary(false);
     try {
       await api(`/participants/${participantId}/evaluation`, {
         method: "POST",
@@ -147,6 +165,11 @@ export default function EvaluationPanel({
           recommended_next: recommended,
           attestation,
           submit,
+          // AI delta — freeze AI state at time of submission
+          ai_summary: aiEval?.pre_evaluation_brief ?? null,
+          ai_confidence: aiEval?.confidence_score ?? 0,
+          ai_missing_data: aiEval?.pre_evaluation_brief?.missing_inputs ?? null,
+          ai_recommended: aiEval?.recommended_actions ?? null,
         }),
         headers: { "X-Actor": actorEmail },
       });
@@ -188,6 +211,9 @@ export default function EvaluationPanel({
 
   const isLocked = evaluation?.status === "submitted" || evaluation?.status === "approved";
   const canEvaluate = ["under_review", "evaluated"].includes(currentStatus);
+  const confidence = aiEval?.confidence_score ?? 0;
+  const confStyle = confidenceLabel(confidence);
+  const missingCount = aiEval?.pre_evaluation_brief?.missing_inputs?.length ?? 0;
 
   if (loading) return <div style={{ color: "white", padding: 20 }}>Loading evaluation...</div>;
   if (!canEvaluate && !evaluation) return <div style={{ color: "white", padding: 20 }}>No evaluation available for this participant.</div>;
@@ -318,31 +344,91 @@ export default function EvaluationPanel({
           <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
             Evaluator Attestation
           </div>
-          <input
-            placeholder="Your name or evaluator ID"
-            value={attestation} disabled={isLocked}
+          <textarea
+            rows={3}
+            placeholder="I attest that I reviewed the participant record, supporting documents, AI assistance output, and domain assessments, and that this submission reflects my evaluator judgment."
+            value={attestation}
+            disabled={isLocked}
             onChange={(e) => setAttestation(e.target.value)}
             style={{
               width: "100%", background: "rgba(0,0,0,0.2)",
               border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
               padding: "10px 12px", color: C.white, fontSize: 13,
-              outline: "none", boxSizing: "border-box",
+              outline: "none", resize: "vertical", boxSizing: "border-box",
             }}
           />
         </div>
+
+        {/* Submission Summary Card */}
+        {showSummary && !isLocked && (
+          <div style={{
+            marginBottom: 20, padding: 16, borderRadius: 8,
+            background: "rgba(200,168,75,0.06)",
+            border: `1px solid ${C.gold}44`,
+          }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+              Submission Summary — Review Before Submitting
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <SummaryRow label="Current State" value={currentStatus} />
+              <SummaryRow label="Proposed Transition" value="→ Evaluated" />
+              <SummaryRow label="Missing Inputs (AI)" value={missingCount > 0 ? `${missingCount} flagged` : "None flagged"} valueColor={missingCount > 0 ? C.yellow : C.green} />
+              <SummaryRow
+                label="AI Confidence"
+                value={aiEval ? `${(confidence * 100).toFixed(0)}%` : "Not generated"}
+                valueColor={aiEval ? confStyle.color : C.gray}
+              />
+              <SummaryRow label="Attestation" value={attestation ? "Provided" : "Missing"} valueColor={attestation ? C.green : C.red} />
+            </div>
+            {confidence > 0 && confidence < 0.6 && (
+              <div style={{
+                marginTop: 12, padding: "8px 12px", borderRadius: 6,
+                background: "rgba(251,191,36,0.1)",
+                border: "1px solid rgba(251,191,36,0.3)",
+                color: C.yellow, fontSize: 12,
+              }}>
+                ⚠ Low AI confidence detected. Your human judgment is the deciding factor here.
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <button
+                onClick={() => setShowSummary(false)}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 6,
+                  background: "transparent", border: `1px solid ${C.gray}55`,
+                  color: C.gray, fontWeight: 600, fontSize: 13, cursor: "pointer",
+                }}
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => save(true)}
+                disabled={submitting || !attestation}
+                style={{
+                  flex: 2, padding: "10px 0", borderRadius: 6,
+                  background: C.gold, border: "none",
+                  color: C.navyDeep, fontWeight: 700, fontSize: 13, cursor: "pointer",
+                  opacity: submitting || !attestation ? 0.5 : 1,
+                }}
+              >
+                {submitting ? "Submitting..." : "Confirm & Submit to BRSA Authority"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {msg && (
           <div style={{
             padding: "10px 14px", borderRadius: 6, marginBottom: 16, fontSize: 13,
             background: msg.ok ? "rgba(45,212,191,0.1)" : "rgba(248,113,113,0.1)",
-            border: `1px solid ${msg.ok ? C.teal : "#F87171"}55`,
-            color: msg.ok ? C.teal : "#F87171",
+            border: `1px solid ${msg.ok ? C.teal : C.red}55`,
+            color: msg.ok ? C.teal : C.red,
           }}>
             {msg.text}
           </div>
         )}
 
-        {!isLocked && (
+        {!isLocked && !showSummary && (
           <div style={{ display: "flex", gap: 10 }}>
             <button
               onClick={() => save(false)} disabled={saving}
@@ -355,14 +441,16 @@ export default function EvaluationPanel({
               {saving ? "Saving..." : "Save Draft"}
             </button>
             <button
-              onClick={() => save(true)} disabled={submitting || !attestation}
+              onClick={() => setShowSummary(true)}
+              disabled={!attestation}
               style={{
                 flex: 2, padding: "11px 0", borderRadius: 6,
                 background: C.gold, border: "none",
                 color: C.navyDeep, fontWeight: 700, fontSize: 13, cursor: "pointer",
+                opacity: !attestation ? 0.5 : 1,
               }}
             >
-              {submitting ? "Submitting..." : "Submit to BRSA Authority"}
+              Review & Submit →
             </button>
           </div>
         )}
@@ -391,10 +479,26 @@ export default function EvaluationPanel({
           {aiLoading ? "Generating..." : "Generate AI Evaluation"}
         </button>
 
+        {/* Confidence Gate Banner */}
+        {aiEval && confidence > 0 && (
+          <div style={{
+            padding: "8px 12px", borderRadius: 6, marginBottom: 14,
+            background: confStyle.bg,
+            border: `1px solid ${confStyle.color}44`,
+            color: confStyle.color, fontSize: 12, fontWeight: 600,
+          }}>
+            {confidence < 0.6 && "⚠ "}{confidence >= 0.8 && "✓ "}
+            {confStyle.label}
+            <div style={{ fontSize: 11, fontWeight: 400, marginTop: 2, opacity: 0.8 }}>
+              Score: {(confidence * 100).toFixed(0)}%
+            </div>
+          </div>
+        )}
+
         {aiError && (
           <div style={{
             padding: 10, background: "rgba(248,113,113,0.1)",
-            border: "1px solid rgba(248,113,113,0.3)", color: "#F87171",
+            border: "1px solid rgba(248,113,113,0.3)", color: C.red,
             borderRadius: 4, marginBottom: 14, fontSize: 12,
           }}>
             {aiError}
@@ -404,7 +508,7 @@ export default function EvaluationPanel({
         {aiEval && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-            <Section title="Pre‑Evaluation Brief">
+             <Section title="Pre-Evaluation Brief">
               <p style={{ color: C.white, fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
                 {aiEval.pre_evaluation_brief.summary}
               </p>
@@ -442,13 +546,22 @@ export default function EvaluationPanel({
             </Section>
 
             <Section title="Confidence & Anomalies">
-              <SubField label="Confidence Score" value={String(aiEval.confidence_score)} />
+              <SubField label="Confidence Score" value={`${(confidence * 100).toFixed(0)}%`} />
               <SubList label="Anomaly Flags" items={aiEval.anomaly_flags ?? []} />
             </Section>
 
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <span style={{ fontSize: 12, color: "#8899AA" }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 600, color: valueColor ?? "#F4F6F9" }}>{value}</span>
     </div>
   );
 }
@@ -507,4 +620,4 @@ function ApplyButton({ onClick }: { onClick: () => void }) {
       Apply to Form
     </button>
   );
-      }
+}
