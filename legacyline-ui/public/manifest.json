@@ -1,0 +1,26 @@
+{
+  "name": "Legacyline",
+  "short_name": "Legacyline",
+  "description": "Your personal readiness journey — powered by BRSA doctrine",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#0B1C30",
+  "theme_color": "#0B1C30",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo-shield.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-shield.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["finance", "productivity", "lifestyle"]
+}
