@@ -4,6 +4,7 @@ import ReadinessPanel from "./components/panels/ReadinessPanel";
 import EvidencePanel from "./components/panels/EvidencePanel";
 import StateHistoryPanel from "./components/panels/StateHistoryPanel";
 import StateTransitionPanel from "./components/panels/StateTransitionPanel";
+import VaultPanel from "./components/panels/VaultPanel";
 import { UnifiedTimeline } from "./components/timeline/UnifiedTimeline";
 
 import {
@@ -37,8 +38,6 @@ const STATUS_MAP: Record<string, { label: string; classes: string }> = {
   certified:       { label: "Certified",       classes: "bg-emerald-500/15 text-emerald-400 ring-emerald-500/25" },
   revoked:         { label: "Revoked",         classes: "bg-red-500/15 text-red-400 ring-red-500/25" },
 };
-
-// --- AI CASE BRIEF TYPES + FETCH ---
 
 type DocumentReference = {
   present: boolean;
@@ -82,11 +81,9 @@ async function getAICaseBrief(subjectId: string): Promise<AICaseBrief | null> {
   try {
     const base = process.env.NEXT_PUBLIC_CORE_API_URL;
     if (!base) return null;
-
     const res = await fetch(`${base}/ai/individual/${subjectId}`, {
       cache: "no-store",
     });
-
     if (!res.ok) return null;
     return (await res.json()) as AICaseBrief;
   } catch {
@@ -121,7 +118,7 @@ export default async function SubjectPage({
   const statusConfig =
     STATUS_MAP[status] ??
     { label: status, classes: "bg-white/10 text-white/60 ring-white/10" };
-  const org = s?.organization ?? "—";
+  const org = s?.organization_id ?? "—";
   const dob = s?.dob ?? s?.date_of_birth ?? null;
   const subjectNumber = s?.subject_number ?? null;
   const registryId = s?.registry_id ?? null;
@@ -175,6 +172,7 @@ export default async function SubjectPage({
   return (
     <Shell>
       <div className="space-y-6">
+
         {/* Participant Identity Block */}
         <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
           <div className="flex items-start justify-between gap-4">
@@ -239,15 +237,13 @@ export default async function SubjectPage({
 
         {/* AI Case Brief */}
         <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-  <h2 className="text-2xl font-semibold">AI Case Brief</h2>
-  <p className="mt-2 text-white/70">
-    Temporarily disabled for debugging.
-  </p>
-</div>
+          <h2 className="text-2xl font-semibold">AI Case Brief</h2>
+          <p className="mt-2 text-white/70">
+            Temporarily disabled for debugging.
+          </p>
+        </div>
 
-              
-
-        {/* Evaluator Actions — full width */}
+        {/* Evaluator Actions */}
         <StateTransitionPanel currentStatus={status} subjectId={subjectId} />
 
         {/* Panels Grid */}
@@ -273,9 +269,13 @@ export default async function SubjectPage({
           />
         </div>
 
+        {/* Longitudinal Readiness Vault */}
+        <VaultPanel participantId={subjectId} />
+
         {/* Unified Timeline */}
         <UnifiedTimeline events={timelineEvents} />
+
       </div>
     </Shell>
   );
-}
+    }
