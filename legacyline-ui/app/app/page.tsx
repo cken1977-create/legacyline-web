@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
@@ -33,15 +33,13 @@ type IntakeData = {
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const DOMAINS = [
-  { key: "housing", label: "Housing", icon: "🏠" },
-  { key: "workforce", label: "Workforce", icon: "💼" },
-  { key: "financial", label: "Financial", icon: "💰" },
-  { key: "behavioral", label: "Behavioral", icon: "🧠" },
+  { key: "housing", label: "Housing", icon: "⌂", color: "#4F9EFF" },
+  { key: "workforce", label: "Workforce", icon: "◈", color: "#A78BFA" },
+  { key: "financial", label: "Financial", icon: "◆", color: "#34D399" },
+  { key: "behavioral", label: "Behavioral", icon: "◉", color: "#FB923C" },
 ];
 
-const STATUS_STEPS = [
-  "registered", "data_collecting", "under_review", "evaluated", "certified"
-];
+const STATUS_STEPS = ["registered", "data_collecting", "under_review", "evaluated", "certified"];
 
 const STATUS_LABELS: Record<string, string> = {
   registered: "Registered",
@@ -53,175 +51,158 @@ const STATUS_LABELS: Record<string, string> = {
 
 // ── Nudge engine ───────────────────────────────────────────────────────────────
 
-function generateNudges(vault: VaultRecord | null, intake: IntakeData | null): { id: string; title: string; description: string; impact: "high" | "medium" | "low"; domain: string; completed: boolean }[] {
+function generateNudges(vault: VaultRecord | null, intake: IntakeData | null) {
   const nudges = [];
-
-  if (!intake) {
-    nudges.push({
-      id: "complete_intake",
-      title: "Complete your intake form",
-      description: "Your intake form is the foundation of your readiness profile. Complete it to unlock your score.",
-      impact: "high" as const,
-      domain: "all",
-      completed: false,
-    });
-  }
-
-  if (intake && !intake.gov_id_url) {
-    nudges.push({
-      id: "upload_gov_id",
-      title: "Upload your government ID",
-      description: "Identity verification is required before your evaluation can begin.",
-      impact: "high" as const,
-      domain: "behavioral",
-      completed: false,
-    });
-  }
-
-  if (intake && !intake.selfie_url) {
-    nudges.push({
-      id: "upload_selfie",
-      title: "Add your identity selfie",
-      description: "A selfie with your ID confirms your identity and unlocks the review process.",
-      impact: "high" as const,
-      domain: "behavioral",
-      completed: false,
-    });
-  }
-
-  if (intake && !intake.bank_statement_url) {
-    nudges.push({
-      id: "upload_bank",
-      title: "Upload your bank statement",
-      description: "Financial documentation is the #1 factor in your Financial Readiness score.",
-      impact: "high" as const,
-      domain: "financial",
-      completed: false,
-    });
-  }
-
-  if (intake && intake.employment_status === "unemployed") {
-    nudges.push({
-      id: "workforce_gap",
-      title: "Address your workforce gap",
-      description: "Participants who document job search activity or training improve their Workforce score by an average of 22 points.",
-      impact: "medium" as const,
-      domain: "workforce",
-      completed: false,
-    });
-  }
-
-  if (vault?.current_status === "registered") {
-    nudges.push({
-      id: "move_to_review",
-      title: "Move your profile to active review",
-      description: "Your evaluator is ready. Complete your documents to advance to Under Review.",
-      impact: "high" as const,
-      domain: "all",
-      completed: false,
-    });
-  }
-
-  if (vault?.current_status === "evaluated") {
-    nudges.push({
-      id: "certification_pending",
-      title: "Certification review in progress",
-      description: "Your evaluation has been submitted to BRSA Standards Authority for certification review.",
-      impact: "low" as const,
-      domain: "all",
-      completed: true,
-    });
-  }
-
-  if (vault?.current_status === "certified") {
-    nudges.push({
-      id: "share_cert",
-      title: "Share your certification",
-      description: "You're BRSA certified. Share your readiness standing with lenders, employers, or housing authorities.",
-      impact: "medium" as const,
-      domain: "all",
-      completed: true,
-    });
-  }
-
-  if (nudges.length === 0) {
-    nudges.push({
-      id: "maintain",
-      title: "Keep your profile current",
-      description: "Update your documents every 90 days to maintain your readiness standing.",
-      impact: "low" as const,
-      domain: "all",
-      completed: false,
-    });
-  }
-
+  if (!intake) nudges.push({ id: "complete_intake", title: "Complete your intake form", description: "Your intake form is the foundation of your readiness profile.", impact: "high" as const, domain: "all", completed: false, points: 15 });
+  if (intake && !intake.gov_id_url) nudges.push({ id: "upload_gov_id", title: "Upload your government ID", description: "Identity verification unlocks your evaluation.", impact: "high" as const, domain: "behavioral", completed: false, points: 20 });
+  if (intake && !intake.selfie_url) nudges.push({ id: "upload_selfie", title: "Add your identity selfie", description: "A selfie with your ID confirms your identity.", impact: "high" as const, domain: "behavioral", completed: false, points: 25 });
+  if (intake && !intake.bank_statement_url) nudges.push({ id: "upload_bank", title: "Upload your bank statement", description: "Financial documentation is the #1 factor in your Financial score.", impact: "high" as const, domain: "financial", completed: false, points: 35 });
+  if (intake?.employment_status === "unemployed") nudges.push({ id: "workforce_gap", title: "Document your job search activity", description: "Participants who document job search activity improve their Workforce score by an average of 22 points.", impact: "medium" as const, domain: "workforce", completed: false, points: 22 });
+  if (vault?.current_status === "certified") nudges.push({ id: "share_cert", title: "Share your certification", description: "You're BRSA certified. Share your standing with lenders, employers, or housing authorities.", impact: "medium" as const, domain: "all", completed: true, points: 0 });
+  if (nudges.length === 0) nudges.push({ id: "maintain", title: "Keep your profile current", description: "Update your documents every 90 days to maintain your readiness standing.", impact: "low" as const, domain: "all", completed: false, points: 5 });
   return nudges;
 }
 
-// ── Helper functions ───────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
 function scoreColor(score: number) {
   if (score >= 70) return "#34D399";
-  if (score >= 50) return "#FBBF24";
+  if (score >= 50) return "#F59E0B";
   return "#F87171";
-}
-
-function trajectoryIcon(t: string) {
-  if (t === "improving") return "↑";
-  if (t === "declining") return "↓";
-  return "→";
 }
 
 function trajectoryColor(t: string) {
   if (t === "improving") return "#34D399";
   if (t === "declining") return "#F87171";
-  return "#FBBF24";
-}
-
-function impactColor(impact: string) {
-  if (impact === "high") return { color: "#F87171", bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.3)" };
-  if (impact === "medium") return { color: "#FBBF24", bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.3)" };
-  return { color: "#34D399", bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.3)" };
+  return "#F59E0B";
 }
 
 function fmt(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short", day: "numeric", year: "numeric",
-  });
+  return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ── Score ring component ───────────────────────────────────────────────────────
+// ── Animated Score Ring ────────────────────────────────────────────────────────
 
-function ScoreRing({ score, size = 120 }: { score: number | null; size?: number }) {
-  const r = (size / 2) - 10;
+function ScoreRing({ score, size = 160 }: { score: number | null; size?: number }) {
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const r = (size / 2) - 12;
   const circumference = 2 * Math.PI * r;
-  const pct = score !== null ? Math.min(score, 100) / 100 : 0;
+  const pct = animatedScore / 100;
   const offset = circumference - pct * circumference;
   const color = score !== null ? scoreColor(score) : "#8899AA";
 
+  useEffect(() => {
+    if (score === null) return;
+    let start = 0;
+    const duration = 1500;
+    const startTime = performance.now();
+    function animate(now: number) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setAnimatedScore(Math.round(eased * score));
+      if (progress < 1) requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  }, [score]);
+
   return (
-    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={8} />
-      <circle
-        cx={size/2} cy={size/2} r={r} fill="none"
-        stroke={color} strokeWidth={8}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        style={{ transition: "stroke-dashoffset 1s ease" }}
-      />
-      <text
-        x={size/2} y={size/2}
-        textAnchor="middle" dominantBaseline="middle"
-        style={{ transform: `rotate(90deg) translate(0px, -${size}px)`, fontSize: score !== null ? size * 0.22 : size * 0.14, fontWeight: 800, fill: color }}
-      >
-        {score !== null ? score : "—"}
-      </text>
-    </svg>
+    <div style={{ position: "relative", width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {/* Track */}
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={10} />
+        {/* Progress */}
+        <circle
+          cx={size/2} cy={size/2} r={r} fill="none"
+          stroke={color} strokeWidth={10}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          filter="url(#glow)"
+          style={{ transition: "stroke-dashoffset 0.1s ease" }}
+        />
+      </svg>
+      {/* Center content */}
+      <div style={{
+        position: "absolute", inset: 0,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+      }}>
+        <div style={{
+          fontSize: score !== null ? size * 0.26 : size * 0.14,
+          fontWeight: 900, color,
+          fontFamily: "'Clash Display', 'SF Pro Display', system-ui",
+          lineHeight: 1,
+          textShadow: score !== null ? `0 0 20px ${color}66` : "none",
+        }}>
+          {score !== null ? animatedScore : "—"}
+        </div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase", marginTop: 4 }}>
+          {score !== null ? "Readiness" : "No Score"}
+        </div>
+      </div>
+    </div>
   );
 }
 
-// ── Main app ───────────────────────────────────────────────────────────────────
+// ── Animated Domain Bar ────────────────────────────────────────────────────────
+
+function DomainBar({ score, color, delay = 0 }: { score: number; color: string; delay?: number }) {
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setWidth(score), delay + 300);
+    return () => clearTimeout(t);
+  }, [score, delay]);
+  return (
+    <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+      <div style={{
+        height: "100%", borderRadius: 3,
+        background: `linear-gradient(90deg, ${color}88, ${color})`,
+        width: `${width}%`,
+        boxShadow: `0 0 8px ${color}66`,
+        transition: "width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+      }} />
+    </div>
+  );
+}
+
+// ── Glass Card ─────────────────────────────────────────────────────────────────
+
+function GlassCard({ children, style = {}, gold = false, onClick }: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  gold?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: gold
+          ? "linear-gradient(135deg, rgba(200,168,75,0.12) 0%, rgba(200,168,75,0.04) 100%)"
+          : "rgba(255,255,255,0.04)",
+        border: gold ? "1px solid rgba(200,168,75,0.25)" : "1px solid rgba(255,255,255,0.07)",
+        borderRadius: 20,
+        backdropFilter: "blur(20px)",
+        cursor: onClick ? "pointer" : "default",
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ── Main App ───────────────────────────────────────────────────────────────────
 
 export default function ParticipantApp() {
   const router = useRouter();
@@ -230,74 +211,86 @@ export default function ParticipantApp() {
   const [intake, setIntake] = useState<IntakeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [participantId, setParticipantId] = useState("");
   const [registryId, setRegistryId] = useState("");
+  const [prevTab, setPrevTab] = useState<string>("home");
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("individual_token");
     const pid = localStorage.getItem("participant_id");
     const fn = localStorage.getItem("user_first_name");
-
-    if (!token || !pid) {
-      router.replace("/app/login");
-      return;
-    }
-
+    const ln = localStorage.getItem("user_last_name");
+    if (!token || !pid) { router.replace("/app/login"); return; }
     setParticipantId(pid);
     setFirstName(fn ?? "");
+    setLastName(ln ?? "");
 
     async function load() {
       try {
         const headers = { Authorization: `Bearer ${token}` };
-
-        const [vaultRes, meRes] = await Promise.all([
+        const [vaultRes, meRes, intakeRes] = await Promise.allSettled([
           fetch(`${API}/participants/${pid}/vault`),
           fetch(`${API}/auth/individual/me`, { headers }),
+          fetch(`${API}/intake/${pid}`),
         ]);
-
-        if (vaultRes.ok) {
-          const v = await vaultRes.json();
-          setVault(v);
-        }
-
-        if (meRes.ok) {
-          const me = await meRes.json();
-          setRegistryId(me.registry_id ?? "");
-        }
-
-        // Try to get intake
-        const intakeRes = await fetch(`${API}/intake/${pid}`);
-        if (intakeRes.ok) {
-          const i = await intakeRes.json();
-          setIntake(i);
-        }
-      } finally {
-        setLoading(false);
-      }
+        if (vaultRes.status === "fulfilled" && vaultRes.value.ok) setVault(await vaultRes.value.json());
+        if (meRes.status === "fulfilled" && meRes.value.ok) { const me = await meRes.value.json(); setRegistryId(me.registry_id ?? ""); }
+        if (intakeRes.status === "fulfilled" && intakeRes.value.ok) setIntake(await intakeRes.value.json());
+      } finally { setLoading(false); }
     }
-
     load();
   }, [router]);
 
-  function logout() {
-    localStorage.clear();
-    router.push("/app/login");
+  function switchTab(newTab: typeof tab) {
+    setPrevTab(tab);
+    setTab(newTab);
+    if (contentRef.current) {
+      contentRef.current.style.opacity = "0";
+      contentRef.current.style.transform = "translateY(8px)";
+      setTimeout(() => {
+        if (contentRef.current) {
+          contentRef.current.style.opacity = "1";
+          contentRef.current.style.transform = "translateY(0)";
+        }
+      }, 150);
+    }
   }
+
+  function logout() { localStorage.clear(); router.push("/app/login"); }
 
   const nudges = generateNudges(vault, intake);
   const highNudges = nudges.filter(n => n.impact === "high" && !n.completed);
   const domainScores = vault?.evaluations?.[vault.evaluations.length - 1]?.domain_scores ?? [];
   const currentStatusIndex = STATUS_STEPS.indexOf(vault?.current_status ?? "registered");
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const isCertified = vault?.current_status === "certified";
 
   if (loading) {
     return (
       <div style={{
-        minHeight: "100vh", background: "#0B1C30",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        flexDirection: "column", gap: 16,
+        minHeight: "100vh",
+        background: "radial-gradient(ellipse at 20% 50%, #1a1040 0%, #0a0a0f 60%)",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 20,
       }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(200,168,75,0.3)", borderTop: "3px solid #C8A84B", animation: "spin 1s linear infinite" }} />
-        <div style={{ color: "rgba(244,246,249,0.5)", fontSize: 13 }}>Loading your readiness profile...</div>
+        <div style={{ position: "relative", width: 56, height: 56 }}>
+          <div style={{
+            position: "absolute", inset: 0, borderRadius: "50%",
+            border: "2px solid rgba(200,168,75,0.15)",
+          }} />
+          <div style={{
+            position: "absolute", inset: 0, borderRadius: "50%",
+            border: "2px solid transparent",
+            borderTopColor: "#C8A84B",
+            animation: "spin 1s linear infinite",
+          }} />
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase" }}>
+          Loading
+        </div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -305,142 +298,224 @@ export default function ParticipantApp() {
 
   return (
     <div style={{
-      minHeight: "100vh", background: "#0B1C30",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      maxWidth: 430, margin: "0 auto", position: "relative",
+      minHeight: "100vh",
+      background: "#080C14",
+      fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif",
+      maxWidth: 430, margin: "0 auto",
+      position: "relative", overflow: "hidden",
     }}>
 
-      {/* Content area */}
-      <div style={{ paddingBottom: 80 }}>
+      {/* Ambient background */}
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
+        background: `
+          radial-gradient(ellipse 80% 40% at 20% 10%, rgba(79,158,255,0.06) 0%, transparent 70%),
+          radial-gradient(ellipse 60% 30% at 80% 80%, rgba(200,168,75,0.05) 0%, transparent 70%),
+          radial-gradient(ellipse 40% 60% at 50% 50%, rgba(52,211,153,0.03) 0%, transparent 70%)
+        `,
+      }} />
 
-        {/* ── HOME TAB ── */}
+      {/* Content */}
+      <div
+        ref={contentRef}
+        style={{
+          paddingBottom: 90, position: "relative", zIndex: 1,
+          transition: "opacity 0.2s ease, transform 0.2s ease",
+        }}
+      >
+
+        {/* ── HOME ── */}
         {tab === "home" && (
           <div>
-            {/* Header */}
+            {/* Hero header */}
             <div style={{
-              background: "linear-gradient(160deg, #1A3A5C 0%, #0B1C30 100%)",
-              padding: "56px 24px 32px",
+              padding: "60px 24px 32px",
+              background: "linear-gradient(180deg, rgba(79,158,255,0.08) 0%, transparent 100%)",
+              borderBottom: "1px solid rgba(255,255,255,0.04)",
             }}>
-              <div style={{ fontSize: 13, color: "rgba(200,168,75,0.8)", fontWeight: 600, marginBottom: 4 }}>
-                Good {new Date().getHours() < 12 ? "morning" : new Date().getHours() < 17 ? "afternoon" : "evening"},
-              </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: "#F4F6F9", marginBottom: 20 }}>
-                {firstName} 👋
+              {/* Status pill */}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "5px 12px", borderRadius: 999, marginBottom: 16,
+                background: isCertified ? "rgba(52,211,153,0.12)" : "rgba(200,168,75,0.1)",
+                border: `1px solid ${isCertified ? "rgba(52,211,153,0.25)" : "rgba(200,168,75,0.2)"}`,
+              }}>
+                <div style={{
+                  width: 6, height: 6, borderRadius: "50%",
+                  background: isCertified ? "#34D399" : "#C8A84B",
+                  boxShadow: `0 0 6px ${isCertified ? "#34D399" : "#C8A84B"}`,
+                }} />
+                <span style={{
+                  fontSize: 11, fontWeight: 600, letterSpacing: "0.08em",
+                  color: isCertified ? "#34D399" : "#C8A84B",
+                  textTransform: "uppercase",
+                }}>
+                  {STATUS_LABELS[vault?.current_status ?? "registered"]}
+                </span>
               </div>
 
-              {/* Score card */}
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>
+                {greeting},
+              </div>
               <div style={{
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(200,168,75,0.2)",
-                borderRadius: 20, padding: 20,
-                display: "flex", alignItems: "center", gap: 20,
+                fontSize: 30, fontWeight: 800, color: "#fff",
+                letterSpacing: "-0.5px", lineHeight: 1.1, marginBottom: 24,
               }}>
-                <ScoreRing score={vault?.composite_score ?? null} size={100} />
+                {firstName} {lastName}
+              </div>
+
+              {/* Score ring + stats */}
+              <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+                <ScoreRing score={vault?.composite_score ?? null} size={140} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, color: "rgba(244,246,249,0.5)", marginBottom: 4 }}>
-                    Composite Readiness Score
-                  </div>
                   {vault?.composite_score !== null && vault?.trajectory ? (
                     <>
-                      <div style={{ fontSize: 14, color: trajectoryColor(vault.trajectory), fontWeight: 600 }}>
-                        {trajectoryIcon(vault.trajectory)} {vault.trajectory.charAt(0).toUpperCase() + vault.trajectory.slice(1)}
+                      <div style={{
+                        fontSize: 13, fontWeight: 600,
+                        color: trajectoryColor(vault.trajectory), marginBottom: 8,
+                      }}>
+                        {vault.trajectory === "improving" ? "↑" : vault.trajectory === "declining" ? "↓" : "→"} {vault.trajectory.charAt(0).toUpperCase() + vault.trajectory.slice(1)}
                       </div>
-                      <div style={{ fontSize: 11, color: "rgba(244,246,249,0.35)", marginTop: 6 }}>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
                         Based on {vault.snapshots.length} assessment{vault.snapshots.length !== 1 ? "s" : ""}
                       </div>
+                      {vault.snapshots.length > 1 && (
+                        <div style={{
+                          display: "flex", alignItems: "flex-end", gap: 3,
+                          marginTop: 12, height: 32,
+                        }}>
+                          {vault.snapshots.slice(-6).map((s: any, i: number) => (
+                            <div key={i} style={{
+                              flex: 1, borderRadius: "3px 3px 0 0",
+                              background: scoreColor(s.score),
+                              opacity: 0.4 + (i / vault.snapshots.slice(-6).length) * 0.6,
+                              height: `${Math.max((s.score / 100) * 32, 4)}px`,
+                            }} />
+                          ))}
+                        </div>
+                      )}
                     </>
                   ) : (
-                    <div style={{ fontSize: 13, color: "rgba(244,246,249,0.4)" }}>
-                      Complete intake to unlock your score
+                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.6 }}>
+                      Complete your intake to unlock your score
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Status pipeline */}
+            {/* Journey pipeline */}
             <div style={{ padding: "20px 24px 0" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(244,246,249,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14 }}>
                 Your Journey
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
                 {STATUS_STEPS.map((s, i) => (
                   <div key={s} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
                       {i > 0 && (
-                        <div style={{ flex: 1, height: 2, background: i <= currentStatusIndex ? "#C8A84B" : "rgba(255,255,255,0.1)" }} />
+                        <div style={{
+                          flex: 1, height: 1,
+                          background: i <= currentStatusIndex
+                            ? "linear-gradient(90deg, #C8A84B, #C8A84B88)"
+                            : "rgba(255,255,255,0.08)",
+                        }} />
                       )}
                       <div style={{
-                        width: 12, height: 12, borderRadius: "50%", flexShrink: 0,
-                        background: i < currentStatusIndex ? "#C8A84B" : i === currentStatusIndex ? "#C8A84B" : "rgba(255,255,255,0.15)",
-                        border: i === currentStatusIndex ? "3px solid rgba(200,168,75,0.4)" : "none",
-                        boxShadow: i === currentStatusIndex ? "0 0 0 4px rgba(200,168,75,0.15)" : "none",
+                        width: i === currentStatusIndex ? 14 : 10,
+                        height: i === currentStatusIndex ? 14 : 10,
+                        borderRadius: "50%", flexShrink: 0,
+                        background: i < currentStatusIndex ? "#C8A84B"
+                          : i === currentStatusIndex ? "#C8A84B"
+                          : "rgba(255,255,255,0.1)",
+                        boxShadow: i === currentStatusIndex ? "0 0 0 4px rgba(200,168,75,0.15), 0 0 12px rgba(200,168,75,0.4)" : "none",
+                        transition: "all 0.3s ease",
                       }} />
                       {i < STATUS_STEPS.length - 1 && (
-                        <div style={{ flex: 1, height: 2, background: i < currentStatusIndex ? "#C8A84B" : "rgba(255,255,255,0.1)" }} />
+                        <div style={{
+                          flex: 1, height: 1,
+                          background: i < currentStatusIndex
+                            ? "#C8A84B88"
+                            : "rgba(255,255,255,0.08)",
+                        }} />
                       )}
                     </div>
-                    <div style={{ fontSize: 9, color: i === currentStatusIndex ? "#C8A84B" : "rgba(244,246,249,0.3)", marginTop: 6, textAlign: "center", fontWeight: i === currentStatusIndex ? 700 : 400 }}>
-                      {STATUS_LABELS[s]}
+                    <div style={{
+                      fontSize: 9, marginTop: 7, textAlign: "center",
+                      color: i === currentStatusIndex ? "#C8A84B" : "rgba(255,255,255,0.2)",
+                      fontWeight: i === currentStatusIndex ? 700 : 400,
+                      letterSpacing: "0.05em",
+                    }}>
+                      {STATUS_LABELS[s].split(" ")[0]}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Top nudge */}
+            {/* Top action nudge */}
             {highNudges.length > 0 && (
               <div style={{ padding: "20px 24px 0" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(244,246,249,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-                  Top Action
+                <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
+                  Priority Action
                 </div>
-                <div
-                  onClick={() => setTab("actions")}
-                  style={{
-                    background: "rgba(248,113,113,0.08)",
-                    border: "1px solid rgba(248,113,113,0.25)",
-                    borderRadius: 16, padding: 16, cursor: "pointer",
-                  }}
+                <GlassCard
+                  onClick={() => switchTab("actions")}
+                  style={{ padding: 16 }}
                 >
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(248,113,113,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>
-                      🎯
+                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                      background: "rgba(248,113,113,0.12)",
+                      border: "1px solid rgba(248,113,113,0.2)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 18,
+                    }}>
+                      ◎
                     </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: "#F4F6F9", marginBottom: 4 }}>
-                        {highNudges[0].title}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{highNudges[0].title}</div>
+                        <div style={{
+                          fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, marginLeft: 8,
+                          background: "rgba(248,113,113,0.12)", color: "#F87171",
+                          border: "1px solid rgba(248,113,113,0.2)",
+                          whiteSpace: "nowrap" as const,
+                        }}>
+                          +{highNudges[0].points} pts
+                        </div>
                       </div>
-                      <div style={{ fontSize: 12, color: "rgba(244,246,249,0.5)", lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
                         {highNudges[0].description}
                       </div>
                     </div>
                   </div>
-                </div>
+                </GlassCard>
               </div>
             )}
 
             {/* Domain quick view */}
             {domainScores.length > 0 && (
               <div style={{ padding: "20px 24px 0" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(244,246,249,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
                   Domain Scores
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {DOMAINS.map((d) => {
+                  {DOMAINS.map((d, i) => {
                     const ds = domainScores.find((s: any) => s.domain?.includes(d.key));
                     const score = ds?.score ?? null;
                     return (
-                      <div key={d.key} style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: 14, padding: "14px 16px",
-                      }}>
-                        <div style={{ fontSize: 20, marginBottom: 6 }}>{d.icon}</div>
-                        <div style={{ fontSize: 11, color: "rgba(244,246,249,0.5)", marginBottom: 4 }}>{d.label}</div>
-                        <div style={{ fontSize: 22, fontWeight: 800, color: score !== null ? scoreColor(score) : "rgba(244,246,249,0.2)" }}>
+                      <GlassCard key={d.key} style={{ padding: "14px 16px" }}>
+                        <div style={{ fontSize: 18, marginBottom: 8, color: d.color }}>{d.icon}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{d.label}</div>
+                        <div style={{
+                          fontSize: 24, fontWeight: 800, lineHeight: 1, marginBottom: 8,
+                          color: score !== null ? scoreColor(score) : "rgba(255,255,255,0.15)",
+                        }}>
                           {score !== null ? score : "—"}
                         </div>
-                      </div>
+                        {score !== null && <DomainBar score={score} color={d.color} delay={i * 100} />}
+                      </GlassCard>
                     );
                   })}
                 </div>
@@ -451,248 +526,268 @@ export default function ParticipantApp() {
           </div>
         )}
 
-        {/* ── SCORE TAB ── */}
+        {/* ── SCORE ── */}
         {tab === "score" && (
-          <div style={{ padding: "56px 24px 24px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.8)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ padding: "60px 24px 24px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>
               Readiness Score
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#F4F6F9", marginBottom: 24 }}>
-              Your Full Breakdown
-            </h2>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 32 }}>
+              Full Breakdown
+            </div>
 
-            {/* Big score ring */}
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-              <div style={{ position: "relative", textAlign: "center" }}>
-                <ScoreRing score={vault?.composite_score ?? null} size={160} />
+            {/* Big ring */}
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+              <div style={{ textAlign: "center" }}>
+                <ScoreRing score={vault?.composite_score ?? null} size={180} />
                 {vault?.trajectory && (
-                  <div style={{ marginTop: 8, fontSize: 14, color: trajectoryColor(vault.trajectory), fontWeight: 600 }}>
-                    {trajectoryIcon(vault.trajectory)} {vault.trajectory.charAt(0).toUpperCase() + vault.trajectory.slice(1)} trajectory
+                  <div style={{
+                    marginTop: 12, fontSize: 14, fontWeight: 600,
+                    color: trajectoryColor(vault.trajectory),
+                  }}>
+                    {vault.trajectory === "improving" ? "↑" : vault.trajectory === "declining" ? "↓" : "→"} {vault.trajectory.charAt(0).toUpperCase() + vault.trajectory.slice(1)} trajectory
                   </div>
                 )}
               </div>
             </div>
 
             {/* Domain bars */}
-            <div style={{ marginBottom: 24 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(244,246,249,0.6)", marginBottom: 14 }}>
+            <GlassCard style={{ padding: 20, marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 20 }}>
                 Domain Breakdown
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {DOMAINS.map((d) => {
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {DOMAINS.map((d, i) => {
                   const ds = domainScores.find((s: any) => s.domain?.includes(d.key));
                   const score = ds?.score ?? null;
                   return (
                     <div key={d.key}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span>{d.icon}</span>
-                          <span style={{ fontSize: 14, color: "#F4F6F9", fontWeight: 600 }}>{d.label} Readiness</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <span style={{ fontSize: 16, color: d.color }}>{d.icon}</span>
+                          <span style={{ fontSize: 14, color: "#fff", fontWeight: 600 }}>{d.label}</span>
                         </div>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: score !== null ? scoreColor(score) : "rgba(244,246,249,0.3)" }}>
+                        <span style={{
+                          fontSize: 18, fontWeight: 800,
+                          color: score !== null ? scoreColor(score) : "rgba(255,255,255,0.2)",
+                        }}>
                           {score !== null ? score : "—"}
                         </span>
                       </div>
-                      <div style={{ height: 8, background: "rgba(255,255,255,0.08)", borderRadius: 4 }}>
-                        <div style={{
-                          height: "100%", borderRadius: 4,
-                          background: score !== null ? scoreColor(score) : "transparent",
-                          width: score !== null ? `${score}%` : "0%",
-                          transition: "width 1s ease",
-                        }} />
-                      </div>
+                      {score !== null ? (
+                        <DomainBar score={score} color={d.color} delay={i * 150} />
+                      ) : (
+                        <div style={{ height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3 }} />
+                      )}
                       {ds?.notes && (
-                        <div style={{ fontSize: 11, color: "rgba(244,246,249,0.35)", marginTop: 4 }}>{ds.notes}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{ds.notes}</div>
                       )}
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </GlassCard>
 
             {/* Score history */}
             {vault && vault.snapshots.length > 0 && (
-              <div style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 16, padding: 16,
-              }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(244,246,249,0.6)", marginBottom: 12 }}>
+              <GlassCard style={{ padding: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>
                   Score History
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {[...vault.snapshots].reverse().map((s: any) => (
-                    <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ fontSize: 12, color: "rgba(244,246,249,0.4)" }}>{fmt(s.computed_at)}</div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ fontSize: 11, color: trajectoryColor(s.trajectory) }}>
-                          {trajectoryIcon(s.trajectory)}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[...vault.snapshots].reverse().map((s: any, i: number) => (
+                    <div key={s.id} style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      padding: "10px 0",
+                      borderBottom: i < vault.snapshots.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                    }}>
+                      <div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{fmt(s.computed_at)}</div>
+                        <div style={{ fontSize: 11, color: trajectoryColor(s.trajectory), marginTop: 2 }}>
+                          {s.trajectory === "improving" ? "↑" : s.trajectory === "declining" ? "↓" : "→"} {s.trajectory}
                         </div>
-                        <div style={{ fontSize: 16, fontWeight: 800, color: scoreColor(s.score) }}>{s.score}</div>
+                      </div>
+                      <div style={{
+                        fontSize: 28, fontWeight: 900,
+                        color: scoreColor(s.score),
+                        textShadow: `0 0 12px ${scoreColor(s.score)}44`,
+                      }}>
+                        {s.score}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </GlassCard>
             )}
 
             {vault?.composite_score === null && (
-              <div style={{
-                background: "rgba(200,168,75,0.08)",
-                border: "1px solid rgba(200,168,75,0.2)",
-                borderRadius: 16, padding: 20, textAlign: "center",
-              }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#F4F6F9", marginBottom: 8 }}>
-                  No score yet
+              <GlassCard gold style={{ padding: 24, textAlign: "center" }}>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>◈</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 8 }}>No score yet</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                  Complete your intake and document submission to receive your score from a BRSA-certified evaluator.
                 </div>
-                <div style={{ fontSize: 13, color: "rgba(244,246,249,0.5)", lineHeight: 1.6 }}>
-                  Complete your intake and document submission to receive your readiness score from a BRSA-certified evaluator.
-                </div>
-              </div>
+              </GlassCard>
             )}
           </div>
         )}
 
-        {/* ── DOCUMENTS TAB ── */}
+        {/* ── DOCUMENTS ── */}
         {tab === "docs" && (
-          <div style={{ padding: "56px 24px 24px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.8)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ padding: "60px 24px 24px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>
               Documents
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#F4F6F9", marginBottom: 24 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 32 }}>
               Document Status
-            </h2>
+            </div>
 
-            {[
-              { key: "gov_id_url", label: "Government-Issued ID", icon: "🪪", hint: "Driver's license, passport, or state ID" },
-              { key: "selfie_url", label: "Identity Selfie", icon: "🤳", hint: "Clear photo of you holding your ID" },
-              { key: "bank_statement_url", label: "Bank Statement", icon: "🏦", hint: "Last 30 days of statements" },
-            ].map(({ key, label, icon, hint }) => {
-              const uploaded = intake?.[key as keyof IntakeData];
-              return (
-                <div key={key} style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: `1px solid ${uploaded ? "rgba(52,211,153,0.2)" : "rgba(255,255,255,0.08)"}`,
-                  borderRadius: 16, padding: 16, marginBottom: 12,
-                  display: "flex", alignItems: "center", gap: 14,
-                }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                    background: uploaded ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.05)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 22,
-                  }}>
-                    {icon}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#F4F6F9", marginBottom: 2 }}>{label}</div>
-                    <div style={{ fontSize: 12, color: "rgba(244,246,249,0.4)" }}>{hint}</div>
-                  </div>
-                  <div style={{
-                    fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999,
-                    background: uploaded ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
-                    color: uploaded ? "#34D399" : "#F87171",
-                    border: `1px solid ${uploaded ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"}`,
-                  }}>
-                    {uploaded ? "✓ On File" : "Missing"}
-                  </div>
-                </div>
-              );
-            })}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+              {[
+                { key: "gov_id_url", label: "Government-Issued ID", icon: "◉", hint: "Driver's license, passport, or state ID", color: "#4F9EFF" },
+                { key: "selfie_url", label: "Identity Selfie", icon: "◈", hint: "Clear photo holding your ID", color: "#A78BFA" },
+                { key: "bank_statement_url", label: "Bank Statement", icon: "◆", hint: "Last 30 days of activity", color: "#34D399" },
+              ].map(({ key, label, icon, hint, color }) => {
+                const uploaded = intake?.[key as keyof IntakeData];
+                return (
+                  <GlassCard key={key} style={{ padding: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                        background: uploaded ? `${color}15` : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${uploaded ? `${color}30` : "rgba(255,255,255,0.06)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 20, color: uploaded ? color : "rgba(255,255,255,0.2)",
+                      }}>
+                        {icon}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 2 }}>{label}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{hint}</div>
+                      </div>
+                      <div style={{
+                        padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 700,
+                        background: uploaded ? "rgba(52,211,153,0.12)" : "rgba(248,113,113,0.1)",
+                        color: uploaded ? "#34D399" : "#F87171",
+                        border: `1px solid ${uploaded ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.2)"}`,
+                        whiteSpace: "nowrap" as const,
+                      }}>
+                        {uploaded ? "✓ On File" : "Missing"}
+                      </div>
+                    </div>
+                  </GlassCard>
+                );
+              })}
+            </div>
 
             {!intake ? (
-              <div style={{
-                background: "rgba(200,168,75,0.08)",
-                border: "1px solid rgba(200,168,75,0.2)",
-                borderRadius: 16, padding: 20, textAlign: "center", marginTop: 8,
-              }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#F4F6F9", marginBottom: 8 }}>
+              <GlassCard gold style={{ padding: 24, textAlign: "center" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8 }}>
                   Intake not yet completed
                 </div>
-                <div style={{ fontSize: 13, color: "rgba(244,246,249,0.5)", marginBottom: 16, lineHeight: 1.6 }}>
-                  Complete your intake form to submit your documents.
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 20, lineHeight: 1.6 }}>
+                  Complete your intake form to submit your documents and begin your evaluation.
                 </div>
-                <a
-                  href={`/intake/${participantId}`}
-                  style={{
-                    display: "inline-block", padding: "12px 24px", borderRadius: 12,
-                    background: "#C8A84B", color: "#0B1C30",
-                    fontSize: 14, fontWeight: 700, textDecoration: "none",
-                  }}
-                >
+                <a href={`/intake/${participantId}`} style={{
+                  display: "inline-block", padding: "12px 24px", borderRadius: 12,
+                  background: "#C8A84B", color: "#080C14",
+                  fontSize: 14, fontWeight: 700, textDecoration: "none",
+                }}>
                   Complete Intake →
                 </a>
-              </div>
+              </GlassCard>
             ) : (
-              <div style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 16, padding: 16, marginTop: 8,
-              }}>
-                <div style={{ fontSize: 12, color: "rgba(244,246,249,0.4)", marginBottom: 12 }}>
+              <GlassCard style={{ padding: 16 }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>
                   Need to update a document?
                 </div>
-                <a
-                  href={`/intake/${participantId}`}
-                  style={{
-                    display: "block", padding: "12px 0", borderRadius: 12, textAlign: "center",
-                    background: "rgba(200,168,75,0.1)", border: "1px solid rgba(200,168,75,0.3)",
-                    color: "#C8A84B", fontSize: 14, fontWeight: 700, textDecoration: "none",
-                  }}
-                >
+                <a href={`/intake/${participantId}`} style={{
+                  display: "block", padding: "12px 0", borderRadius: 12, textAlign: "center",
+                  background: "rgba(200,168,75,0.08)", border: "1px solid rgba(200,168,75,0.2)",
+                  color: "#C8A84B", fontSize: 14, fontWeight: 700, textDecoration: "none",
+                }}>
                   Update Intake Form →
                 </a>
-              </div>
+              </GlassCard>
             )}
           </div>
         )}
 
-        {/* ── ACTIONS TAB ── */}
+        {/* ── ACTIONS ── */}
         {tab === "actions" && (
-          <div style={{ padding: "56px 24px 24px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.8)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
-              Actions
+          <div style={{ padding: "60px 24px 24px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>
+              Readiness Plan
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#F4F6F9", marginBottom: 8 }}>
-              Your Readiness Plan
-            </h2>
-            <p style={{ fontSize: 13, color: "rgba(244,246,249,0.4)", marginBottom: 24, lineHeight: 1.6 }}>
-              These actions are personalized to your profile and ranked by score impact.
-            </p>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 8 }}>
+              Your Actions
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", marginBottom: 24, lineHeight: 1.6 }}>
+              Ranked by score impact. Complete these to improve your readiness standing.
+            </div>
+
+            {/* Potential points */}
+            {highNudges.length > 0 && (
+              <GlassCard gold style={{ padding: 16, marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "rgba(200,168,75,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+                      Potential Score Gain
+                    </div>
+                    <div style={{ fontSize: 28, fontWeight: 900, color: "#C8A84B" }}>
+                      +{highNudges.reduce((a, n) => a + n.points, 0)} pts
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 32, opacity: 0.3 }}>◆</div>
+                </div>
+              </GlassCard>
+            )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {nudges.map((nudge) => {
-                const impact = impactColor(nudge.impact);
+              {nudges.map((nudge, i) => {
+                const impactColors = {
+                  high: { color: "#F87171", bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.2)" },
+                  medium: { color: "#F59E0B", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)" },
+                  low: { color: "#34D399", bg: "rgba(52,211,153,0.08)", border: "rgba(52,211,153,0.2)" },
+                };
+                const ic = impactColors[nudge.impact];
                 return (
-                  <div key={nudge.id} style={{
-                    background: nudge.completed ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.05)",
-                    border: `1px solid ${nudge.completed ? "rgba(255,255,255,0.06)" : impact.border}`,
-                    borderRadius: 16, padding: 16,
-                    opacity: nudge.completed ? 0.6 : 1,
-                  }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div
+                    key={nudge.id}
+                    style={{
+                      background: nudge.completed ? "rgba(255,255,255,0.02)" : ic.bg,
+                      border: `1px solid ${nudge.completed ? "rgba(255,255,255,0.05)" : ic.border}`,
+                      borderRadius: 16, padding: 16,
+                      opacity: nudge.completed ? 0.5 : 1,
+                      transform: `translateY(0)`,
+                      animation: `fadeUp 0.4s ease ${i * 0.06}s both`,
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                        background: nudge.completed ? "rgba(255,255,255,0.05)" : impact.bg,
+                        background: nudge.completed ? "rgba(255,255,255,0.04)" : `${ic.color}15`,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 16,
+                        fontSize: 16, color: nudge.completed ? "rgba(255,255,255,0.3)" : ic.color,
                       }}>
-                        {nudge.completed ? "✓" : nudge.impact === "high" ? "🔴" : nudge.impact === "medium" ? "🟡" : "🟢"}
+                        {nudge.completed ? "✓" : nudge.impact === "high" ? "◎" : nudge.impact === "medium" ? "◈" : "◆"}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: nudge.completed ? "rgba(244,246,249,0.4)" : "#F4F6F9" }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: nudge.completed ? "rgba(255,255,255,0.3)" : "#fff" }}>
                             {nudge.title}
                           </div>
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, marginLeft: 8, flexShrink: 0,
-                            background: impact.bg, color: impact.color, border: `1px solid ${impact.border}`,
-                          }}>
-                            {nudge.impact.toUpperCase()}
-                          </span>
+                          {nudge.points > 0 && !nudge.completed && (
+                            <span style={{
+                              fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, marginLeft: 8,
+                              background: `${ic.color}15`, color: ic.color,
+                              border: `1px solid ${ic.border}`, whiteSpace: "nowrap" as const,
+                            }}>
+                              +{nudge.points} pts
+                            </span>
+                          )}
                         </div>
-                        <div style={{ fontSize: 12, color: "rgba(244,246,249,0.5)", lineHeight: 1.6 }}>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>
                           {nudge.description}
                         </div>
                       </div>
@@ -704,86 +799,86 @@ export default function ParticipantApp() {
           </div>
         )}
 
-        {/* ── PROFILE TAB ── */}
+        {/* ── PROFILE ── */}
         {tab === "profile" && (
-          <div style={{ padding: "56px 24px 24px" }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.8)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
+          <div style={{ padding: "60px 24px 24px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>
               Profile
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#F4F6F9", marginBottom: 24 }}>
-              {firstName} {localStorage.getItem("user_last_name")}
-            </h2>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", marginBottom: 32 }}>
+              {firstName} {lastName}
+            </div>
 
             {/* Certification badge */}
-            {vault?.current_status === "certified" && (
-              <div style={{
-                background: "linear-gradient(135deg, rgba(200,168,75,0.2) 0%, rgba(200,168,75,0.05) 100%)",
-                border: "1px solid rgba(200,168,75,0.4)",
-                borderRadius: 20, padding: 20, marginBottom: 20, textAlign: "center",
-              }}>
-                <div style={{ fontSize: 40, marginBottom: 8 }}>🏆</div>
+            {isCertified && (
+              <GlassCard gold style={{ padding: 24, marginBottom: 20, textAlign: "center" }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: "50%", margin: "0 auto 12px",
+                  background: "linear-gradient(135deg, #C8A84B, #8A6E2F)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 0 32px rgba(200,168,75,0.4), 0 0 64px rgba(200,168,75,0.15)",
+                  fontSize: 28,
+                }}>
+                  ✦
+                </div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#C8A84B", marginBottom: 4 }}>
                   BRSA Certified
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(200,168,75,0.7)" }}>
+                <div style={{ fontSize: 12, color: "rgba(200,168,75,0.6)" }}>
                   Verified Readiness Standing
                 </div>
-              </div>
+              </GlassCard>
             )}
 
             {/* Identity cards */}
-            {[
-              { label: "Registry ID", value: registryId || "Pending", mono: true },
-              { label: "Participant ID", value: participantId, mono: true },
-              { label: "Current Status", value: STATUS_LABELS[vault?.current_status ?? "registered"] || "Registered", mono: false },
-              { label: "Member Since", value: vault?.created_at ? fmt(vault.created_at) : "—", mono: false },
-            ].map(({ label, value, mono }) => (
-              <div key={label} style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 14, padding: "14px 16px", marginBottom: 10,
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-              }}>
-                <span style={{ fontSize: 12, color: "rgba(244,246,249,0.4)" }}>{label}</span>
-                <span style={{
-                  fontSize: mono ? 11 : 13, fontWeight: 600, color: "#F4F6F9",
-                  fontFamily: mono ? "monospace" : "inherit",
-                  maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis",
-                }}>
-                  {value}
-                </span>
-              </div>
-            ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+              {[
+                { label: "Registry ID", value: registryId || "Pending assignment", mono: true, color: "#C8A84B" },
+                { label: "Current Status", value: STATUS_LABELS[vault?.current_status ?? "registered"], mono: false, color: "#fff" },
+                { label: "Member Since", value: vault?.created_at ? fmt(vault.created_at) : "—", mono: false, color: "#fff" },
+                { label: "Participant ID", value: participantId, mono: true, color: "rgba(255,255,255,0.4)" },
+              ].map(({ label, value, mono, color }) => (
+                <GlassCard key={label} style={{ padding: "14px 18px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+                    <span style={{
+                      fontSize: mono ? 11 : 13, fontWeight: 600, color,
+                      fontFamily: mono ? "monospace" : "inherit",
+                      maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis",
+                      whiteSpace: "nowrap" as const,
+                    }}>
+                      {value}
+                    </span>
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
 
-            {/* Verify link */}
+            {/* Actions */}
             {registryId && (
-              <a
-                href={`/verify?rid=${registryId}`}
-                style={{
-                  display: "block", padding: "14px 0", borderRadius: 14, textAlign: "center",
-                  background: "rgba(200,168,75,0.1)", border: "1px solid rgba(200,168,75,0.3)",
-                  color: "#C8A84B", fontSize: 14, fontWeight: 700, textDecoration: "none",
-                  marginBottom: 12,
-                }}
-              >
+              <a href={`/verify?rid=${registryId}`} style={{
+                display: "block", padding: "14px 0", borderRadius: 14, textAlign: "center",
+                background: "rgba(200,168,75,0.08)", border: "1px solid rgba(200,168,75,0.2)",
+                color: "#C8A84B", fontSize: 14, fontWeight: 700, textDecoration: "none",
+                marginBottom: 12,
+              }}>
                 Verify My Readiness Standing →
               </a>
             )}
 
-            {/* Logout */}
-            <button
-              onClick={logout}
-              style={{
-                width: "100%", padding: "14px 0", borderRadius: 14,
-                background: "transparent", border: "1px solid rgba(248,113,113,0.3)",
-                color: "#F87171", fontSize: 14, fontWeight: 600, cursor: "pointer",
-              }}
-            >
+            <button onClick={logout} style={{
+              width: "100%", padding: "14px 0", borderRadius: 14,
+              background: "transparent", border: "1px solid rgba(248,113,113,0.2)",
+              color: "#F87171", fontSize: 14, fontWeight: 600, cursor: "pointer",
+              marginBottom: 24,
+            }}>
               Sign Out
             </button>
 
-            <div style={{ marginTop: 24, textAlign: "center", fontSize: 11, color: "rgba(244,246,249,0.2)" }}>
-              © 2026 Legacyline · Powered by BRSA doctrine
+            <div style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.12)", lineHeight: 1.8 }}>
+              © 2026 Legacyline<br />
+              Powered by BRSA doctrine<br />
+              Deterministic · Auditable · Consent-based
             </div>
           </div>
         )}
@@ -791,44 +886,72 @@ export default function ParticipantApp() {
 
       {/* ── Bottom Navigation ── */}
       <div style={{
-        position: "fixed", bottom: 0, left: "50%",
-        transform: "translateX(-50%)",
+        position: "fixed", bottom: 0,
+        left: "50%", transform: "translateX(-50%)",
         width: "100%", maxWidth: 430,
-        background: "rgba(11,28,48,0.95)",
-        backdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
-        display: "flex", padding: "8px 0 20px",
+        background: "rgba(8,12,20,0.92)",
+        backdropFilter: "blur(24px)",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        display: "flex", padding: "10px 0 24px",
         zIndex: 100,
       }}>
         {[
-          { key: "home", icon: "🏠", label: "Home" },
-          { key: "score", icon: "📊", label: "Score" },
-          { key: "docs", icon: "📄", label: "Docs" },
-          { key: "actions", icon: "⚡", label: "Actions" },
-          { key: "profile", icon: "👤", label: "Profile" },
-        ].map(({ key, icon, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key as any)}
-            style={{
-              flex: 1, background: "none", border: "none",
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-              cursor: "pointer", padding: "8px 0",
-            }}
-          >
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>
-            <span style={{
-              fontSize: 10, fontWeight: tab === key ? 700 : 400,
-              color: tab === key ? "#C8A84B" : "rgba(244,246,249,0.35)",
-            }}>
-              {label}
-            </span>
-            {tab === key && (
-              <div style={{ width: 4, height: 4, borderRadius: "50%", background: "#C8A84B" }} />
-            )}
-          </button>
-        ))}
+          { key: "home", icon: "⌂", label: "Home" },
+          { key: "score", icon: "◉", label: "Score" },
+          { key: "docs", icon: "◈", label: "Docs" },
+          { key: "actions", icon: "◆", label: "Actions" },
+          { key: "profile", icon: "○", label: "Profile" },
+        ].map(({ key, icon, label }) => {
+          const active = tab === key;
+          return (
+            <button
+              key={key}
+              onClick={() => switchTab(key as typeof tab)}
+              style={{
+                flex: 1, background: "none", border: "none",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                cursor: "pointer", padding: "6px 0",
+                transition: "all 0.2s ease",
+              }}
+            >
+              <div style={{
+                width: 36, height: 36, borderRadius: 12,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: active ? "rgba(200,168,75,0.12)" : "transparent",
+                border: active ? "1px solid rgba(200,168,75,0.2)" : "1px solid transparent",
+                transition: "all 0.2s ease",
+              }}>
+                <span style={{
+                  fontSize: 16,
+                  color: active ? "#C8A84B" : "rgba(255,255,255,0.25)",
+                  transition: "color 0.2s ease",
+                  filter: active ? "drop-shadow(0 0 4px rgba(200,168,75,0.6))" : "none",
+                }}>
+                  {icon}
+                </span>
+              </div>
+              <span style={{
+                fontSize: 9, fontWeight: active ? 700 : 400,
+                color: active ? "#C8A84B" : "rgba(255,255,255,0.2)",
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                transition: "all 0.2s ease",
+              }}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
-                        }
+}
