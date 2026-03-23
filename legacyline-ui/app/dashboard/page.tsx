@@ -158,11 +158,17 @@ export default function DashboardPage() {
               <p className="mt-1 text-sm text-white/55">Pilot Partner · Individual Readiness Program</p>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/25">
-                Active Pilot
-              </span>
-              <span className="text-xs text-white/35">Est. 2026 · New Mexico</span>
-            </div>
+  <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/25">
+    Active Pilot
+  </span>
+  <span className="text-xs text-white/35">Est. 2026 · New Mexico</span>
+  <a
+    href="/app/org"
+    className="rounded-full bg-[#C8A84B]/15 px-3 py-1 text-xs font-semibold text-[#C8A84B] ring-1 ring-[#C8A84B]/25 hover:bg-[#C8A84B]/25 transition-colors"
+  >
+    OBR Portal →
+  </a>
+</div>
           </div>
 
           {/* Cohort Stats */}
