@@ -384,23 +384,25 @@ export default function OBROrgApp() {
               </div>
             )}
 
-            {/* Domain quick view */}
-            {isRegistered && (
-              <div style={{ padding: "20px 24px 0" }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
-                  OBR Domains
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {OBR_DOMAINS.map((d) => (
-                    <GlassCard key={d.key} style={{ padding: "14px 16px" }}>
-                      <div style={{ fontSize: 18, marginBottom: 8, color: d.color }}>{d.icon}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{d.label}</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: "rgba(255,255,255,0.15)" }}>—</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 4 }}>Awaiting evaluation</div>
-                    </GlassCard>
-                  ))}
-                </div>
-              </div>
+{/* Domain quick view — always visible */}
+<div style={{ padding: "20px 24px 0" }}>
+  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
+    OBR Domains
+  </div>
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    {OBR_DOMAINS.map((d) => (
+      <GlassCard key={d.key} style={{ padding: "14px 16px" }}>
+        <div style={{ fontSize: 18, marginBottom: 8, color: d.color }}>{d.icon}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{d.label}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: "rgba(255,255,255,0.15)" }}>—</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 4 }}>
+          {isRegistered ? "Awaiting evaluation" : "Register to unlock"}
+        </div>
+      </GlassCard>
+    ))}
+  </div>
+</div>
+    
             )}
 
             {/* Intake CTA if registered but no intake */}
