@@ -311,6 +311,7 @@ export default function OBROrgApp() {
                     Register your organization as an OBR subject to receive a BRSA-certified organizational readiness evaluation.
                   </div>
                   <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
+                    style={{
                     display: "block", padding: "13px 0", borderRadius: 12, textAlign: "center",
                     background: "#C8A84B", color: "#080C14",
                     fontSize: 14, fontWeight: 700, textDecoration: "none",
@@ -417,6 +418,7 @@ export default function OBROrgApp() {
                   </div>
                   {subject && (
                     <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
+                      style={{
                       display: "block", padding: "12px 0", borderRadius: 12, textAlign: "center",
                       background: "#C8A84B", color: "#080C14",
                       fontSize: 13, fontWeight: 700, textDecoration: "none",
@@ -469,6 +471,7 @@ export default function OBROrgApp() {
                   Register your organization to receive a BRSA-certified readiness score across all four organizational domains.
                 </div>
                 <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
+                  style={{
                   display: "inline-block", padding: "12px 24px", borderRadius: 12,
                   background: "#C8A84B", color: "#080C14",
                   fontSize: 14, fontWeight: 700, textDecoration: "none",
