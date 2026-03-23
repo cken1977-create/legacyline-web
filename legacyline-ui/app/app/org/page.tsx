@@ -310,7 +310,7 @@ export default function OBROrgApp() {
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 16 }}>
                     Register your organization as an OBR subject to receive a BRSA-certified organizational readiness evaluation.
                   </div>
-                  <Link href="/obr/register" style={{
+                  <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
                     display: "block", padding: "13px 0", borderRadius: 12, textAlign: "center",
                     background: "#C8A84B", color: "#080C14",
                     fontSize: 14, fontWeight: 700, textDecoration: "none",
@@ -416,7 +416,7 @@ export default function OBROrgApp() {
                     Submit your organizational documents and information to begin your BRSA evaluation.
                   </div>
                   {subject && (
-                    <Link href={`/obr/register`} style={{
+                    <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
                       display: "block", padding: "12px 0", borderRadius: 12, textAlign: "center",
                       background: "#C8A84B", color: "#080C14",
                       fontSize: 13, fontWeight: 700, textDecoration: "none",
@@ -468,7 +468,7 @@ export default function OBROrgApp() {
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 16 }}>
                   Register your organization to receive a BRSA-certified readiness score across all four organizational domains.
                 </div>
-                <Link href="/obr/register" style={{
+                <Link href={`/obr/register?org_id=${profile?.org_id ?? ""}&org_name=${encodeURIComponent(profile?.org_name ?? "")}`}
                   display: "inline-block", padding: "12px 24px", borderRadius: 12,
                   background: "#C8A84B", color: "#080C14",
                   fontSize: 14, fontWeight: 700, textDecoration: "none",
