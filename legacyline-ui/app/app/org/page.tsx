@@ -404,9 +404,7 @@ export default function OBROrgApp() {
   </div>
 </div>
     
-            )}
-
-            {/* Intake CTA if registered but no intake */}
+  {/* Intake CTA if registered but no intake */}
             {isRegistered && !profile?.intake_status && (
               <div style={{ padding: "20px 24px 0" }}>
                 <GlassCard gold style={{ padding: 16 }}>
