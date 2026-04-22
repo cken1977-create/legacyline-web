@@ -431,6 +431,7 @@ function IntakeForm() {
       const pid = data.participant_id || data.id;
       if (!pid) { setMessage("Something went wrong. Please try again."); return; }
       setParticipantId(pid);
+      sessionStorage.setItem("ll_intake_pid", pid);
       setCelebration(TIER_CELEBRATIONS[0]);
     } catch (err: any) {
       setMessage(err?.message || "Connection error. Please try again.");
@@ -459,10 +460,11 @@ function IntakeForm() {
       setMessage("Please upload a government-issued ID to continue.");
       return;
     }
-    if (!participantId) {
-      setMessage("Session error. Please start over.");
-      return;
-    }
+    const pid = participantId || sessionStorage.getItem("ll_intake_pid");
+if (!pid) {
+  setMessage("Session error. Please start over.");
+  return;
+}
     setLoading(true);
     setMessage("");
     try {
