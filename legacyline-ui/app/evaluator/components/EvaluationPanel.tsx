@@ -55,10 +55,10 @@ type AIEvalResponse = {
 };
 
 const DOMAIN_LABELS = [
-  { key: "housing_readiness", label: "Housing Readiness" },
-  { key: "workforce_readiness", label: "Workforce Readiness" },
-  { key: "financial_readiness", label: "Financial Readiness" },
-  { key: "behavioral_readiness", label: "Behavioral Readiness" },
+  { key: "housing", label: "Housing Readiness" },
+  { key: "workforce", label: "Workforce Readiness" },
+  { key: "financial", label: "Financial Readiness" },
+  { key: "behavioral", label: "Behavioral Readiness" },
 ];
 
 const DOC_ITEMS = [
@@ -90,11 +90,11 @@ export default function EvaluationPanel({
 }: EvaluationPanelProps) {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [domainScores, setDomainScores] = useState<any[]>([
-    { domain: "housing_readiness", score: 50, notes: "" },
-    { domain: "workforce_readiness", score: 50, notes: "" },
-    { domain: "financial_readiness", score: 50, notes: "" },
-    { domain: "behavioral_readiness", score: 50, notes: "" },
-  ]);
+  { domain: "housing", score: 50, notes: "" },
+  { domain: "workforce", score: 50, notes: "" },
+  { domain: "financial", score: 50, notes: "" },
+  { domain: "behavioral", score: 50, notes: "" },
+]);
   const [docChecklist, setDocChecklist] = useState<any[]>(
     DOC_ITEMS.map((d) => ({ item: d.key, checked: false }))
   );
