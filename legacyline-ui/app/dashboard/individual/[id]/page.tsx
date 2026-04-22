@@ -218,7 +218,7 @@ export default function IndividualDashboardPage() {
         setParticipant(pData);
 
         // Load intake submission if exists
-        const iRes = await fetch(`${API}/participants/${id}/intake`);
+        const iRes = await fetch(`${API}/intake/by-participant/${id}`);
         if (iRes.ok) {
           const iData = await iRes.json();
           setIntake(iData);
