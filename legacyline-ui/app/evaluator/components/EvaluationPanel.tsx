@@ -118,7 +118,18 @@ export default function EvaluationPanel({
         if (res.evaluation) {
           const ev = res.evaluation;
           setEvaluation(ev);
-          if (ev.domain_scores?.length) setDomainScores(ev.domain_scores);
+          if (ev.domain_scores?.length) {
+  const keyMap: Record<string, string> = {
+    housing_readiness: "housing",
+    workforce_readiness: "workforce",
+    financial_readiness: "financial",
+    behavioral_readiness: "behavioral",
+  };
+  setDomainScores(ev.domain_scores.map((d: any) => ({
+    ...d,
+    domain: keyMap[d.domain] ?? d.domain,
+  })));
+          }
           if (ev.doc_checklist?.length) setDocChecklist(ev.doc_checklist);
           setNarrative(ev.narrative_notes ?? "");
           setRecommended(ev.recommended_next ?? "");
