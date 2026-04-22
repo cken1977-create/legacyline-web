@@ -186,13 +186,8 @@ Respond ONLY with a JSON object in this exact format, no other text:
     }
   }
 
-  // Run AI analysis when all three documents are selected
-  useEffect(() => {
-    const allUploaded = files.gov_id && files.selfie && files.bank_statement;
-    if (allUploaded) {
-      analyzeDocuments();
-    }
-  }, [files.gov_id, files.selfie, files.bank_statement]);
+// AI analysis handled server-side by evaluator console
+useEffect(() => {}, [files.gov_id, files.selfie, files.bank_statement]);
 
   async function submit() {
     setLoading(true);
