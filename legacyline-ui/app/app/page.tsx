@@ -25,9 +25,11 @@ type IntakeData = {
   housing_type: string;
   monthly_income: string;
   monthly_housing_cost: string;
-  gov_id_url: string;
-  selfie_url: string;
-  bank_statement_url: string;
+  docs_uploaded: {
+    gov_id: boolean;
+    selfie: boolean;
+    bank_statement: boolean;
+  };
 };
 
 // ── Constants ──────────────────────────────────────────────────────────────────
