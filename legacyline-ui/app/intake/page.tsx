@@ -571,12 +571,6 @@ if (!pid) {
                   </select>
                   <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} className={selectClass} style={selectStyle}>
                     <option value="">Year</option>
-                    {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                  <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} className={selectClass} style={selectStyle}>
-                    <option value="">Year</option>
                     {Array.from({ length: 100 }, (_, i) => String(2006 - i)).map((y) => (
                       <option key={y} value={y}>{y}</option>
                     ))}
