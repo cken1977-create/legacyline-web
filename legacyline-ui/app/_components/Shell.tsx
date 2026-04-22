@@ -1,10 +1,21 @@
+"use client";
+
 import Link from "next/link";
+
+function getDashboardHref() {
+  if (typeof document === "undefined") return "/dashboard";
+  const match = document.cookie.match(/(?:^|;\s*)ll_user=([^;]+)/);
+  const pid = match?.[1];
+  return pid ? `/dashboard/individual/${pid}` : "/dashboard";
+}
 
 export default function Shell({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const dashboardHref = getDashboardHref();
+
   return (
     <div className="mx-auto max-w-6xl px-5 py-6">
       <header className="flex items-center justify-between gap-4">
@@ -36,7 +47,7 @@ export default function Shell({
             Verify
           </Link>
           <Link
-            href="/dashboard"
+            href={dashboardHref}
             className="rounded-xl bg-white/10 px-3 py-2 text-white hover:bg-white/15 ring-1 ring-white/10"
           >
             Dashboard
