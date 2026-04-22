@@ -5,23 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+const API = process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app";
 
-type CreateParticipantRequest = {
-  first_name: string;
-  last_name: string;
-  dob: string;
-  email: string;
-  phone: string;
-};
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type CreateParticipantResponse = {
   participant_id?: string;
   id?: string;
-  subject_number?: number;
-  status?: string;
-  created_at?: string;
-  registry_id?: string;
 };
 
 type TierCelebration = {
@@ -34,7 +24,7 @@ type TierCelebration = {
   color: string;
 };
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIER_CELEBRATIONS: TierCelebration[] = [
   {
@@ -58,7 +48,7 @@ const TIER_CELEBRATIONS: TierCelebration[] = [
   {
     tier: 3,
     title: "Verified & Ready",
-    subtitle: "Your identity is confirmed. You're in the system.",
+    subtitle: "Your documents are secured. A certified evaluator will review your intake.",
     points: 35,
     totalPoints: 75,
     badge: "✦",
@@ -66,12 +56,12 @@ const TIER_CELEBRATIONS: TierCelebration[] = [
   },
 ];
 
-const READINESS_LABELS: { min: number; max: number; label: string; color: string }[] = [
-  { min: 0, max: 24, label: "Emerging", color: "#888" },
-  { min: 25, max: 49, label: "Developing", color: "#C8A84B" },
-  { min: 50, max: 69, label: "Progressing", color: "#4B9BC8" },
-  { min: 70, max: 89, label: "Provider Ready", color: "#4BC87A" },
-  { min: 90, max: 100, label: "BRSA Certified", color: "#C84B8A" },
+const READINESS_LABELS = [
+  { min: 0,  max: 24,  label: "Emerging",       color: "#888" },
+  { min: 25, max: 49,  label: "Developing",      color: "#C8A84B" },
+  { min: 50, max: 69,  label: "Progressing",     color: "#4B9BC8" },
+  { min: 70, max: 89,  label: "Provider Ready",  color: "#4BC87A" },
+  { min: 90, max: 100, label: "BRSA Certified",  color: "#C84B8A" },
 ];
 
 function getReadinessLabel(score: number) {
@@ -93,7 +83,6 @@ function ScoreRing({ score, animate }: { score: number; animate: boolean }) {
 
   useEffect(() => {
     if (!animate) return;
-    let start = 0;
     const end = score;
     const duration = 1200;
     const startTime = performance.now();
@@ -101,7 +90,7 @@ function ScoreRing({ score, animate }: { score: number; animate: boolean }) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayed(Math.round(start + (end - start) * eased));
+      setDisplayed(Math.round(end * eased));
       if (progress < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
@@ -110,12 +99,7 @@ function ScoreRing({ score, animate }: { score: number; animate: boolean }) {
   return (
     <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
       <svg width="140" height="140" style={{ transform: "rotate(-90deg)" }}>
-        <circle
-          cx="70" cy="70" r={radius}
-          fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth="10"
-        />
+        <circle cx="70" cy="70" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
         <circle
           cx="70" cy="70" r={radius}
           fill="none"
@@ -160,20 +144,13 @@ function CelebrationScreen({
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center px-6"
-      style={{
-        background: "rgba(6, 13, 24, 0.97)",
-        backdropFilter: "blur(12px)",
-      }}
+      style={{ background: "rgba(6, 13, 24, 0.97)", backdropFilter: "blur(12px)" }}
     >
-      {/* Glow */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse at 50% 40%, ${celebration.color}18 0%, transparent 65%)`,
-        }}
+        style={{ background: `radial-gradient(ellipse at 50% 40%, ${celebration.color}18 0%, transparent 65%)` }}
       />
 
-      {/* Badge */}
       <div
         className="text-6xl mb-6"
         style={{
@@ -185,7 +162,6 @@ function CelebrationScreen({
         {celebration.badge}
       </div>
 
-      {/* Tier label */}
       <div
         className="text-xs font-semibold tracking-widest uppercase mb-2"
         style={{
@@ -198,7 +174,6 @@ function CelebrationScreen({
         Tier {celebration.tier} Complete
       </div>
 
-      {/* Title */}
       <h1
         className="text-3xl font-bold text-white text-center mb-3"
         style={{
@@ -211,29 +186,17 @@ function CelebrationScreen({
         {celebration.title}
       </h1>
 
-      {/* Subtitle */}
       <p
         className="text-sm text-white/50 text-center max-w-xs mb-8"
-        style={{
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.4s ease 0.3s",
-        }}
+        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.4s ease 0.3s" }}
       >
         {celebration.subtitle}
       </p>
 
-      {/* Score ring */}
-      <div
-        style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? "scale(1)" : "scale(0.8)",
-          transition: "all 0.5s ease 0.35s",
-        }}
-      >
+      <div style={{ opacity: visible ? 1 : 0, transform: visible ? "scale(1)" : "scale(0.8)", transition: "all 0.5s ease 0.35s" }}>
         <ScoreRing score={celebration.totalPoints} animate={animateScore} />
       </div>
 
-      {/* Points earned */}
       <div
         className="mt-4 mb-8 px-4 py-2 rounded-full text-sm font-semibold"
         style={{
@@ -247,7 +210,6 @@ function CelebrationScreen({
         +{celebration.points} pts earned
       </div>
 
-      {/* Continue button */}
       <button
         onClick={onContinue}
         className="w-full max-w-xs rounded-2xl py-4 text-sm font-semibold text-black transition-all active:scale-95"
@@ -270,7 +232,7 @@ function TierProgress({ currentTier }: { currentTier: number }) {
   const tiers = [
     { num: 1, label: "Welcome" },
     { num: 2, label: "Your Story" },
-    { num: 3, label: "Verify" },
+    { num: 3, label: "Documents" },
   ];
 
   return (
@@ -288,10 +250,7 @@ function TierProgress({ currentTier }: { currentTier: number }) {
             >
               {t.num < currentTier ? "✓" : t.num}
             </div>
-            <span
-              className="text-xs mt-1"
-              style={{ color: t.num <= currentTier ? "#C8A84B" : "rgba(255,255,255,0.3)" }}
-            >
+            <span className="text-xs mt-1" style={{ color: t.num <= currentTier ? "#C8A84B" : "rgba(255,255,255,0.3)" }}>
               {t.label}
             </span>
           </div>
@@ -303,6 +262,45 @@ function TierProgress({ currentTier }: { currentTier: number }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── File Upload Row ──────────────────────────────────────────────────────────
+
+function FileUploadRow({
+  label,
+  hint,
+  file,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  file: File | null;
+  onChange: (f: File | null) => void;
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-white/60">{label}</label>
+      <p className="text-white/30 text-xs mb-2">{hint}</p>
+      <label
+        className="flex items-center gap-3 w-full rounded-xl px-4 py-4 cursor-pointer transition-all"
+        style={{
+          background: file ? "rgba(200,168,75,0.08)" : "rgba(0,0,0,0.2)",
+          border: file ? "1.5px solid rgba(200,168,75,0.5)" : "1.5px dashed rgba(255,255,255,0.15)",
+        }}
+      >
+        <span className="text-xl shrink-0">{file ? "✓" : "📎"}</span>
+        <span className="text-sm" style={{ color: file ? "#C8A84B" : "rgba(255,255,255,0.35)" }}>
+          {file ? file.name : "Tap to upload"}
+        </span>
+        <input
+          type="file"
+          className="hidden"
+          accept="image/jpeg,image/png,application/pdf,image/heic,image/heif"
+          onChange={(e) => onChange(e.target.files?.[0] || null)}
+        />
+      </label>
     </div>
   );
 }
@@ -319,23 +317,30 @@ function IntakeForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Tier 1 fields
+  // Tier 1
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dob, setDob] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Tier 2 fields
-  const [employmentStatus, setEmploymentStatus] = useState("");
-  const [housingStatus, setHousingStatus] = useState("");
+  // Tier 2
+  const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [stateVal, setStateVal] = useState("");
+  const [zip, setZip] = useState("");
+  const [housingType, setHousingType] = useState("");
+  const [monthlyHousingCost, setMonthlyHousingCost] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState("");
+  const [employerName, setEmployerName] = useState("");
+  const [monthlyIncome, setMonthlyIncome] = useState("");
 
-  // Tier 3 fields
-  const [idType, setIdType] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [hasDocs, setHasDocs] = useState(false);
+  // Tier 3
+  const [govId, setGovId] = useState<File | null>(null);
+  const [selfie, setSelfie] = useState<File | null>(null);
+  const [bankStatement, setBankStatement] = useState<File | null>(null);
 
   useEffect(() => {
     const first = searchParams.get("first_name");
@@ -346,10 +351,19 @@ function IntakeForm() {
     if (em) setEmail(em);
   }, [searchParams]);
 
-  // ── Tier 1 submit ──
+  function buildDob() {
+    if (!dobYear || !dobMonth || !dobDay) return "";
+    return `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`;
+  }
+
+  // ── Tier 1 ──
   async function submitTier1() {
-    if (!firstName.trim() || !lastName.trim() || !dob.trim() || (!email.trim() && !phone.trim())) {
+    if (!firstName.trim() || !lastName.trim() || !dobYear || !dobMonth || !dobDay) {
       setMessage("Please fill in all required fields.");
+      return;
+    }
+    if (!email.trim() && !phone.trim()) {
+      setMessage("Please provide at least an email or phone number.");
       return;
     }
     setLoading(true);
@@ -360,7 +374,7 @@ function IntakeForm() {
         body: JSON.stringify({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
-          dob: dob.trim(),
+          dob: buildDob(),
           email: email.trim(),
           phone: phone.trim() ? normalizePhone(phone) : "",
         }),
@@ -370,61 +384,67 @@ function IntakeForm() {
       setParticipantId(pid);
       setCelebration(TIER_CELEBRATIONS[0]);
     } catch (err: any) {
-      setMessage(err?.message || "Connection error");
+      setMessage(err?.message || "Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
-  // ── Tier 2 submit ──
+  // ── Tier 2 ──
   async function submitTier2() {
-    if (!employmentStatus || !housingStatus || !city.trim() || !state.trim()) {
-      setMessage("Please complete all fields.");
+    if (!address.trim() || !city.trim() || !stateVal.trim() || !zip.trim()) {
+      setMessage("Please complete your address.");
+      return;
+    }
+    if (!housingType || !employmentStatus) {
+      setMessage("Please select your housing and employment status.");
+      return;
+    }
+    setMessage("");
+    setCelebration(TIER_CELEBRATIONS[1]);
+  }
+
+  // ── Tier 3 ──
+  async function submitTier3() {
+    if (!govId) {
+      setMessage("Please upload a government-issued ID to continue.");
+      return;
+    }
+    if (!participantId) {
+      setMessage("Session error. Please start over.");
       return;
     }
     setLoading(true);
     setMessage("");
     try {
-      // Save tier 2 data to participant profile
-      if (participantId) {
-        await api(`/participants/${participantId}/profile`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            employment_status: employmentStatus,
-            housing_status: housingStatus,
-            city: city.trim(),
-            state: state.trim(),
-            tier_2_completed: true,
-          }),
-        }).catch(() => {}); // Non-blocking — profile endpoint may not exist yet
-      }
-      setCelebration(TIER_CELEBRATIONS[1]);
-    } catch (err: any) {
-      setMessage(err?.message || "Connection error");
-    } finally {
-      setLoading(false);
-    }
-  }
+      const fd = new FormData();
+      fd.append("dob", buildDob());
+      fd.append("address", address.trim());
+      fd.append("city", city.trim());
+      fd.append("state", stateVal.trim().toUpperCase());
+      fd.append("zip", zip.trim());
+      fd.append("housing_type", housingType);
+      fd.append("monthly_housing_cost", monthlyHousingCost.trim());
+      fd.append("employment_status", employmentStatus);
+      fd.append("employer_name", employerName.trim());
+      fd.append("monthly_income", monthlyIncome.trim());
+      fd.append("gov_id", govId);
+      if (selfie) fd.append("selfie", selfie);
+      if (bankStatement) fd.append("bank_statement", bankStatement);
 
-  // ── Tier 3 submit ──
-  async function submitTier3() {
-    setLoading(true);
-    setMessage("");
-    try {
-      if (participantId) {
-        await api(`/participants/${participantId}/profile`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            id_type: idType,
-            id_number: idNumber,
-            has_documents: hasDocs,
-            tier_3_completed: true,
-          }),
-        }).catch(() => {});
+      const res = await fetch(`${API}/intake/${participantId}`, {
+        method: "POST",
+        body: fd,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error || "Submission failed. Please try again.");
       }
+
       setCelebration(TIER_CELEBRATIONS[2]);
     } catch (err: any) {
-      setMessage(err?.message || "Connection error");
+      setMessage(err?.message || "Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -433,7 +453,7 @@ function IntakeForm() {
   function handleCelebrationContinue() {
     if (!celebration) return;
     if (celebration.tier === 3) {
-      router.push(participantId ? `/dashboard/individual` : "/dashboard/individual");
+      router.push("/dashboard/individual");
       return;
     }
     setCelebration(null);
@@ -441,19 +461,27 @@ function IntakeForm() {
     setMessage("");
   }
 
-  // ─── Render celebration overlay ───
   if (celebration) {
     return <CelebrationScreen celebration={celebration} onContinue={handleCelebrationContinue} />;
   }
 
+  const selectStyle = {
+    background: "rgba(0,0,0,0.3)",
+    colorScheme: "dark" as const,
+  };
+
+  const inputClass =
+    "w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
+  const selectClass =
+    "w-full rounded-xl px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
+  const labelClass = "mb-1.5 block text-xs font-medium text-white/60";
+
   return (
     <Shell>
       <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
-
-        {/* Tier progress */}
         <TierProgress currentTier={tier} />
 
-        {/* ── TIER 1 ── */}
+        {/* ── TIER 1 — Identity ── */}
         {tier === 1 && (
           <div>
             <div className="mb-6">
@@ -471,61 +499,55 @@ function IntakeForm() {
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-white/60">First Name *</label>
-                  <input
-                    placeholder="First name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  />
+                  <label className={labelClass}>First Name *</label>
+                  <input placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-medium text-white/60">Last Name *</label>
-                  <input
-                    placeholder="Last name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  />
+                  <label className={labelClass}>Last Name *</label>
+                  <input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">Date of Birth *</label>
-                <input
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                />
+                <label className={labelClass}>Date of Birth *</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <select value={dobMonth} onChange={(e) => setDobMonth(e.target.value)} className={selectClass} style={selectStyle}>
+                    <option value="">Month</option>
+                    {["01","02","03","04","05","06","07","08","09","10","11","12"].map((m, i) => (
+                      <option key={m} value={m}>
+                        {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}
+                      </option>
+                    ))}
+                  </select>
+                  <select value={dobDay} onChange={(e) => setDobDay(e.target.value)} className={selectClass} style={selectStyle}>
+                    <option value="">Day</option>
+                    {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} className={selectClass} style={selectStyle}>
+                    <option value="">Year</option>
+                    {Array.from({ length: 100 }, (_, i) => String(2006 - i)).map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">Email</label>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                />
+                <label className={labelClass}>Email</label>
+                <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">Phone</label>
-                <input
-                  type="tel"
-                  placeholder="(832) 555-0100"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                />
+                <label className={labelClass}>Phone</label>
+                <input type="tel" placeholder="(832) 555-0100" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
               </div>
             </div>
           </div>
         )}
 
-        {/* ── TIER 2 ── */}
+        {/* ── TIER 2 — Story ── */}
         {tier === 2 && (
           <div>
             <div className="mb-6">
@@ -536,19 +558,56 @@ function IntakeForm() {
                 Tell Us Your Story
               </h2>
               <p className="mt-1 text-sm text-white/50">
-                Help us understand where you are right now. No judgment — just your starting point.
+                Where you are right now. No judgment — just your starting point.
               </p>
             </div>
 
             <div className="grid gap-4">
+              {/* Address */}
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">Employment Status *</label>
-                <select
-                  value={employmentStatus}
-                  onChange={(e) => setEmploymentStatus(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  style={{ colorScheme: "dark" }}
-                >
+                <label className={labelClass}>Street Address *</label>
+                <input placeholder="123 Main St" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>City *</label>
+                  <input placeholder="Albuquerque" value={city} onChange={(e) => setCity(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>State *</label>
+                  <input placeholder="NM" value={stateVal} onChange={(e) => setStateVal(e.target.value)} maxLength={2} className={inputClass} />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>ZIP Code *</label>
+                <input placeholder="87102" value={zip} onChange={(e) => setZip(e.target.value)} maxLength={10} className={inputClass} />
+              </div>
+
+              {/* Housing */}
+              <div>
+                <label className={labelClass}>Housing Type *</label>
+                <select value={housingType} onChange={(e) => setHousingType(e.target.value)} className={selectClass} style={selectStyle}>
+                  <option value="">Select status</option>
+                  <option value="own">Own</option>
+                  <option value="rent">Renting</option>
+                  <option value="with_family">Staying with Family or Friends</option>
+                  <option value="transitional">Transitional Housing</option>
+                  <option value="unhoused">Unhoused</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Monthly Rent or Mortgage</label>
+                <input placeholder="$0.00" value={monthlyHousingCost} onChange={(e) => setMonthlyHousingCost(e.target.value)} className={inputClass} />
+              </div>
+
+              {/* Employment */}
+              <div>
+                <label className={labelClass}>Employment Status *</label>
+                <select value={employmentStatus} onChange={(e) => setEmploymentStatus(e.target.value)} className={selectClass} style={selectStyle}>
                   <option value="">Select status</option>
                   <option value="employed_full">Employed — Full Time</option>
                   <option value="employed_part">Employed — Part Time</option>
@@ -557,54 +616,25 @@ function IntakeForm() {
                   <option value="unemployed_not_looking">Unemployed — Not Currently Looking</option>
                   <option value="in_program">In a Workforce Program</option>
                   <option value="student">Student</option>
+                  <option value="retired">Retired</option>
                   <option value="other">Other</option>
                 </select>
               </div>
 
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">Housing Status *</label>
-                <select
-                  value={housingStatus}
-                  onChange={(e) => setHousingStatus(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  style={{ colorScheme: "dark" }}
-                >
-                  <option value="">Select status</option>
-                  <option value="stable_owned">Stable — Homeowner</option>
-                  <option value="stable_renting">Stable — Renting</option>
-                  <option value="with_family">Staying with Family or Friends</option>
-                  <option value="transitional">Transitional Housing</option>
-                  <option value="unhoused">Unhoused</option>
-                  <option value="other">Other</option>
-                </select>
+                <label className={labelClass}>Employer Name (if applicable)</label>
+                <input placeholder="Company name" value={employerName} onChange={(e) => setEmployerName(e.target.value)} className={inputClass} />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-white/60">City *</label>
-                  <input
-                    placeholder="Your city"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-medium text-white/60">State *</label>
-                  <input
-                    placeholder="NM"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    maxLength={2}
-                    className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  />
-                </div>
+              <div>
+                <label className={labelClass}>Monthly Take-Home Pay</label>
+                <input placeholder="$0.00" value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value)} className={inputClass} />
               </div>
             </div>
           </div>
         )}
 
-        {/* ── TIER 3 ── */}
+        {/* ── TIER 3 — Documents ── */}
         {tier === 3 && (
           <div>
             <div className="mb-6">
@@ -612,69 +642,57 @@ function IntakeForm() {
                 Step 3 of 3 · +35 pts
               </div>
               <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                Verify Your Identity
+                Secure Your Record
               </h2>
               <p className="mt-1 text-sm text-white/50">
-                Almost there. This helps us protect your record and verify your standing.
+                Upload your documents. They're encrypted and only reviewed by your assigned BRSA evaluator.
               </p>
             </div>
 
-            <div className="grid gap-4">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">ID Type</label>
-                <select
-                  value={idType}
-                  onChange={(e) => setIdType(e.target.value)}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                  style={{ colorScheme: "dark" }}
-                >
-                  <option value="">Select ID type</option>
-                  <option value="drivers_license">Driver's License</option>
-                  <option value="state_id">State ID</option>
-                  <option value="passport">Passport</option>
-                  <option value="military_id">Military ID</option>
-                  <option value="tribal_id">Tribal ID</option>
-                  <option value="other">Other Government ID</option>
-                </select>
+            <div className="grid gap-5">
+              <FileUploadRow
+                label="Government-Issued ID *"
+                hint="Driver's license, passport, state ID, or tribal ID"
+                file={govId}
+                onChange={setGovId}
+              />
+              <FileUploadRow
+                label="Selfie Holding Your ID"
+                hint="A clear photo of you holding your ID — helps verify identity"
+                file={selfie}
+                onChange={setSelfie}
+              />
+              <FileUploadRow
+                label="Most Recent Bank Statement"
+                hint="Last 30 days — PDF or photo. Supports your income declaration."
+                file={bankStatement}
+                onChange={setBankStatement}
+              />
+
+              {/* What happens next */}
+              <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#C84B8A" }}>
+                  What happens next
+                </div>
+                <ul className="space-y-1.5">
+                  {[
+                    "Your documents are encrypted and stored securely",
+                    "A certified BRSA evaluator reviews your intake within 2 business days",
+                    "You'll receive a confirmation once review is complete",
+                    "You control what is shared with any institution",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-xs text-white/40">
+                      <span style={{ color: "#C84B8A" }}>✦</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-white/60">ID Number (last 4 digits)</label>
-                <input
-                  placeholder="••••"
-                  value={idNumber}
-                  onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  maxLength={4}
-                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-                />
-              </div>
-
-              {/* Document upload placeholder */}
-              <div
-                className="rounded-xl ring-1 ring-dashed ring-white/20 p-6 text-center cursor-pointer transition-all hover:ring-[#C8A84B]/40 hover:bg-white/5"
-                onClick={() => setHasDocs(true)}
-                style={{ background: hasDocs ? "rgba(200,168,75,0.06)" : "transparent" }}
-              >
-                {hasDocs ? (
-                  <div>
-                    <div className="text-2xl mb-1">✓</div>
-                    <p className="text-sm font-medium" style={{ color: "#C8A84B" }}>Document noted</p>
-                    <p className="text-xs text-white/40 mt-1">Your evaluator will request documents during review</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-2xl mb-1">📄</div>
-                    <p className="text-sm text-white/60">Tap to acknowledge document submission</p>
-                    <p className="text-xs text-white/30 mt-1">Full document upload available after account confirmation</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Privacy note */}
-              <div className="rounded-xl bg-white/3 ring-1 ring-white/8 p-4">
-                <p className="text-xs text-white/40 leading-relaxed">
-                  🔒 Your information is stored securely and only shared with your assigned BRSA evaluator. 
-                  You control what gets shared with institutions.
+              {/* Privacy */}
+              <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <p className="text-xs text-white/35 leading-relaxed">
+                  🔒 By submitting you confirm all information is accurate. Your data is stored securely and used solely for your BRSA readiness assessment.
                 </p>
               </div>
             </div>
@@ -688,7 +706,7 @@ function IntakeForm() {
           </div>
         )}
 
-        {/* Submit button */}
+        {/* CTA */}
         <button
           onClick={tier === 1 ? submitTier1 : tier === 2 ? submitTier2 : submitTier3}
           disabled={loading}
@@ -703,10 +721,9 @@ function IntakeForm() {
             ? "Start My Journey →"
             : tier === 2
             ? "Tell My Story →"
-            : "Complete Verification →"}
+            : "Submit & Secure My Record →"}
         </button>
 
-        {/* Points preview */}
         <p className="mt-3 text-center text-xs text-white/30">
           Complete this step to earn +{tier === 1 ? 15 : tier === 2 ? 25 : 35} readiness points
         </p>
@@ -723,4 +740,4 @@ export default function IntakePage() {
       <IntakeForm />
     </Suspense>
   );
-}
+        }
