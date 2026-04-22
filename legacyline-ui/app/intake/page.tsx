@@ -493,6 +493,7 @@ if (!pid) {
         throw new Error(errData?.error || "Submission failed. Please try again.");
       }
 
+      document.cookie = `ll_user=${pid}; path=/; max-age=2592000; SameSite=Lax`;
       setCelebration(TIER_CELEBRATIONS[2]);
     } catch (err: any) {
       setMessage(err?.message || "Connection error. Please try again.");
