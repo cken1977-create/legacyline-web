@@ -56,14 +56,15 @@ const STATUS_LABELS: Record<string, string> = {
 function generateNudges(vault: VaultRecord | null, intake: IntakeData | null) {
   const nudges = [];
   if (!intake) nudges.push({ id: "complete_intake", title: "Complete your intake form", description: "Your intake form is the foundation of your readiness profile.", impact: "high" as const, domain: "all", completed: false, points: 15 });
-  if (intake && !intake.gov_id_url) nudges.push({ id: "upload_gov_id", title: "Upload your government ID", description: "Identity verification unlocks your evaluation.", impact: "high" as const, domain: "behavioral", completed: false, points: 20 });
-  if (intake && !intake.selfie_url) nudges.push({ id: "upload_selfie", title: "Add your identity selfie", description: "A selfie with your ID confirms your identity.", impact: "high" as const, domain: "behavioral", completed: false, points: 25 });
-  if (intake && !intake.bank_statement_url) nudges.push({ id: "upload_bank", title: "Upload your bank statement", description: "Financial documentation is the #1 factor in your Financial score.", impact: "high" as const, domain: "financial", completed: false, points: 35 });
+  if (intake && !intake.docs_uploaded?.gov_id) nudges.push({ id: "upload_gov_id", title: "Upload your government ID", description: "Identity verification unlocks your evaluation.", impact: "high" as const, domain: "behavioral", completed: false, points: 20 });
+  if (intake && !intake.docs_uploaded?.selfie) nudges.push({ id: "upload_selfie", title: "Add your identity selfie", description: "A selfie with your ID confirms your identity.", impact: "high" as const, domain: "behavioral", completed: false, points: 25 });
+  if (intake && !intake.docs_uploaded?.bank_statement) nudges.push({ id: "upload_bank", title: "Upload your bank statement", description: "Financial documentation is the #1 factor in your Financial score.", impact: "high" as const, domain: "financial", completed: false, points: 35 });
   if (intake?.employment_status === "unemployed") nudges.push({ id: "workforce_gap", title: "Document your job search activity", description: "Participants who document job search activity improve their Workforce score by an average of 22 points.", impact: "medium" as const, domain: "workforce", completed: false, points: 22 });
   if (vault?.current_status === "certified") nudges.push({ id: "share_cert", title: "Share your certification", description: "You're BRSA certified. Share your standing with lenders, employers, or housing authorities.", impact: "medium" as const, domain: "all", completed: true, points: 0 });
   if (nudges.length === 0) nudges.push({ id: "maintain", title: "Keep your profile current", description: "Update your documents every 90 days to maintain your readiness standing.", impact: "low" as const, domain: "all", completed: false, points: 5 });
   return nudges;
 }
+
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -635,7 +636,7 @@ export default function ParticipantApp() {
         )}
 
         {/* ── DOCUMENTS ── */}
-        {tab === "docs" && (
+         {tab === "docs" && (
           <div style={{ padding: "60px 24px 24px" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(200,168,75,0.7)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>
               Documents
@@ -646,11 +647,11 @@ export default function ParticipantApp() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
               {[
-                { key: "gov_id_url", label: "Government-Issued ID", icon: "◉", hint: "Driver's license, passport, or state ID", color: "#4F9EFF" },
-                { key: "selfie_url", label: "Identity Selfie", icon: "◈", hint: "Clear photo holding your ID", color: "#A78BFA" },
-                { key: "bank_statement_url", label: "Bank Statement", icon: "◆", hint: "Last 30 days of activity", color: "#34D399" },
+                { key: "gov_id", label: "Government-Issued ID", icon: "◉", hint: "Driver's license, passport, or state ID", color: "#4F9EFF" },
+                { key: "selfie", label: "Identity Selfie", icon: "◈", hint: "Clear photo holding your ID", color: "#A78BFA" },
+                { key: "bank_statement", label: "Bank Statement", icon: "◆", hint: "Last 30 days of activity", color: "#34D399" },
               ].map(({ key, label, icon, hint, color }) => {
-                const uploaded = intake?.[key as keyof IntakeData];
+                const uploaded = intake?.docs_uploaded?.[key as keyof typeof intake.docs_uploaded];
                 return (
                   <GlassCard key={key} style={{ padding: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
