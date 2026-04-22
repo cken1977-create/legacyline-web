@@ -392,13 +392,23 @@ function IntakeForm() {
   const [bankStatement, setBankStatement] = useState<File | null>(null);
 
   useEffect(() => {
-    const first = searchParams.get("first_name");
-    const last = searchParams.get("last_name");
-    const em = searchParams.get("email");
-    if (first) setFirstName(first);
-    if (last) setLastName(last);
-    if (em) setEmail(em);
-  }, [searchParams]);
+  const first = searchParams.get("first_name");
+  const last = searchParams.get("last_name");
+  const em = searchParams.get("email");
+  const existingPid = searchParams.get("pid");
+  const skipTier = searchParams.get("skip");
+
+  if (first) setFirstName(first);
+  if (last) setLastName(last);
+  if (em) setEmail(em);
+  if (existingPid) {
+    setParticipantId(existingPid);
+    sessionStorage.setItem("ll_intake_pid", existingPid);
+  }
+  if (skipTier) {
+    setTier(parseInt(skipTier));
+  }
+}, [searchParams]);
 
   function buildDob() {
     if (!dobYear || !dobMonth || !dobDay) return "";
