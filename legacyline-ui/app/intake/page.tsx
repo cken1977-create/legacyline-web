@@ -466,7 +466,7 @@ if (!pid) {
   return;
 }
     setLoading(true);
-    setMessage("");
+    setMessage("Connecting...");
     try {
       const fd = new FormData();
       fd.append("dob", buildDob());
