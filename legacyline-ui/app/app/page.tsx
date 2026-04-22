@@ -236,7 +236,7 @@ export default function ParticipantApp() {
         const [vaultRes, meRes, intakeRes] = await Promise.allSettled([
           fetch(`${API}/participants/${pid}/vault`),
           fetch(`${API}/auth/individual/me`, { headers }),
-          fetch(`${API}/intake/${pid}`),
+          fetch(`${API}/intake/by-participant/${pid}`),
         ]);
         if (vaultRes.status === "fulfilled" && vaultRes.value.ok) setVault(await vaultRes.value.json());
         if (meRes.status === "fulfilled" && meRes.value.ok) { const me = await meRes.value.json(); setRegistryId(me.registry_id ?? ""); }
