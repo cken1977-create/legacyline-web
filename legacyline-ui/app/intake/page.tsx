@@ -57,9 +57,9 @@ const TIER_CELEBRATIONS: TierCelebration[] = [
 ];
 
 const READINESS_LABELS = [
-  { min: 0,  max: 24,  label: "Emerging",      color: "#888" },
-  { min: 25, max: 49,  label: "Developing",    color: "#C8A84B" },
-  { min: 50, max: 69,  label: "Progressing",   color: "#4B9BC8" },
+  { min: 0,  max: 24,  label: "Emerging",       color: "#888" },
+  { min: 25, max: 49,  label: "Developing",     color: "#C8A84B" },
+  { min: 50, max: 69,  label: "Progressing",    color: "#4B9BC8" },
   { min: 70, max: 89,  label: "Provider Ready", color: "#4BC87A" },
   { min: 90, max: 100, label: "BRSA Certified", color: "#C84B8A" },
 ];
@@ -73,8 +73,6 @@ function normalizePhone(input: string) {
 }
 
 // ─── HEIC → JPEG conversion ───────────────────────────────────────────────────
-// Uses browser-native canvas — no library needed.
-// Falls back to original file if conversion fails or file is not HEIC.
 
 async function normalizeImageFile(file: File): Promise<File> {
   const isHeic =
@@ -94,24 +92,21 @@ async function normalizeImageFile(file: File): Promise<File> {
     if (!ctx) return file;
     ctx.drawImage(bitmap, 0, 0);
     bitmap.close();
-
     return new Promise((resolve) => {
       canvas.toBlob(
         (blob) => {
           if (!blob) { resolve(file); return; }
-          const converted = new File(
+          resolve(new File(
             [blob],
             file.name.replace(/\.(heic|heif)$/i, ".jpg"),
             { type: "image/jpeg" }
-          );
-          resolve(converted);
+          ));
         },
         "image/jpeg",
         0.88
       );
     });
   } catch {
-    // createImageBitmap may not support HEIC on all browsers — fall back to original
     return file;
   }
 }
@@ -194,7 +189,6 @@ function CelebrationScreen({
         className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse at 50% 40%, ${celebration.color}18 0%, transparent 65%)` }}
       />
-
       <div
         className="text-6xl mb-6"
         style={{
@@ -205,7 +199,6 @@ function CelebrationScreen({
       >
         {celebration.badge}
       </div>
-
       <div
         className="text-xs font-semibold tracking-widest uppercase mb-2"
         style={{
@@ -217,7 +210,6 @@ function CelebrationScreen({
       >
         Tier {celebration.tier} Complete
       </div>
-
       <h1
         className="text-3xl font-bold text-white text-center mb-3"
         style={{
@@ -229,18 +221,15 @@ function CelebrationScreen({
       >
         {celebration.title}
       </h1>
-
       <p
         className="text-sm text-white/50 text-center max-w-xs mb-8"
         style={{ opacity: visible ? 1 : 0, transition: "opacity 0.4s ease 0.3s" }}
       >
         {celebration.subtitle}
       </p>
-
       <div style={{ opacity: visible ? 1 : 0, transform: visible ? "scale(1)" : "scale(0.8)", transition: "all 0.5s ease 0.35s" }}>
         <ScoreRing score={celebration.totalPoints} animate={animateScore} />
       </div>
-
       <div
         className="mt-4 mb-8 px-4 py-2 rounded-full text-sm font-semibold"
         style={{
@@ -253,7 +242,6 @@ function CelebrationScreen({
       >
         +{celebration.points} pts earned
       </div>
-
       <button
         onClick={onContinue}
         className="w-full max-w-xs rounded-2xl py-4 text-sm font-semibold text-black transition-all active:scale-95"
@@ -390,25 +378,27 @@ function IntakeForm() {
   const [govId, setGovId] = useState<File | null>(null);
   const [selfie, setSelfie] = useState<File | null>(null);
   const [bankStatement, setBankStatement] = useState<File | null>(null);
+  const [password, setPassword] = useState("");
+  const [consentChecked, setConsentChecked] = useState(false);
 
   useEffect(() => {
-  const first = searchParams.get("first_name");
-  const last = searchParams.get("last_name");
-  const em = searchParams.get("email");
-  const existingPid = searchParams.get("pid");
-  const skipTier = searchParams.get("skip");
+    const first = searchParams.get("first_name");
+    const last = searchParams.get("last_name");
+    const em = searchParams.get("email");
+    const existingPid = searchParams.get("pid");
+    const skipTier = searchParams.get("skip");
 
-  if (first) setFirstName(first);
-  if (last) setLastName(last);
-  if (em) setEmail(em);
-  if (existingPid) {
-    setParticipantId(existingPid);
-    sessionStorage.setItem("ll_intake_pid", existingPid);
-  }
-  if (skipTier) {
-    setTier(parseInt(skipTier));
-  }
-}, [searchParams]);
+    if (first) setFirstName(first);
+    if (last) setLastName(last);
+    if (em) setEmail(em);
+    if (existingPid) {
+      setParticipantId(existingPid);
+      sessionStorage.setItem("ll_intake_pid", existingPid);
+    }
+    if (skipTier) {
+      setTier(parseInt(skipTier));
+    }
+  }, [searchParams]);
 
   function buildDob() {
     if (!dobYear || !dobMonth || !dobDay) return "";
@@ -470,14 +460,23 @@ function IntakeForm() {
       setMessage("Please upload a government-issued ID to continue.");
       return;
     }
+    if (!consentChecked) {
+      setMessage("You must agree to the BRSA terms to continue.");
+      return;
+    }
+    if (!password.trim() || password.trim().length < 8) {
+      setMessage("Please create a password of at least 8 characters to secure your account.");
+      return;
+    }
     const pid = participantId || sessionStorage.getItem("ll_intake_pid");
-if (!pid) {
-  setMessage("Session error. Please start over.");
-  return;
-}
+    if (!pid) {
+      setMessage("Session error. Please start over.");
+      return;
+    }
     setLoading(true);
     setMessage("Connecting...");
     try {
+      // Step 1 — Submit intake with documents
       const fd = new FormData();
       fd.append("dob", buildDob());
       fd.append("address", address.trim());
@@ -491,7 +490,14 @@ if (!pid) {
       fd.append("monthly_income", monthlyIncome.trim());
       fd.append("gov_id", govId);
       if (selfie) fd.append("selfie", selfie);
-      if (bankStatement) fd.append("bank_statement", bankStatement);
+      if (bankStatement) {
+        if (bankStatement.size > 4 * 1024 * 1024) {
+          setMessage("Bank statement is too large (max 4MB). Please upload a smaller file or skip it — your evaluator can request it during review.");
+          setLoading(false);
+          return;
+        }
+        fd.append("bank_statement", bankStatement);
+      }
 
       const res = await fetch(`${API}/intake/${pid}`, {
         method: "POST",
@@ -503,7 +509,29 @@ if (!pid) {
         throw new Error(errData?.error || "Submission failed. Please try again.");
       }
 
+      // Step 2 — Create auth account linked to this participant
+      const authRes = await fetch(`${API}/auth/individual/signup-from-intake`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participant_id: pid,
+          password: password.trim(),
+        }),
+      });
+
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        localStorage.setItem("individual_token", authData.token);
+        localStorage.setItem("participant_id", pid);
+        localStorage.setItem("user_first_name", firstName.trim());
+        localStorage.setItem("user_last_name", lastName.trim());
+        localStorage.setItem("user_email", email.trim());
+      }
+
+      // Step 3 — Set cookie for dashboard routing
       document.cookie = `ll_user=${pid}; path=/; max-age=2592000; SameSite=Lax`;
+      sessionStorage.setItem("ll_intake_pid", pid);
+
       setCelebration(TIER_CELEBRATIONS[2]);
     } catch (err: any) {
       setMessage(err?.message || "Connection error. Please try again.");
@@ -515,7 +543,6 @@ if (!pid) {
   function handleCelebrationContinue() {
     if (!celebration) return;
     if (celebration.tier === 3) {
-      // Route to participant-specific dashboard
       const pid = participantId || sessionStorage.getItem("ll_intake_pid");
       router.push(pid ? `/dashboard/individual/${pid}` : "/dashboard/individual");
       return;
@@ -549,9 +576,8 @@ if (!pid) {
               <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 Welcome to Legacyline
               </h2>
-              <p className="mt-1 text-sm text-white/50">Let's start simple. Just the basics to get you in the door.</p>
+              <p className="mt-1 text-sm text-white/50">Let&apos;s start simple. Just the basics to get you in the door.</p>
             </div>
-
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -563,7 +589,6 @@ if (!pid) {
                   <input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} />
                 </div>
               </div>
-
               <div>
                 <label className={labelClass}>Date of Birth *</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -587,7 +612,6 @@ if (!pid) {
                   </select>
                 </div>
               </div>
-
               <div>
                 <label className={labelClass}>Email</label>
                 <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
@@ -612,7 +636,6 @@ if (!pid) {
               </h2>
               <p className="mt-1 text-sm text-white/50">Where you are right now. No judgment — just your starting point.</p>
             </div>
-
             <div className="grid gap-4">
               <div>
                 <label className={labelClass}>Street Address *</label>
@@ -686,7 +709,7 @@ if (!pid) {
                 Secure Your Record
               </h2>
               <p className="mt-1 text-sm text-white/50">
-                Upload your documents. Encrypted and only reviewed by your assigned BRSA evaluator.
+                Upload your documents and create your account. Encrypted and only reviewed by your assigned BRSA evaluator.
               </p>
             </div>
 
@@ -705,11 +728,53 @@ if (!pid) {
               />
               <FileUploadRow
                 label="Most Recent Bank Statement"
-                hint="Last 30 days — PDF or photo"
+                hint="Last 30 days — PDF or photo (max 4MB)"
                 file={bankStatement}
                 onChange={setBankStatement}
               />
 
+              {/* Password */}
+              <div>
+                <label className={labelClass}>Create a Password *</label>
+                <p className="text-white/30 text-xs mb-2">
+                  Used to access your readiness dashboard and track your progress
+                </p>
+                <input
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C84B8A]/60"
+                />
+              </div>
+
+              {/* Consent */}
+              <div
+                className="flex items-start gap-3 rounded-xl p-4 cursor-pointer transition-all"
+                style={{
+                  background: consentChecked ? "rgba(200,168,75,0.08)" : "rgba(255,255,255,0.03)",
+                  border: consentChecked ? "1px solid rgba(200,168,75,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                }}
+                onClick={() => setConsentChecked(!consentChecked)}
+              >
+                <div
+                  className="w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-all"
+                  style={{
+                    background: consentChecked ? "#C8A84B" : "rgba(255,255,255,0.05)",
+                    border: consentChecked ? "none" : "1px solid rgba(255,255,255,0.2)",
+                  }}
+                >
+                  {consentChecked && (
+                    <span className="text-black text-xs font-bold">✓</span>
+                  )}
+                </div>
+                <p className="text-xs text-white/50 leading-relaxed">
+                  I consent to the collection and use of my information for the BRSA Individual Readiness Assessment under{" "}
+                  <span style={{ color: "#C8A84B" }}>behavioral_readiness_v1</span> terms. I understand my data is stored securely and I control what is shared with institutions.
+                </p>
+              </div>
+
+              {/* What happens next */}
               <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
                 <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#C84B8A" }}>
                   What happens next
@@ -728,19 +793,20 @@ if (!pid) {
                   ))}
                 </ul>
               </div>
-
-              <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
-                <p className="text-xs text-white/35 leading-relaxed">
-                  🔒 By submitting you confirm all information is accurate. Your data is stored securely and used solely for your BRSA readiness assessment.
-                </p>
-              </div>
             </div>
           </div>
         )}
 
-        {/* Error */}
+        {/* Error / Status */}
         {message && (
-          <div className="mt-4 rounded-2xl bg-red-500/10 p-4 ring-1 ring-red-500/30 text-sm text-red-300">
+          <div
+            className="mt-4 rounded-2xl p-4 ring-1 text-sm"
+            style={{
+              background: message === "Connecting..." ? "rgba(75,155,200,0.1)" : "rgba(239,68,68,0.1)",
+              borderColor: message === "Connecting..." ? "rgba(75,155,200,0.3)" : "rgba(239,68,68,0.3)",
+              color: message === "Connecting..." ? "#4B9BC8" : "#fca5a5",
+            }}
+          >
             {message}
           </div>
         )}
@@ -775,4 +841,4 @@ export default function IntakePage() {
       <IntakeForm />
     </Suspense>
   );
-        }
+            }
