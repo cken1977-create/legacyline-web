@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
@@ -57,11 +57,11 @@ const TIER_CELEBRATIONS: TierCelebration[] = [
 ];
 
 const READINESS_LABELS = [
-  { min: 0,  max: 24,  label: "Emerging",       color: "#888" },
-  { min: 25, max: 49,  label: "Developing",      color: "#C8A84B" },
-  { min: 50, max: 69,  label: "Progressing",     color: "#4B9BC8" },
-  { min: 70, max: 89,  label: "Provider Ready",  color: "#4BC87A" },
-  { min: 90, max: 100, label: "BRSA Certified",  color: "#C84B8A" },
+  { min: 0,  max: 24,  label: "Emerging",      color: "#888" },
+  { min: 25, max: 49,  label: "Developing",    color: "#C8A84B" },
+  { min: 50, max: 69,  label: "Progressing",   color: "#4B9BC8" },
+  { min: 70, max: 89,  label: "Provider Ready", color: "#4BC87A" },
+  { min: 90, max: 100, label: "BRSA Certified", color: "#C84B8A" },
 ];
 
 function getReadinessLabel(score: number) {
@@ -70,6 +70,50 @@ function getReadinessLabel(score: number) {
 
 function normalizePhone(input: string) {
   return input.replace(/[^\d]/g, "");
+}
+
+// ─── HEIC → JPEG conversion ───────────────────────────────────────────────────
+// Uses browser-native canvas — no library needed.
+// Falls back to original file if conversion fails or file is not HEIC.
+
+async function normalizeImageFile(file: File): Promise<File> {
+  const isHeic =
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    file.name.toLowerCase().endsWith(".heic") ||
+    file.name.toLowerCase().endsWith(".heif");
+
+  if (!isHeic) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    return new Promise((resolve) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          const converted = new File(
+            [blob],
+            file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+            { type: "image/jpeg" }
+          );
+          resolve(converted);
+        },
+        "image/jpeg",
+        0.88
+      );
+    });
+  } catch {
+    // createImageBitmap may not support HEIC on all browsers — fall back to original
+    return file;
+  }
 }
 
 // ─── Score Ring ───────────────────────────────────────────────────────────────
@@ -297,8 +341,13 @@ function FileUploadRow({
         <input
           type="file"
           className="hidden"
-          accept="image/jpeg,image/png,application/pdf,image/heic,image/heif"
-          onChange={(e) => onChange(e.target.files?.[0] || null)}
+          accept="image/jpeg,image/png,application/pdf,image/heic,image/heif,.heic,.heif"
+          onChange={async (e) => {
+            const raw = e.target.files?.[0] || null;
+            if (!raw) { onChange(null); return; }
+            const normalized = await normalizeImageFile(raw);
+            onChange(normalized);
+          }}
         />
       </label>
     </div>
@@ -453,7 +502,8 @@ function IntakeForm() {
   function handleCelebrationContinue() {
     if (!celebration) return;
     if (celebration.tier === 3) {
-      router.push("/dashboard/individual");
+      // Route to participant-specific dashboard
+      router.push(participantId ? `/dashboard/individual/${participantId}` : "/dashboard/individual");
       return;
     }
     setCelebration(null);
@@ -465,15 +515,9 @@ function IntakeForm() {
     return <CelebrationScreen celebration={celebration} onContinue={handleCelebrationContinue} />;
   }
 
-  const selectStyle = {
-    background: "rgba(0,0,0,0.3)",
-    colorScheme: "dark" as const,
-  };
-
-  const inputClass =
-    "w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
-  const selectClass =
-    "w-full rounded-xl px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
+  const selectStyle = { background: "rgba(0,0,0,0.3)", colorScheme: "dark" as const };
+  const inputClass = "w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
+  const selectClass = "w-full rounded-xl px-4 py-3 text-sm text-white ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60";
   const labelClass = "mb-1.5 block text-xs font-medium text-white/60";
 
   return (
@@ -481,7 +525,7 @@ function IntakeForm() {
       <div className="rounded-3xl bg-white/5 p-7 ring-1 ring-white/10">
         <TierProgress currentTier={tier} />
 
-        {/* ── TIER 1 — Identity ── */}
+        {/* ── TIER 1 ── */}
         {tier === 1 && (
           <div>
             <div className="mb-6">
@@ -491,9 +535,7 @@ function IntakeForm() {
               <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 Welcome to Legacyline
               </h2>
-              <p className="mt-1 text-sm text-white/50">
-                Let's start simple. Just the basics to get you in the door.
-              </p>
+              <p className="mt-1 text-sm text-white/50">Let's start simple. Just the basics to get you in the door.</p>
             </div>
 
             <div className="grid gap-4">
@@ -514,13 +556,17 @@ function IntakeForm() {
                   <select value={dobMonth} onChange={(e) => setDobMonth(e.target.value)} className={selectClass} style={selectStyle}>
                     <option value="">Month</option>
                     {["01","02","03","04","05","06","07","08","09","10","11","12"].map((m, i) => (
-                      <option key={m} value={m}>
-                        {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}
-                      </option>
+                      <option key={m} value={m}>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}</option>
                     ))}
                   </select>
                   <select value={dobDay} onChange={(e) => setDobDay(e.target.value)} className={selectClass} style={selectStyle}>
                     <option value="">Day</option>
+                    {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <select value={dobYear} onChange={(e) => setDobYear(e.target.value)} className={selectClass} style={selectStyle}>
+                    <option value="">Year</option>
                     {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0")).map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
@@ -538,7 +584,6 @@ function IntakeForm() {
                 <label className={labelClass}>Email</label>
                 <input type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
               </div>
-
               <div>
                 <label className={labelClass}>Phone</label>
                 <input type="tel" placeholder="(832) 555-0100" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
@@ -547,7 +592,7 @@ function IntakeForm() {
           </div>
         )}
 
-        {/* ── TIER 2 — Story ── */}
+        {/* ── TIER 2 ── */}
         {tier === 2 && (
           <div>
             <div className="mb-6">
@@ -557,18 +602,14 @@ function IntakeForm() {
               <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 Tell Us Your Story
               </h2>
-              <p className="mt-1 text-sm text-white/50">
-                Where you are right now. No judgment — just your starting point.
-              </p>
+              <p className="mt-1 text-sm text-white/50">Where you are right now. No judgment — just your starting point.</p>
             </div>
 
             <div className="grid gap-4">
-              {/* Address */}
               <div>
                 <label className={labelClass}>Street Address *</label>
                 <input placeholder="123 Main St" value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>City *</label>
@@ -579,13 +620,10 @@ function IntakeForm() {
                   <input placeholder="NM" value={stateVal} onChange={(e) => setStateVal(e.target.value)} maxLength={2} className={inputClass} />
                 </div>
               </div>
-
               <div>
                 <label className={labelClass}>ZIP Code *</label>
                 <input placeholder="87102" value={zip} onChange={(e) => setZip(e.target.value)} maxLength={10} className={inputClass} />
               </div>
-
-              {/* Housing */}
               <div>
                 <label className={labelClass}>Housing Type *</label>
                 <select value={housingType} onChange={(e) => setHousingType(e.target.value)} className={selectClass} style={selectStyle}>
@@ -598,13 +636,10 @@ function IntakeForm() {
                   <option value="other">Other</option>
                 </select>
               </div>
-
               <div>
                 <label className={labelClass}>Monthly Rent or Mortgage</label>
                 <input placeholder="$0.00" value={monthlyHousingCost} onChange={(e) => setMonthlyHousingCost(e.target.value)} className={inputClass} />
               </div>
-
-              {/* Employment */}
               <div>
                 <label className={labelClass}>Employment Status *</label>
                 <select value={employmentStatus} onChange={(e) => setEmploymentStatus(e.target.value)} className={selectClass} style={selectStyle}>
@@ -620,12 +655,10 @@ function IntakeForm() {
                   <option value="other">Other</option>
                 </select>
               </div>
-
               <div>
                 <label className={labelClass}>Employer Name (if applicable)</label>
                 <input placeholder="Company name" value={employerName} onChange={(e) => setEmployerName(e.target.value)} className={inputClass} />
               </div>
-
               <div>
                 <label className={labelClass}>Monthly Take-Home Pay</label>
                 <input placeholder="$0.00" value={monthlyIncome} onChange={(e) => setMonthlyIncome(e.target.value)} className={inputClass} />
@@ -634,7 +667,7 @@ function IntakeForm() {
           </div>
         )}
 
-        {/* ── TIER 3 — Documents ── */}
+        {/* ── TIER 3 ── */}
         {tier === 3 && (
           <div>
             <div className="mb-6">
@@ -645,7 +678,7 @@ function IntakeForm() {
                 Secure Your Record
               </h2>
               <p className="mt-1 text-sm text-white/50">
-                Upload your documents. They're encrypted and only reviewed by your assigned BRSA evaluator.
+                Upload your documents. Encrypted and only reviewed by your assigned BRSA evaluator.
               </p>
             </div>
 
@@ -658,18 +691,17 @@ function IntakeForm() {
               />
               <FileUploadRow
                 label="Selfie Holding Your ID"
-                hint="A clear photo of you holding your ID — helps verify identity"
+                hint="A clear photo of you holding your ID"
                 file={selfie}
                 onChange={setSelfie}
               />
               <FileUploadRow
                 label="Most Recent Bank Statement"
-                hint="Last 30 days — PDF or photo. Supports your income declaration."
+                hint="Last 30 days — PDF or photo"
                 file={bankStatement}
                 onChange={setBankStatement}
               />
 
-              {/* What happens next */}
               <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
                 <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: "#C84B8A" }}>
                   What happens next
@@ -689,7 +721,6 @@ function IntakeForm() {
                 </ul>
               </div>
 
-              {/* Privacy */}
               <div className="rounded-xl p-4 ring-1 ring-white/8" style={{ background: "rgba(255,255,255,0.03)" }}>
                 <p className="text-xs text-white/35 leading-relaxed">
                   🔒 By submitting you confirm all information is accurate. Your data is stored securely and used solely for your BRSA readiness assessment.
@@ -711,9 +742,7 @@ function IntakeForm() {
           onClick={tier === 1 ? submitTier1 : tier === 2 ? submitTier2 : submitTier3}
           disabled={loading}
           className="mt-6 w-full rounded-xl py-4 text-sm font-semibold text-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: tier === 1 ? "#C8A84B" : tier === 2 ? "#4B9BC8" : "#C84B8A",
-          }}
+          style={{ background: tier === 1 ? "#C8A84B" : tier === 2 ? "#4B9BC8" : "#C84B8A" }}
         >
           {loading
             ? "Saving..."
@@ -731,8 +760,6 @@ function IntakeForm() {
     </Shell>
   );
 }
-
-// ─── Export ───────────────────────────────────────────────────────────────────
 
 export default function IntakePage() {
   return (
