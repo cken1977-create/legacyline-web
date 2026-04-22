@@ -29,7 +29,8 @@ type AIAnalysis = {
 const STEPS = ["Personal", "Housing", "Employment", "Documents", "Review"];
 
 export default function IntakeFormPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id ? decodeURIComponent(params.id as string) : "";
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
