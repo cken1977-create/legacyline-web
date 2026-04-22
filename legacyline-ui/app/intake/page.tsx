@@ -483,7 +483,7 @@ if (!pid) {
       if (selfie) fd.append("selfie", selfie);
       if (bankStatement) fd.append("bank_statement", bankStatement);
 
-      const res = await fetch(`${API}/intake/${participantId}`, {
+      const res = await fetch(`${API}/intake/${pid}`, {
         method: "POST",
         body: fd,
       });
@@ -505,7 +505,8 @@ if (!pid) {
     if (!celebration) return;
     if (celebration.tier === 3) {
       // Route to participant-specific dashboard
-      router.push(participantId ? `/dashboard/individual/${participantId}` : "/dashboard/individual");
+      const pid = participantId || sessionStorage.getItem("ll_intake_pid");
+      router.push(pid ? `/dashboard/individual/${pid}` : "/dashboard/individual");
       return;
     }
     setCelebration(null);
