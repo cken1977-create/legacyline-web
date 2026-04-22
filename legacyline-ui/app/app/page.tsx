@@ -691,7 +691,7 @@ export default function ParticipantApp() {
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 20, lineHeight: 1.6 }}>
                   Complete your intake form to submit your documents and begin your evaluation.
                 </div>
-                <a href="/intake" style={{
+                <a href={`/intake?pid=${participantId}&skip=1`} style={{
                   display: "inline-block", padding: "12px 24px", borderRadius: 12,
                   background: "#C8A84B", color: "#080C14",
                   fontSize: 14, fontWeight: 700, textDecoration: "none",
@@ -704,7 +704,7 @@ export default function ParticipantApp() {
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 12 }}>
                   Need to update a document?
                 </div>
-                <a href="/intake" style={{
+                <a href={`/intake?pid=${participantId}&skip=3`} style={{
                   display: "block", padding: "12px 0", borderRadius: 12, textAlign: "center",
                   background: "rgba(200,168,75,0.08)", border: "1px solid rgba(200,168,75,0.2)",
                   color: "#C8A84B", fontSize: 14, fontWeight: 700, textDecoration: "none",
