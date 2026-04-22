@@ -320,9 +320,49 @@ Respond ONLY with a JSON object in this exact format, no other text:
               <input className={`${inputClass} bg-[#f6f3ee] text-[#1A3A5C]/50 cursor-not-allowed`} value={`${participant.first_name} ${participant.last_name}`} disabled />
             </div>
             <div>
-              <label className={labelClass}>Date of Birth</label>
-              <input type="date" className={inputClass} value={form.dob} onChange={(e) => set("dob", e.target.value)} />
-            </div>
+  <label className={labelClass}>Date of Birth</label>
+  <div className="grid grid-cols-3 gap-2">
+    <select
+      className={selectClass}
+      value={form.dob ? form.dob.split("-")[1] : ""}
+      onChange={(e) => {
+        const parts = form.dob ? form.dob.split("-") : ["","",""];
+        set("dob", `${parts[0]}-${e.target.value}-${parts[2] || "01"}`);
+      }}
+    >
+      <option value="">Month</option>
+      {["01","02","03","04","05","06","07","08","09","10","11","12"].map((m, i) => (
+        <option key={m} value={m}>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]}</option>
+      ))}
+    </select>
+    <select
+      className={selectClass}
+      value={form.dob ? form.dob.split("-")[2] : ""}
+      onChange={(e) => {
+        const parts = form.dob ? form.dob.split("-") : ["","",""];
+        set("dob", `${parts[0]}-${parts[1] || "01"}-${e.target.value}`);
+      }}
+    >
+      <option value="">Day</option>
+      {Array.from({length: 31}, (_, i) => String(i + 1).padStart(2, "0")).map(d => (
+        <option key={d} value={d}>{d}</option>
+      ))}
+    </select>
+    <select
+      className={selectClass}
+      value={form.dob ? form.dob.split("-")[0] : ""}
+      onChange={(e) => {
+        const parts = form.dob ? form.dob.split("-") : ["","",""];
+        set("dob", `${e.target.value}-${parts[1] || "01"}-${parts[2] || "01"}`);
+      }}
+    >
+      <option value="">Year</option>
+      {Array.from({length: 100}, (_, i) => String(2006 - i)).map(y => (
+        <option key={y} value={y}>{y}</option>
+      ))}
+    </select>
+  </div>
+</div>
             <div>
               <label className={labelClass}>Street Address</label>
               <input className={inputClass} placeholder="123 Main St" value={form.address} onChange={(e) => set("address", e.target.value)} />
