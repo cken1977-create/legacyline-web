@@ -87,6 +87,8 @@ export default function DocumentUploadPanel({
       form.append("reason", reason);
 
       // Use fetch directly for multipart — api() wrapper may not handle FormData
+      console.log("Upload URL:", `${baseURL}/participants/${participantId}/documents/update`);
+      console.log("FormData keys:", [...form.keys()]);
       const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "";
       const res = await fetch(
         `${baseURL}/participants/${participantId}/documents/update`,
