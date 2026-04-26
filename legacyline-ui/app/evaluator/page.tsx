@@ -7,6 +7,7 @@ import { StateBadge } from "./components/StateBadge";
 import { EvaluatorHeader } from "./components/EvaluatorHeader";
 import EvaluationPanel from "./components/EvaluationPanel";
 import OBREvaluationPanel from "./components/OBREvaluationPanel";
+import DocumentUploadPanel from "./components/DocumentUploadPanel";
 
 type Evaluator = {
   evaluator_id: string;
