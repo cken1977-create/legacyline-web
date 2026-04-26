@@ -632,6 +632,14 @@ export default function ParticipantApp() {
                 </div>
               </GlassCard>
             )}
+
+            {/* AI Case Brief */}
+            <div style={{ marginTop: 24 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 12 }}>
+                AI Case Brief
+              </div>
+              <AICaseBrief participantId={participantId} status={vault?.current_status ?? "registered"} />
+            </div>
           </div>
         )}
 
