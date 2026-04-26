@@ -3,10 +3,22 @@
 import Link from "next/link";
 
 function getDashboardHref() {
-  if (typeof document === "undefined") return "/dashboard";
+  if (typeof window === "undefined") return "/dashboard";
+
+  // Check for evaluator session first
+  const evaluatorId = localStorage.getItem("evaluator_id");
+  if (evaluatorId) return "/evaluator";
+
+  // Fall back to participant cookie
   const match = document.cookie.match(/(?:^|;\s*)ll_user=([^;]+)/);
   const pid = match?.[1];
-  return pid ? `/dashboard/individual/${pid}` : "/dashboard";
+  if (pid) return `/dashboard/individual/${pid}`;
+
+  // Fall back to participant localStorage
+  const participantId = localStorage.getItem("participant_id");
+  if (participantId) return `/dashboard/individual/${participantId}`;
+
+  return "/dashboard";
 }
 
 export default function Shell({
