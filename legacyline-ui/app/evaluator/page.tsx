@@ -806,6 +806,11 @@ function ParticipantProfile({ participant, onBack, actorEmail }: {
             currentStatus={currentStatus}
           />
 
+          <DocumentUploadPanel
+            participantId={participant.id}
+            actorEmail={actorEmail}
+          />
+
           <Card>
             <SectionTitle>Details</SectionTitle>
             <KV label="Phone" value={participant.phone} />
