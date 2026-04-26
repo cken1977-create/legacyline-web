@@ -847,7 +847,12 @@ export default function EvaluatorPage() {
           try {
             const ev = await api<Evaluator>(`/evaluators/lookup?email=${encodeURIComponent(PILOT_EVALUATOR_EMAIL)}`);
             setEvaluator(ev);
-          } catch {}
+            localStorage.setItem("evaluator_id", ev.evaluator_id);
+            localStorage.setItem("evaluator_email", ev.email);
+          } catch {
+            localStorage.removeItem("evaluator_id");
+            localStorage.removeItem("evaluator_email");
+          }
         }
       } catch (err: any) {
         setError(err?.message ?? "Failed to load.");
