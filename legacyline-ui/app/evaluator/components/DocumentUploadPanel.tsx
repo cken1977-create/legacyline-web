@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api } from "../../../lib/api";
 
 const C = {
@@ -38,42 +38,54 @@ export default function DocumentUploadPanel({
   const [documents, setDocuments] = useState<DocumentVersion[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [msg, setMsg] = useState<any>(null);
-
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [docType, setDocType] = useState("");
   const [reason, setReason] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState("");
+  const fileRef = useRef<File | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadDocuments();
   }, [participantId]);
 
   async function loadDocuments() {
+    setLoading(true);
     try {
       const res: any = await api(
         `/participants/${participantId}/documents`
       );
       if (res.documents) setDocuments(res.documents);
     } catch {
-      // No documents yet — empty state is fine
+      setDocuments([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (selected) {
+      fileRef.current = selected;
+      setFileName(selected.name);
+    } else {
+      fileRef.current = null;
+      setFileName("");
     }
   }
 
   async function handleUpload() {
     setMsg(null);
 
-    // Frontend validation
     if (!docType) {
       setMsg({ ok: false, text: "Please select a document type." });
       return;
     }
     if (!reason || reason.trim().length < 10) {
-      setMsg({ ok: false, text: "Please provide a reason (minimum 10 characters)." });
+      setMsg({ ok: false, text: "Reason must be at least 10 characters." });
       return;
     }
-    if (!file) {
+    if (!fileRef.current) {
       setMsg({ ok: false, text: "Please select a file to upload." });
       return;
     }
@@ -82,33 +94,38 @@ export default function DocumentUploadPanel({
 
     try {
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", fileRef.current);
       form.append("document_type", docType);
-      form.append("reason", reason);
+      form.append("reason", reason.trim());
 
-      // Use fetch directly for multipart — api() wrapper may not handle FormData
-      console.log("Upload URL:", `${baseURL}/participants/${participantId}/documents/update`);
-      console.log("FormData keys:", [...form.keys()]);
-      const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "";
-      const res = await fetch(
-        `${baseURL}/participants/${participantId}/documents/update`,
-        {
-          method: "POST",
-          headers: { "X-Actor": actorEmail },
-          body: form,
-        }
-      );
+      const apiURL = process.env.NEXT_PUBLIC_API_URL ?? "";
+      const endpoint = `${apiURL}/participants/${participantId}/documents/update`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "X-Actor": actorEmail },
+        body: form,
+      });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message ?? "Upload failed");
+        let errMsg = "Upload failed";
+        try {
+          const err = await res.json();
+          errMsg = err.message ?? err.error ?? errMsg;
+        } catch {
+          errMsg = `Upload failed with status ${res.status}`;
+        }
+        throw new Error(errMsg);
       }
 
       setMsg({ ok: true, text: "✓ Document uploaded and version recorded." });
       setDocType("");
       setReason("");
-      setFile(null);
+      setFileName("");
+      fileRef.current = null;
+      if (inputRef.current) inputRef.current.value = "";
       await loadDocuments();
+
     } catch (err: any) {
       setMsg({ ok: false, text: err?.message ?? "Upload failed." });
     } finally {
@@ -116,7 +133,6 @@ export default function DocumentUploadPanel({
     }
   }
 
-  // Group documents by type showing latest version
   const latestByType = DOCUMENT_TYPES.map((dt) => {
     const versions = documents
       .filter((d) => d.document_type === dt.key)
@@ -139,7 +155,7 @@ export default function DocumentUploadPanel({
         Document Updates
       </div>
 
-      {/* Current document versions */}
+      {/* Version History */}
       {!loading && (
         <div style={{ marginBottom: 24 }}>
           <div style={{
@@ -159,7 +175,8 @@ export default function DocumentUploadPanel({
             }}>
               <div>
                 <div style={{
-                  fontSize: 13, color: latest ? C.white : C.gray,
+                  fontSize: 13,
+                  color: latest ? C.white : C.gray,
                   fontWeight: latest ? 500 : 400,
                 }}>
                   {label}
@@ -185,7 +202,13 @@ export default function DocumentUploadPanel({
         </div>
       )}
 
-      {/* Upload form */}
+      {loading && (
+        <div style={{ fontSize: 12, color: C.gray, marginBottom: 24 }}>
+          Loading document history...
+        </div>
+      )}
+
+      {/* Upload Form */}
       <div style={{
         borderTop: `1px solid ${C.gold}22`,
         paddingTop: 20,
@@ -198,28 +221,32 @@ export default function DocumentUploadPanel({
           Upload Updated Document
         </div>
 
-        {/* Document type selector */}
+        {/* Document Type */}
         <div style={{ marginBottom: 14 }}>
-          <div style={{
-            fontSize: 12, color: C.gray, marginBottom: 6,
-          }}>
+          <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
             Document Type
           </div>
           <select
             value={docType}
             onChange={(e) => setDocType(e.target.value)}
             style={{
-              width: "100%", background: "rgba(0,0,0,0.3)",
+              width: "100%",
+              background: "rgba(0,0,0,0.3)",
               border: `1px solid ${docType ? C.gold : "rgba(255,255,255,0.1)"}`,
-              borderRadius: 6, padding: "8px 10px",
+              borderRadius: 6,
+              padding: "8px 10px",
               color: docType ? C.white : C.gray,
-              fontSize: 13, outline: "none",
+              fontSize: 13,
+              outline: "none",
             }}
           >
             <option value="">Select document type...</option>
             {DOCUMENT_TYPES.map((dt) => (
-              <option key={dt.key} value={dt.key}
-                style={{ background: C.navyDeep }}>
+              <option
+                key={dt.key}
+                value={dt.key}
+                style={{ background: C.navyDeep }}
+              >
                 {dt.label}
               </option>
             ))}
@@ -237,12 +264,19 @@ export default function DocumentUploadPanel({
             onChange={(e) => setReason(e.target.value)}
             placeholder="Why is this document being updated..."
             style={{
-              width: "100%", background: "rgba(0,0,0,0.2)",
-              border: `1px solid ${reason.trim().length > 0 && reason.trim().length < 10
-                ? C.red : "rgba(255,255,255,0.1)"}`,
-              borderRadius: 6, padding: "8px 10px",
-              color: C.white, fontSize: 13,
-              outline: "none", resize: "vertical",
+              width: "100%",
+              background: "rgba(0,0,0,0.2)",
+              border: `1px solid ${
+                reason.trim().length > 0 && reason.trim().length < 10
+                  ? C.red
+                  : "rgba(255,255,255,0.1)"
+              }`,
+              borderRadius: 6,
+              padding: "8px 10px",
+              color: C.white,
+              fontSize: 13,
+              outline: "none",
+              resize: "vertical",
               boxSizing: "border-box",
             }}
           />
@@ -253,36 +287,44 @@ export default function DocumentUploadPanel({
           )}
         </div>
 
-        {/* File selector */}
+        {/* File Input */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 12, color: C.gray, marginBottom: 6 }}>
             File
           </div>
           <label style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "10px 14px", borderRadius: 6,
-            border: `1px dashed ${file ? C.teal : "rgba(255,255,255,0.2)"}`,
-            background: "rgba(0,0,0,0.2)", cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 14px",
+            borderRadius: 6,
+            border: `1px dashed ${fileName ? C.teal : "rgba(255,255,255,0.2)"}`,
+            background: "rgba(0,0,0,0.2)",
+            cursor: "pointer",
           }}>
             <input
+              ref={inputRef}
               type="file"
               accept=".jpg,.jpeg,.png,.pdf,.heic,.heif"
               style={{ display: "none" }}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={handleFileChange}
             />
             <span style={{
               fontSize: 13,
-              color: file ? C.teal : C.gray,
+              color: fileName ? C.teal : C.gray,
             }}>
-              {file ? `✓ ${file.name}` : "Choose file (JPEG, PNG, PDF, HEIC)"}
+              {fileName ? `✓ ${fileName}` : "Choose file (JPEG, PNG, PDF, HEIC)"}
             </span>
           </label>
         </div>
 
+        {/* Message */}
         {msg && (
           <div style={{
-            padding: "10px 14px", borderRadius: 6,
-            marginBottom: 14, fontSize: 13,
+            padding: "10px 14px",
+            borderRadius: 6,
+            marginBottom: 14,
+            fontSize: 13,
             background: msg.ok
               ? "rgba(45,212,191,0.1)"
               : "rgba(248,113,113,0.1)",
@@ -293,14 +335,19 @@ export default function DocumentUploadPanel({
           </div>
         )}
 
+        {/* Upload Button */}
         <button
           onClick={handleUpload}
           disabled={uploading}
           style={{
-            width: "100%", padding: "11px 0",
-            borderRadius: 6, background: C.gold,
-            border: "none", color: C.navyDeep,
-            fontWeight: 700, fontSize: 13,
+            width: "100%",
+            padding: "11px 0",
+            borderRadius: 6,
+            background: C.gold,
+            border: "none",
+            color: C.navyDeep,
+            fontWeight: 700,
+            fontSize: 13,
             cursor: uploading ? "not-allowed" : "pointer",
             opacity: uploading ? 0.6 : 1,
           }}
@@ -310,4 +357,4 @@ export default function DocumentUploadPanel({
       </div>
     </div>
   );
-      }
+    }
