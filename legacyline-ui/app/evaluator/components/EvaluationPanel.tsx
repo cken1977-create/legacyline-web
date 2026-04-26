@@ -90,11 +90,11 @@ export default function EvaluationPanel({
 }: EvaluationPanelProps) {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [domainScores, setDomainScores] = useState<any[]>([
-  { domain: "housing", score: 50, notes: "" },
-  { domain: "workforce", score: 50, notes: "" },
-  { domain: "financial", score: 50, notes: "" },
-  { domain: "behavioral", score: 50, notes: "" },
-]);
+    { domain: "housing", score: 50, notes: "" },
+    { domain: "workforce", score: 50, notes: "" },
+    { domain: "financial", score: 50, notes: "" },
+    { domain: "behavioral", score: 50, notes: "" },
+  ]);
   const [docChecklist, setDocChecklist] = useState<any[]>(
     DOC_ITEMS.map((d) => ({ item: d.key, checked: false }))
   );
@@ -106,6 +106,7 @@ export default function EvaluationPanel({
   const [msg, setMsg] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
+  const [validationWarnings, setValidationWarnings] = useState<string[]>([]);
 
   const [aiEval, setAiEval] = useState<AIEvalResponse | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -119,16 +120,16 @@ export default function EvaluationPanel({
           const ev = res.evaluation;
           setEvaluation(ev);
           if (ev.domain_scores?.length) {
-  const keyMap: Record<string, string> = {
-    housing_readiness: "housing",
-    workforce_readiness: "workforce",
-    financial_readiness: "financial",
-    behavioral_readiness: "behavioral",
-  };
-  setDomainScores(ev.domain_scores.map((d: any) => ({
-    ...d,
-    domain: keyMap[d.domain] ?? d.domain,
-  })));
+            const keyMap: Record<string, string> = {
+              housing_readiness: "housing",
+              workforce_readiness: "workforce",
+              financial_readiness: "financial",
+              behavioral_readiness: "behavioral",
+            };
+            setDomainScores(ev.domain_scores.map((d: any) => ({
+              ...d,
+              domain: keyMap[d.domain] ?? d.domain,
+            })));
           }
           if (ev.doc_checklist?.length) setDocChecklist(ev.doc_checklist);
           setNarrative(ev.narrative_notes ?? "");
@@ -141,6 +142,32 @@ export default function EvaluationPanel({
     }
     load();
   }, [participantId]);
+
+  function validateSubmission(): { valid: boolean; errors: string[]; warnings: string[] } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    if (!attestation || attestation.trim().length < 20) {
+      errors.push("Evaluator attestation is required.");
+    }
+
+    if (!narrative || narrative.trim().length < 50) {
+      errors.push("Narrative assessment must be at least 50 characters.");
+    }
+
+    const checkedDocs = docChecklist.filter((d) => d.checked).length;
+    if (checkedDocs < 2) {
+      errors.push("At least 2 documents must be verified in the checklist.");
+    }
+
+    const scores = domainScores.map((d) => d.score);
+    const allIdentical = scores.every((s) => s === scores[0]);
+    if (allIdentical) {
+      warnings.push("All domain scores are identical. Please confirm this accurately reflects your assessment.");
+    }
+
+    return { valid: errors.length === 0, errors, warnings };
+  }
 
   async function generateAI() {
     setAiLoading(true);
@@ -163,9 +190,21 @@ export default function EvaluationPanel({
   }
 
   async function save(submit: boolean) {
+    if (submit) {
+      const { valid, errors, warnings } = validateSubmission();
+      if (!valid) {
+        setMsg({ ok: false, text: errors.join(" ") });
+        return;
+      }
+      if (warnings.length > 0) {
+        setValidationWarnings(warnings);
+      }
+    }
+
     submit ? setSubmitting(true) : setSaving(true);
     setMsg(null);
     setShowSummary(false);
+
     try {
       await api(`/participants/${participantId}/evaluation`, {
         method: "POST",
@@ -176,7 +215,6 @@ export default function EvaluationPanel({
           recommended_next: recommended,
           attestation,
           submit,
-          // AI delta — freeze AI state at time of submission
           ai_summary: aiEval?.pre_evaluation_brief ?? null,
           ai_confidence: aiEval?.confidence_score ?? 0,
           ai_missing_data: aiEval?.pre_evaluation_brief?.missing_inputs ?? null,
@@ -187,7 +225,7 @@ export default function EvaluationPanel({
       setMsg({
         ok: true,
         text: submit
-          ? "✓ Evaluation submitted to BRSA Standards Authority for approval."
+          ? "✓ Evaluation submitted to BRSA Standards Authority."
           : "✓ Draft saved.",
       });
       if (submit) {
@@ -228,7 +266,6 @@ export default function EvaluationPanel({
 
   if (loading) return <div style={{ color: "white", padding: 20 }}>Loading evaluation...</div>;
   if (!canEvaluate && !evaluation) return <div style={{ color: "white", padding: 20 }}>No evaluation available for this participant.</div>;
-
   return (
     <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
 
@@ -322,14 +359,19 @@ export default function EvaluationPanel({
           <textarea
             rows={5} value={narrative} disabled={isLocked}
             onChange={(e) => setNarrative(e.target.value)}
-            placeholder="Document your assessment of this participant..."
+            placeholder="Document your assessment of this participant — minimum 50 characters required..."
             style={{
               width: "100%", background: "rgba(0,0,0,0.2)",
-              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
-              padding: "10px 12px", color: C.white, fontSize: 13,
+              border: `1px solid ${narrative.trim().length > 0 && narrative.trim().length < 50 ? C.red : "rgba(255,255,255,0.1)"}`,
+              borderRadius: 6, padding: "10px 12px", color: C.white, fontSize: 13,
               outline: "none", resize: "vertical", boxSizing: "border-box",
             }}
           />
+          {narrative.trim().length > 0 && narrative.trim().length < 50 && (
+            <div style={{ fontSize: 11, color: C.red, marginTop: 4 }}>
+              {50 - narrative.trim().length} more characters required
+            </div>
+          )}
         </div>
 
         {/* Recommended Next Steps */}
@@ -363,12 +405,26 @@ export default function EvaluationPanel({
             onChange={(e) => setAttestation(e.target.value)}
             style={{
               width: "100%", background: "rgba(0,0,0,0.2)",
-              border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
-              padding: "10px 12px", color: C.white, fontSize: 13,
+              border: `1px solid ${attestation.trim().length > 0 && attestation.trim().length < 20 ? C.red : "rgba(255,255,255,0.1)"}`,
+              borderRadius: 6, padding: "10px 12px", color: C.white, fontSize: 13,
               outline: "none", resize: "vertical", boxSizing: "border-box",
             }}
           />
         </div>
+
+        {/* Validation Warnings */}
+        {validationWarnings.length > 0 && !isLocked && (
+          <div style={{
+            marginBottom: 16, padding: "10px 14px", borderRadius: 6,
+            background: "rgba(251,191,36,0.1)",
+            border: "1px solid rgba(251,191,36,0.3)",
+            color: C.yellow, fontSize: 12,
+          }}>
+            {validationWarnings.map((w, i) => (
+              <div key={i}>⚠ {w}</div>
+            ))}
+          </div>
+        )}
 
         {/* Submission Summary Card */}
         {showSummary && !isLocked && (
@@ -383,13 +439,31 @@ export default function EvaluationPanel({
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <SummaryRow label="Current State" value={currentStatus} />
               <SummaryRow label="Proposed Transition" value="→ Evaluated" />
-              <SummaryRow label="Missing Inputs (AI)" value={missingCount > 0 ? `${missingCount} flagged` : "None flagged"} valueColor={missingCount > 0 ? C.yellow : C.green} />
+              <SummaryRow
+                label="Documents Verified"
+                value={`${docChecklist.filter(d => d.checked).length} / ${DOC_ITEMS.length}`}
+                valueColor={docChecklist.filter(d => d.checked).length >= 2 ? C.green : C.red}
+              />
+              <SummaryRow
+                label="Missing Inputs (AI)"
+                value={missingCount > 0 ? `${missingCount} flagged` : "None flagged"}
+                valueColor={missingCount > 0 ? C.yellow : C.green}
+              />
               <SummaryRow
                 label="AI Confidence"
                 value={aiEval ? `${(confidence * 100).toFixed(0)}%` : "Not generated"}
                 valueColor={aiEval ? confStyle.color : C.gray}
               />
-              <SummaryRow label="Attestation" value={attestation ? "Provided" : "Missing"} valueColor={attestation ? C.green : C.red} />
+              <SummaryRow
+                label="Narrative"
+                value={narrative.trim().length >= 50 ? "Complete" : "Incomplete"}
+                valueColor={narrative.trim().length >= 50 ? C.green : C.red}
+              />
+              <SummaryRow
+                label="Attestation"
+                value={attestation.trim().length >= 20 ? "Provided" : "Missing"}
+                valueColor={attestation.trim().length >= 20 ? C.green : C.red}
+              />
             </div>
             {confidence > 0 && confidence < 0.6 && (
               <div style={{
@@ -414,12 +488,12 @@ export default function EvaluationPanel({
               </button>
               <button
                 onClick={() => save(true)}
-                disabled={submitting || !attestation}
+                disabled={submitting}
                 style={{
                   flex: 2, padding: "10px 0", borderRadius: 6,
                   background: C.gold, border: "none",
                   color: C.navyDeep, fontWeight: 700, fontSize: 13, cursor: "pointer",
-                  opacity: submitting || !attestation ? 0.5 : 1,
+                  opacity: submitting ? 0.5 : 1,
                 }}
               >
                 {submitting ? "Submitting..." : "Confirm & Submit to BRSA Authority"}
@@ -452,13 +526,21 @@ export default function EvaluationPanel({
               {saving ? "Saving..." : "Save Draft"}
             </button>
             <button
-              onClick={() => setShowSummary(true)}
-              disabled={!attestation}
+              onClick={() => {
+                const { valid, errors, warnings } = validateSubmission();
+                if (!valid) {
+                  setMsg({ ok: false, text: errors.join(" ") });
+                  return;
+                }
+                if (warnings.length > 0) {
+                  setValidationWarnings(warnings);
+                }
+                setShowSummary(true);
+              }}
               style={{
                 flex: 2, padding: "11px 0", borderRadius: 6,
                 background: C.gold, border: "none",
                 color: C.navyDeep, fontWeight: 700, fontSize: 13, cursor: "pointer",
-                opacity: !attestation ? 0.5 : 1,
               }}
             >
               Review & Submit →
@@ -490,7 +572,6 @@ export default function EvaluationPanel({
           {aiLoading ? "Generating..." : "Generate AI Evaluation"}
         </button>
 
-        {/* Confidence Gate Banner */}
         {aiEval && confidence > 0 && (
           <div style={{
             padding: "8px 12px", borderRadius: 6, marginBottom: 14,
@@ -518,8 +599,7 @@ export default function EvaluationPanel({
 
         {aiEval && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-             <Section title="Pre-Evaluation Brief">
+            <Section title="Pre-Evaluation Brief">
               <p style={{ color: C.white, fontSize: 12, marginBottom: 10, lineHeight: 1.6 }}>
                 {aiEval.pre_evaluation_brief.summary}
               </p>
@@ -560,7 +640,6 @@ export default function EvaluationPanel({
               <SubField label="Confidence Score" value={`${(confidence * 100).toFixed(0)}%`} />
               <SubList label="Anomaly Flags" items={aiEval.anomaly_flags ?? []} />
             </Section>
-
           </div>
         )}
       </div>
@@ -631,4 +710,4 @@ function ApplyButton({ onClick }: { onClick: () => void }) {
       Apply to Form
     </button>
   );
-}
+        }
