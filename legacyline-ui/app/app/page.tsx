@@ -204,7 +204,118 @@ function GlassCard({ children, style = {}, gold = false, onClick }: {
     </div>
   );
 }
+// ── AI Case Brief ──────────────────────────────────────────────────────────────
 
+function AICaseBrief({ participantId, status }: { participantId: string; status: string }) {
+  const [brief, setBrief] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const isUnlocked = ["evaluated", "certified"].includes(status);
+
+  useEffect(() => {
+    if (!isUnlocked || !participantId) return;
+    setLoading(true);
+    fetch(`${API}/participants/${participantId}/evaluation`)
+      .then((r) => r.json())
+      .then((data) => {
+        const ev = data?.evaluation;
+        if (ev?.ai_summary) setBrief(typeof ev.ai_summary === "string" ? JSON.parse(ev.ai_summary) : ev.ai_summary);
+      })
+      .catch(() => setError("Unable to load your case brief."))
+      .finally(() => setLoading(false));
+  }, [participantId, isUnlocked]);
+
+  if (!isUnlocked) {
+    return (
+      <GlassCard style={{ padding: 20, textAlign: "center" }}>
+        <div style={{ fontSize: 24, marginBottom: 10, opacity: 0.3 }}>◎</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
+          Under Review
+        </div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
+          Your AI case brief will be available once your evaluation is complete. We believe in full transparency — you'll see exactly what your evaluator saw.
+        </div>
+      </GlassCard>
+    );
+  }
+
+  if (loading) {
+    return (
+      <GlassCard style={{ padding: 20, textAlign: "center" }}>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Loading your case brief...</div>
+      </GlassCard>
+    );
+  }
+
+  if (error || !brief) {
+    return (
+      <GlassCard style={{ padding: 20, textAlign: "center" }}>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
+          {error || "No case brief available yet."}
+        </div>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Summary */}
+      <GlassCard style={{ padding: 20 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#C8A84B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+          Summary
+        </div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.7 }}>
+          {brief.summary}
+        </div>
+      </GlassCard>
+
+      {/* Strengths */}
+      {brief.key_strengths?.length > 0 && (
+        <GlassCard style={{ padding: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#34D399", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+            Key Strengths
+          </div>
+          {brief.key_strengths.map((s: string, i: number) => (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+              <span style={{ color: "#34D399", fontSize: 12, marginTop: 1 }}>✓</span>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>{s}</span>
+            </div>
+          ))}
+        </GlassCard>
+      )}
+
+      {/* Gaps */}
+      {brief.key_gaps?.length > 0 && (
+        <GlassCard style={{ padding: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+            Areas to Strengthen
+          </div>
+          {brief.key_gaps.map((g: string, i: number) => (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+              <span style={{ color: "#F59E0B", fontSize: 12, marginTop: 1 }}>◎</span>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>{g}</span>
+            </div>
+          ))}
+        </GlassCard>
+      )}
+
+      {/* Immediate Actions */}
+      {brief.immediate_action_items?.length > 0 && (
+        <GlassCard gold style={{ padding: 20 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#C8A84B", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+            Recommended Next Steps
+          </div>
+          {brief.immediate_action_items.map((a: string, i: number) => (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 8 }}>
+              <span style={{ color: "#C8A84B", fontSize: 12, marginTop: 1 }}>{i + 1}.</span>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>{a}</span>
+            </div>
+          ))}
+        </GlassCard>
+      )}
+    </div>
+  );
+}
 // ── Main App ───────────────────────────────────────────────────────────────────
 
 export default function ParticipantApp() {
