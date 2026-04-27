@@ -813,6 +813,11 @@ function ParticipantProfile({ participant, onBack, actorEmail }: {
             actorEmail={actorEmail}
           />
 
+          <QuestionnairePanel
+  participantId={participant.id}
+  actorEmail={actorEmail}
+/>
+
           <Card>
             <SectionTitle>Details</SectionTitle>
             <KV label="Phone" value={participant.phone} />
