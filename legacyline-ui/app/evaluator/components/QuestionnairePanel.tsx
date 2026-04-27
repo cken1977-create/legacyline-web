@@ -65,7 +65,7 @@ export default function QuestionnairePanel({
     setLoading(true);
     try {
       const res: any = await api(
-        `/participants/${participantId}/q/sessions`
+        `/q/sessions?participant_id=${encodeURIComponent(participantId)}`
       );
       setSessions(res.sessions ?? []);
     } catch {
@@ -78,20 +78,14 @@ export default function QuestionnairePanel({
   async function startSession() {
     setMsg(null);
     try {
-      const res: any = await api(
-        `/participants/${participantId}/q/start`,
-        {
-          method: "POST",
-          headers: { "X-Actor": actorEmail },
-          body: JSON.stringify({}),
-        }
-      );
+      const res: any = await api(`/q/start`, {
+        method: "POST",
+        headers: { "X-Actor": actorEmail },
+        body: JSON.stringify({ participant_id: participantId }),
+      });
       setActiveSession(res.session_id);
       setQuestions(
-        (res.questions ?? []).map((q: any) => ({
-          ...q,
-          type: "standard",
-        }))
+        (res.questions ?? []).map((q: any) => ({ ...q, type: "standard" }))
       );
       setResponses([]);
       setCurrentIndex(0);
@@ -117,20 +111,18 @@ export default function QuestionnairePanel({
     setMsg(null);
 
     try {
-      const res: any = await api(
-        `/participants/${participantId}/q/${activeSession}/respond`,
-        {
-          method: "POST",
-          headers: { "X-Actor": actorEmail },
-          body: JSON.stringify({
-            question_id: questionId,
-            question_text: questionText,
-            question_type: questionType,
-            response_text: responseText.trim(),
-            sequence,
-          }),
-        }
-      );
+      const res: any = await api(`/q/${activeSession}/respond`, {
+        method: "POST",
+        headers: { "X-Actor": actorEmail },
+        body: JSON.stringify({
+          participant_id: participantId,
+          question_id: questionId,
+          question_text: questionText,
+          question_type: questionType,
+          response_text: responseText.trim(),
+          sequence,
+        }),
+      });
 
       const newFollowups: string[] = res.followups ?? [];
       setFollowups(newFollowups);
@@ -150,7 +142,6 @@ export default function QuestionnairePanel({
       ]);
 
       setCurrentResponse("");
-
       if (questionType === "standard") {
         setCurrentIndex((prev) => prev + 1);
       }
@@ -165,14 +156,11 @@ export default function QuestionnairePanel({
     if (!activeSession) return;
     setCompleting(true);
     try {
-      await api(
-        `/participants/${participantId}/q/${activeSession}/complete`,
-        {
-          method: "POST",
-          headers: { "X-Actor": actorEmail },
-          body: JSON.stringify({}),
-        }
-      );
+      await api(`/q/${activeSession}/complete`, {
+        method: "POST",
+        headers: { "X-Actor": actorEmail },
+        body: JSON.stringify({ participant_id: participantId }),
+      });
       setActiveSession(null);
       setView("history");
       await loadSessions();
@@ -186,14 +174,14 @@ export default function QuestionnairePanel({
   async function loadSessionResponses(sessionId: string) {
     try {
       const res: any = await api(
-        `/participants/${participantId}/q/${sessionId}/responses`
+        `/q/${sessionId}/responses?participant_id=${encodeURIComponent(participantId)}`
       );
       setResponses(res.responses ?? []);
       setActiveSession(sessionId);
       setView("active");
       setQuestions([]);
       setCurrentIndex(999);
-    } catch (err: any) {
+    } catch {
       setMsg({ ok: false, text: "Failed to load session responses." });
     }
   }
@@ -216,7 +204,6 @@ export default function QuestionnairePanel({
         Behavioral Narrative Engine
       </div>
 
-      {/* Tab bar */}
       <div style={{
         display: "flex", gap: 8, marginBottom: 20,
         borderBottom: `1px solid ${C.gold}22`,
@@ -262,7 +249,6 @@ export default function QuestionnairePanel({
         </div>
       )}
 
-      {/* History view */}
       {view === "history" && (
         <div>
           <button
@@ -300,7 +286,8 @@ export default function QuestionnairePanel({
               style={{
                 padding: "12px 14px", borderRadius: 6,
                 background: "rgba(0,0,0,0.2)",
-                border: `1px solid ${s.status === "completed" ? C.teal : C.gold}33`,
+                border: `1px solid ${s.status === "completed"
+                  ? C.teal : C.gold}33`,
                 marginBottom: 10, cursor: "pointer",
               }}
             >
@@ -322,20 +309,13 @@ export default function QuestionnairePanel({
               <div style={{ fontSize: 12, color: C.gray }}>
                 {s.evaluator_email}
               </div>
-              {s.completed_at && (
-                <div style={{ fontSize: 11, color: C.gray, marginTop: 2 }}>
-                  Completed {new Date(s.completed_at).toLocaleString()}
-                </div>
-              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Active session view */}
       {view === "active" && (
         <div>
-          {/* Responses recorded so far */}
           {responses.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <div style={{
@@ -349,14 +329,15 @@ export default function QuestionnairePanel({
                 <div key={i} style={{
                   marginBottom: 14, padding: "12px 14px",
                   borderRadius: 6, background: "rgba(0,0,0,0.2)",
-                  border: `1px solid rgba(255,255,255,0.06)`,
+                  border: "1px solid rgba(255,255,255,0.06)",
                 }}>
                   <div style={{
                     fontSize: 11, color: C.gold, fontWeight: 600,
-                    marginBottom: 4,
-                    textTransform: "uppercase", letterSpacing: "0.06em",
+                    marginBottom: 4, textTransform: "uppercase",
+                    letterSpacing: "0.06em",
                   }}>
-                    {resp.question_type === "followup" ? "Follow-up" : `Q${i + 1}`}
+                    {resp.question_type === "followup"
+                      ? "Follow-up" : `Q${i + 1}`}
                   </div>
                   <div style={{
                     fontSize: 13, color: C.white,
@@ -365,8 +346,8 @@ export default function QuestionnairePanel({
                     {resp.question_text}
                   </div>
                   <div style={{
-                    fontSize: 12, color: C.gray,
-                    lineHeight: 1.6, paddingLeft: 10,
+                    fontSize: 12, color: C.gray, lineHeight: 1.6,
+                    paddingLeft: 10,
                     borderLeft: `2px solid ${C.gold}44`,
                   }}>
                     {resp.response_text}
@@ -382,10 +363,9 @@ export default function QuestionnairePanel({
                       </div>
                       {resp.ai_followups.map((fq, fi) => (
                         <div key={fi} style={{
-                          fontSize: 12, color: C.teal,
-                          padding: "4px 0",
+                          fontSize: 12, color: C.teal, padding: "4px 0",
                           borderBottom: fi < resp.ai_followups.length - 1
-                            ? `1px solid rgba(45,212,191,0.1)` : "none",
+                            ? "1px solid rgba(45,212,191,0.1)" : "none",
                         }}>
                           {fq}
                         </div>
@@ -397,7 +377,6 @@ export default function QuestionnairePanel({
             </div>
           )}
 
-          {/* Follow-up questions from last response */}
           {followups.length > 0 && !isComplete && (
             <div style={{ marginBottom: 20 }}>
               <div style={{
@@ -462,17 +441,16 @@ export default function QuestionnairePanel({
                       opacity: submitting || !followupResponse.trim() ? 0.5 : 1,
                     }}
                   >
-                    {submitting ? "Saving..." : "Submit Follow-up Response →"}
+                    {submitting ? "Saving..." : "Submit Follow-up →"}
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Current standard question */}
           {currentQuestion && !isComplete && (
             <div style={{
-              padding: "16px", borderRadius: 8,
+              padding: 16, borderRadius: 8,
               background: `${C.gold}0A`,
               border: `1px solid ${C.gold}33`,
               marginBottom: 16,
@@ -485,9 +463,8 @@ export default function QuestionnairePanel({
                 Question {currentIndex + 1} of {questions.length}
               </div>
               <div style={{
-                fontSize: 14, color: C.white,
-                lineHeight: 1.6, marginBottom: 14,
-                fontWeight: 500,
+                fontSize: 14, color: C.white, lineHeight: 1.6,
+                marginBottom: 14, fontWeight: 500,
               }}>
                 {currentQuestion.text}
               </div>
@@ -524,15 +501,16 @@ export default function QuestionnairePanel({
                   opacity: submitting || !currentResponse.trim() ? 0.5 : 1,
                 }}
               >
-                {submitting ? "Saving & Generating Follow-ups..." : "Submit Response →"}
+                {submitting
+                  ? "Saving & Generating Follow-ups..."
+                  : "Submit Response →"}
               </button>
             </div>
           )}
 
-          {/* Session complete */}
           {isComplete && (
             <div style={{
-              padding: "16px", borderRadius: 8,
+              padding: 16, borderRadius: 8,
               background: "rgba(52,211,153,0.06)",
               border: `1px solid ${C.green}33`,
               marginBottom: 16, textAlign: "center",
@@ -559,7 +537,6 @@ export default function QuestionnairePanel({
             </div>
           )}
 
-          {/* Viewing completed session */}
           {questions.length === 0 && responses.length > 0 && (
             <div style={{
               padding: "10px 14px", borderRadius: 6,
@@ -574,4 +551,4 @@ export default function QuestionnairePanel({
       )}
     </div>
   );
-          }
+  }
