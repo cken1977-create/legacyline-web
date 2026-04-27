@@ -65,7 +65,7 @@ export default function QuestionnairePanel({
     setLoading(true);
     try {
       const res: any = await api(
-        `/participants/${participantId}/questionnaire/sessions`
+        `/participants/${participantId}/q/sessions`
       );
       setSessions(res.sessions ?? []);
     } catch {
@@ -79,7 +79,7 @@ export default function QuestionnairePanel({
     setMsg(null);
     try {
       const res: any = await api(
-        `/participants/${participantId}/questionnaire/start`,
+        `/participants/${participantId}/q/start`,
         {
           method: "POST",
           headers: { "X-Actor": actorEmail },
@@ -118,7 +118,7 @@ export default function QuestionnairePanel({
 
     try {
       const res: any = await api(
-        `/participants/${participantId}/questionnaire/${activeSession}/respond`,
+        `/participants/${participantId}/q/${activeSession}/respond`,
         {
           method: "POST",
           headers: { "X-Actor": actorEmail },
@@ -166,7 +166,7 @@ export default function QuestionnairePanel({
     setCompleting(true);
     try {
       await api(
-        `/participants/${participantId}/questionnaire/${activeSession}/complete`,
+        `/participants/${participantId}/q/${activeSession}/complete`,
         {
           method: "POST",
           headers: { "X-Actor": actorEmail },
@@ -186,7 +186,7 @@ export default function QuestionnairePanel({
   async function loadSessionResponses(sessionId: string) {
     try {
       const res: any = await api(
-        `/participants/${participantId}/questionnaire/${sessionId}/responses`
+        `/participants/${participantId}/q/${sessionId}/responses`
       );
       setResponses(res.responses ?? []);
       setActiveSession(sessionId);
