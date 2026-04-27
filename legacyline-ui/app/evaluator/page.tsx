@@ -8,6 +8,7 @@ import { EvaluatorHeader } from "./components/EvaluatorHeader";
 import EvaluationPanel from "./components/EvaluationPanel";
 import OBREvaluationPanel from "./components/OBREvaluationPanel";
 import DocumentUploadPanel from "./components/DocumentUploadPanel";
+import QuestionnairePanel from "./components/QuestionnairePanel";
 
 type Evaluator = {
   evaluator_id: string;
