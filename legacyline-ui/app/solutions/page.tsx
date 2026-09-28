@@ -19,7 +19,7 @@ export default function SolutionsPage() {
           </h1>
           <div className="mx-auto w-16 h-[2px] bg-[#C8A84B] mb-8" />
           <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Whether you're an individual proving your readiness, an organization measuring its performance, or an institution driving reentry outcomes — Legacyline has a governed solution.
+            Whether you're an individual proving your readiness, an organization measuring its performance, or an institution driving reentry outcomes — Vimaa has a governed solution.
           </p>
         </div>
       </section>
@@ -32,7 +32,7 @@ export default function SolutionsPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">Individual Readiness</h2>
               <div className="w-12 h-[2px] bg-[#C8A84B] mb-8" />
               <p className="text-[#1A3A5C]/70 leading-relaxed mb-6">
-                Legacyline creates a permanent, evidence-based readiness record for every individual. Unlike a credit score, your readiness record captures behavioral patterns across housing, employment, financial discipline, and stability — verified by a certified evaluator, not an algorithm.
+                Vimaa creates a permanent, evidence-based readiness record for every individual. Unlike a credit score, your readiness record captures behavioral patterns across housing, employment, financial discipline, and stability — verified by a certified evaluator, not an algorithm.
               </p>
               <div className="space-y-3 mb-8">
                 {[
@@ -111,7 +111,7 @@ export default function SolutionsPage() {
               <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">Organizational Readiness (OBR)</h2>
               <div className="w-12 h-[2px] bg-[#C8A84B] mb-8" />
               <p className="text-[#1A3A5C]/70 leading-relaxed mb-6">
-                Organizations that serve individuals — housing agencies, workforce programs, lenders, reentry providers — need to demonstrate their own readiness. OBR is the institutional accountability layer inside Legacyline. It measures whether an organization's staff, programs, and evaluators meet BRSA standards.
+                Organizations that serve individuals — housing agencies, workforce programs, lenders, reentry providers — need to demonstrate their own readiness. OBR is the institutional accountability layer inside Vimaa. It measures whether an organization's staff, programs, and evaluators meet BRSA standards.
               </p>
               <div className="space-y-3">
                 {[
@@ -145,7 +145,7 @@ export default function SolutionsPage() {
                 The corrections system faces a structural problem: case managers lack the tools, training, and accountability to prepare individuals for successful reentry. The result is high recidivism, demoralized staff, and communities that never heal.
               </p>
               <p className="text-[#1A3A5C]/70 leading-relaxed mb-6">
-                Legacyline's corrections solution gives institutions a governed framework to document, measure, and certify individual readiness before and after release — creating accountability at every level.
+                Vimaa's corrections solution gives institutions a governed framework to document, measure, and certify individual readiness before and after release — creating accountability at every level.
               </p>
               <div className="space-y-3">
                 {[
@@ -188,7 +188,7 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to get started?</h2>
           <div className="mx-auto w-16 h-[2px] bg-[#C8A84B] mb-8" />
-          <p className="text-white/60 mb-10 leading-relaxed">Whether you're an individual, an organization, or an institution — Legacyline has a governed path forward.</p>
+          <p className="text-white/60 mb-10 leading-relaxed">Whether you're an individual, an organization, or an institution — Vimaa has a governed path forward.</p>
           <Link href="/intake" className="inline-block bg-[#C8A84B] text-[#1A3A5C] px-10 py-4 rounded-2xl font-bold hover:opacity-90 transition text-sm tracking-wide">
             Begin Intake
           </Link>
@@ -198,8 +198,8 @@ export default function SolutionsPage() {
       <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
           <Link href="/" className="flex items-center gap-4">
-            <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
-            <div className="text-3xl font-semibold">LEGACYLINE</div>
+            <Image src="/logo-shield.png" alt="Vimaa" width={48} height={48} className="h-12 w-12 object-contain" />
+            <div className="text-3xl font-semibold">VIMAA</div>
           </Link>
           {[
             { title: "Contact", label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" },
@@ -216,7 +216,7 @@ export default function SolutionsPage() {
           ))}
         </div>
         <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-          © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
+          © 2026 Vimaa HQ · A BRSA Holdings Inc. platform · Standards-governed.
         </div>
       </footer>
     </main>

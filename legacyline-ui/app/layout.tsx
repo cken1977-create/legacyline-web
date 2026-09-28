@@ -2,9 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Legacyline — Behavioral Readiness Engine",
+  title: "Vimaa — Behavioral Readiness Engine",
   description:
-    "Legacyline is the individual readiness engine implementing the Behavioral Readiness Standard (BRSA). Evidence-based, deterministic, and auditable.",
+    "Vimaa is the individual readiness engine implementing the Behavioral Readiness Standard (BRSA). Evidence-based, deterministic, and auditable.",
 };
 
 export default function RootLayout({

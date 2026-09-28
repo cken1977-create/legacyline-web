@@ -28,7 +28,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="relative z-10 flex justify-center md:justify-end">
-            <Image src="/legacyline_laptop_mockup.png" alt="Legacyline dashboard" width={560} height={560} className="w-full max-w-[540px] object-contain drop-shadow-2xl" priority />
+            <Image src="/legacyline_laptop_mockup.png" alt="Vimaa dashboard" width={560} height={560} className="w-full max-w-[540px] object-contain drop-shadow-2xl" priority />
           </div>
         </div>
       </section>
@@ -64,7 +64,7 @@ export default function HomePage() {
             The <span className="text-[#C8A84B]">Standard</span> for Behavioral Readiness.
           </h3>
           <p className="mx-auto mt-6 max-w-4xl text-lg leading-8 text-white/85 md:text-xl">
-            Legacyline provides a structured, evidence-based approach to measure and certify behavioral readiness at both individual and institutional levels.
+            Vimaa provides a structured, evidence-based approach to measure and certify behavioral readiness at both individual and institutional levels.
           </p>
           <div className="mx-auto mt-10 max-w-md border-t border-[#c8a84b]/40 pt-8">
             <Link href="/intake" className="inline-block rounded-2xl bg-[#C8A84B] px-10 py-5 text-base font-semibold text-white shadow-md transition hover:opacity-95">
@@ -78,8 +78,8 @@ export default function HomePage() {
       <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
           <Link href="/" className="flex items-center gap-4">
-            <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
-            <div className="text-3xl font-semibold">LEGACYLINE</div>
+            <Image src="/logo-shield.png" alt="Vimaa" width={48} height={48} className="h-12 w-12 object-contain" />
+            <div className="text-3xl font-semibold">VIMAA</div>
           </Link>
           <FooterCol title="Contact" items={[{ label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" }]} />
           <FooterCol title="About" items={[{ label: "About", href: "/about" }]} />
@@ -87,7 +87,7 @@ export default function HomePage() {
           <FooterCol title="Solutions" items={[{ label: "Solutions", href: "/solutions" }]} />
         </div>
         <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-          © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
+          © 2026 Vimaa HQ · A BRSA Holdings Inc. platform · Standards-governed.
         </div>
       </footer>
     </main>

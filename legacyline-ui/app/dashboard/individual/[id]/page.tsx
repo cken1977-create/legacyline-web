@@ -270,7 +270,7 @@ export default function IndividualDashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs font-semibold tracking-widest uppercase text-white/30 mb-1">
-              Legacyline
+              Vimaa
             </div>
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
               {participant.first_name}'s Record
@@ -399,7 +399,7 @@ export default function IndividualDashboardPage() {
         <div className="text-center text-xs text-white/20 pb-4 leading-relaxed">
           🔒 Your record is encrypted and consent-controlled.<br />
           Only shared with institutions you authorize.<br />
-          © 2026 Legacyline · Powered by BRSA Holdings Inc.
+          © 2026 Vimaa · Powered by BRSA Holdings Inc.
         </div>
       </div>
     </div>

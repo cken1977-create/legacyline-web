@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Legacyline — Your Readiness Journey",
+  title: "Vimaa — Your readiness record",
   description: "Track your readiness score, complete your profile, and earn your BRSA certification.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Legacyline",
+    title: "Vimaa",
   },
   formatDetection: {
     telephone: false,

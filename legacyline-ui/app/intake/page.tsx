@@ -574,7 +574,7 @@ function IntakeForm() {
                 Step 1 of 3 · +15 pts
               </div>
               <h2 className="text-2xl font-bold text-white" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                Welcome to Legacyline
+                Welcome to Vimaa
               </h2>
               <p className="mt-1 text-sm text-white/50">Let&apos;s start simple. Just the basics to get you in the door.</p>
             </div>

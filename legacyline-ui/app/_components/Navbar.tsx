@@ -6,8 +6,8 @@ export default function Navbar() {
     <header className="border-b-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 md:px-10">
         <Link href="/" className="flex items-center gap-4">
-          <Image src="/logo-shield.png" alt="Legacyline" width={52} height={52} className="h-12 w-12 object-contain" />
-          <div className="text-3xl font-semibold tracking-wide">LEGACYLINE</div>
+          <Image src="/logo-shield.png" alt="Vimaa" width={52} height={52} className="h-12 w-12 object-contain" />
+          <div className="text-3xl font-semibold tracking-wide">VIMAA</div>
         </Link>
 
         <nav className="flex items-center gap-6 text-sm font-medium">

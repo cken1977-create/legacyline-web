@@ -201,7 +201,7 @@ export default function OBRRegisterPage() {
       {/* Header */}
       <div className="bg-[#1A3A5C] border-b-4 border-[#C8A84B] px-6 py-4 flex items-center justify-between">
         <div>
-          <div className="text-white font-bold text-lg leading-none">LEGACYLINE</div>
+          <div className="text-white font-bold text-lg leading-none">VIMAA</div>
           <div className="text-white/40 text-xs">OBR — Organizational Behavioral Readiness</div>
         </div>
         <div className="text-white/50 text-sm">Track II Assessment</div>

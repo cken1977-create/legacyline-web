@@ -998,7 +998,7 @@ export default function ParticipantApp() {
             </button>
 
             <div style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.12)", lineHeight: 1.8 }}>
-              © 2026 Legacyline<br />
+              © 2026 Vimaa<br />
               Powered by BRSA doctrine<br />
               Deterministic · Auditable · Consent-based
             </div>

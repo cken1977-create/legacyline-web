@@ -61,10 +61,10 @@ export default function AppLoginPage() {
           <span style={{ fontSize: 28, fontWeight: 800, color: "#C8A84B" }}>L</span>
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#F4F6F9", letterSpacing: "-0.5px" }}>
-          Legacyline
+          Vimaa
         </div>
         <div style={{ fontSize: 13, color: "rgba(244,246,249,0.5)", marginTop: 4 }}>
-          Your Readiness Journey
+          Your readiness record
         </div>
       </div>
 
@@ -76,10 +76,10 @@ export default function AppLoginPage() {
         borderRadius: 24, padding: 28,
       }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: "#F4F6F9", marginBottom: 6 }}>
-          Welcome back
+          Sign in
         </h2>
         <p style={{ fontSize: 13, color: "rgba(244,246,249,0.5)", marginBottom: 24 }}>
-          Sign in to check your readiness score
+          Participants, operators, and evaluators.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

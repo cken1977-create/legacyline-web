@@ -462,7 +462,7 @@ function Dashboard({ participants, obrSubjects, evaluator, onNav, onOpenProfile,
     <div style={{ padding: "28px 32px", maxWidth: 1080, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>
-          Welcome back{evaluator ? `, ${evaluator.full_name.split(" ")[0]}` : ""}.
+          Sign in{evaluator ? `, ${evaluator.full_name.split(" ")[0]}` : ""}.
         </div>
         <div style={{ fontSize: 13, color: C.gray, marginTop: 4 }}>Unified BRSA Evaluator Console</div>
       </div>

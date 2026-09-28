@@ -86,7 +86,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
               textTransform: "uppercase",
             }}
           >
-            Legacyline
+            Vimaa
           </div>
           <div
             style={{

@@ -141,8 +141,8 @@ export default function CertificationPage() {
       <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
           <Link href="/" className="flex items-center gap-4">
-            <Image src="/logo-shield.png" alt="Legacyline" width={48} height={48} className="h-12 w-12 object-contain" />
-            <div className="text-3xl font-semibold">LEGACYLINE</div>
+            <Image src="/logo-shield.png" alt="Vimaa" width={48} height={48} className="h-12 w-12 object-contain" />
+            <div className="text-3xl font-semibold">VIMAA</div>
           </Link>
           {[
             { title: "Contact", label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" },
@@ -159,7 +159,7 @@ export default function CertificationPage() {
           ))}
         </div>
         <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-          © 2026 Legacyline HQ · A BRSA Holdings Inc. platform · Standards-governed.
+          © 2026 Vimaa HQ · A BRSA Holdings Inc. platform · Standards-governed.
         </div>
       </footer>
     </main>

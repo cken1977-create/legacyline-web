@@ -13,7 +13,7 @@ export default function LoginChooserPage() {
             Choose your portal
           </h1>
           <p className="mt-2 text-sm text-white/50">
-            Select how you want to access Legacyline
+            Select how you want to access Vimaa
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function LoginChooserPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-white/30">
-          © {new Date().getFullYear()} Legacyline · Powered by BRSA doctrine
+          © {new Date().getFullYear()} Vimaa · Powered by BRSA doctrine
         </p>
       </div>
     </div>

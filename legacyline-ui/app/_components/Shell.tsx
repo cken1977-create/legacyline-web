@@ -37,7 +37,7 @@ export default function Shell({
           </div>
           <div className="leading-tight">
             <div className="text-base font-semibold tracking-tight">
-              Legacyline
+              Vimaa
             </div>
             <div className="text-xs text-white/60">
               Individual Readiness Engine
@@ -71,7 +71,7 @@ export default function Shell({
 
       <footer className="mt-14 border-t border-white/10 pt-6 text-xs text-white/50">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} Legacyline</span>
+          <span>© {new Date().getFullYear()} Vimaa</span>
           <span className="text-white/40">
             Powered by BRSA doctrine • Deterministic • Auditable • Consent-based
           </span>
