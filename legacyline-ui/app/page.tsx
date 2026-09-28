@@ -13,22 +13,31 @@ export default function HomePage() {
           <div className="absolute left-[-10%] top-[30%] h-[500px] w-[900px] rotate-[-12deg] rounded-full border-2 border-[#C8A84B]" />
           <div className="absolute left-[-5%] top-[38%] h-[420px] w-[820px] rotate-[-12deg] rounded-full border border-[#C8A84B]" />
         </div>
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2 md:px-10 md:py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-16 px-6 py-20 md:grid-cols-[1.1fr_0.9fr] md:px-10 md:py-28">
           <div className="relative z-10">
-            <h1 className="max-w-xl text-5xl font-semibold leading-[1.05] tracking-tight md:text-7xl">
-              <span className="block">Readiness Measured.</span>
-              <span className="block">Behavioral Intelligence</span>
-              <span className="block text-[#C8A84B]">Proven.</span>
+            <p className="text-xs tracking-[0.28em] text-[#C8A84B]">VIMAA · A YAKINI SYSTEM</p>
+            <h1 className="mt-6 max-w-xl font-serif text-5xl leading-[0.95] tracking-tight md:text-7xl">
+              <span className="block text-[#1A3A5C]">A person.</span>
+              <span className="block text-[#1A3A5C]">A record.</span>
+              <span className="block italic text-[#C8A84B]">A packet.</span>
             </h1>
             <p className="mt-8 max-w-xl text-lg leading-8 text-[#2e4463] md:text-xl">
-              The standard for behavioral readiness intelligence. Understand individual readiness, evaluate institutional integrity, and drive better outcomes.
+              Vimaa is the readiness engine. A program takes someone from a request to a decision packet. The score stays in the engine. Made by Yakini.
             </p>
-            <Link href="/intake" className="mt-10 inline-block rounded-[22px] bg-[#1A3A5C] border-2 border-[#C8A84B] px-10 py-5 text-base font-semibold text-white shadow-md transition hover:opacity-95">
-              GET STARTED
+            <Link href="/app" className="mt-10 inline-block bg-[#1A3A5C] px-8 py-4 text-xs font-semibold tracking-[0.18em] text-white">
+              ENTER THE RECORD
             </Link>
           </div>
-          <div className="relative z-10 flex justify-center md:justify-end">
-            <Image src="/legacyline_laptop_mockup.png" alt="Vimaa dashboard" width={560} height={560} className="w-full max-w-[540px] object-contain drop-shadow-2xl" priority />
+          <div className="relative z-10 bg-[#1A3A5C] p-8 text-white md:p-10">
+            <p className="text-xs tracking-[0.22em] text-[#C8A84B]">DECISION PACKET</p>
+            <p className="mt-6 font-serif text-4xl leading-none">No fake score.</p>
+            <ul className="mt-8 space-y-4 text-sm leading-6 text-white/80">
+              <li>Consent on the record</li>
+              <li>Evidence, not a screenshot</li>
+              <li>Housing, work, stability</li>
+              <li>A packet a funder can read</li>
+            </ul>
+            <p className="mt-10 text-xs tracking-[0.18em] text-white/50">YAKINI DIGITAL</p>
           </div>
         </div>
       </section>
