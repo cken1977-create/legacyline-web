@@ -1,115 +1,19 @@
-import Image from "next/image";
 import Link from "next/link";
 import Navbar from "../_components/Navbar";
-
-export default function AboutPage() {
+export default function Page() {
   return (
-    <main className="min-h-screen bg-[#f6f3ee] text-[#1A3A5C]">
-      <Navbar />
-      <section className="bg-[#1A3A5C] text-white px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-            Building the Standard for<br />
-            <span className="text-[#C8A84B]">Behavioral Readiness.</span>
-          </h1>
-          <div className="mx-auto w-16 h-[2px] bg-[#C8A84B] mb-8" />
-          <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Vimaa exists because the systems meant to help people rebuild their lives were failing them — not because people weren't ready, but because no one had built the infrastructure to prove it.
-          </p>
+    <main className="min-h-screen bg-[#0c0c0c] text-[#f4efe6]">
+      <section className="relative min-h-[78vh] overflow-hidden">
+        <img src="/photos/room.jpg" alt="A quiet room looking onto the desert" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
+        <Navbar />
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-36">
+          <p className="text-[11px] tracking-[0.32em] text-[#C8A84B]">THE HOUSE</p>
+          <h1 className="mt-4 max-w-3xl font-serif text-5xl leading-[0.95] md:text-7xl">Made by Yakini.<br /><span className="italic text-[#C8A84B]">Used by operators.</span></h1>
+          <p className="mt-6 max-w-xl text-lg leading-8 text-white/75">Yakini builds the infrastructure. Vimaa is the engine. Vizionz Sankofa is the first desk. The standard underneath is BRSA, and it stays quiet until someone is paying to be certified.</p>
+          <div className="mt-8 flex flex-wrap gap-3"><Link href="/solutions" className="bg-[#C8A84B] px-5 py-3 text-[11px] tracking-[0.2em] text-black">See the engine</Link></div>
         </div>
       </section>
-      <section className="px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-5xl grid md:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="text-xs text-[#C8A84B] tracking-widest uppercase font-semibold mb-4">Why Vimaa Was Built</div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight">The gap wasn't effort.<br />It was evidence.</h2>
-            <div className="w-12 h-[2px] bg-[#C8A84B] mb-8" />
-            <div className="space-y-5 text-[#1A3A5C]/70 leading-relaxed">
-              <p>Lenders, housing agencies, workforce programs, and corrections systems all make high-stakes decisions about individuals — but without a governed, evidence-based standard, those decisions default to proxies like credit scores and gut instinct.</p>
-              <p>The result: qualified people are turned away. Institutions lack accountability. And the cycle continues.</p>
-              <p>Vimaa was built to close that gap — a permanent, auditable, evidence-based readiness record for every individual, governed by a standard any institution can trust.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { number: "4", label: "Readiness Domains", sub: "Housing, Employment, Financial, Stability" },
-              { number: "7", label: "Platform Modules", sub: "From intake to certified readiness" },
-              { number: "24–48hr", label: "Evaluation Window", sub: "Human-reviewed, not auto-generated" },
-              { number: "1", label: "Governing Standard", sub: "BRSA — the authority layer" },
-            ].map(item => (
-              <div key={item.label} className="bg-white border border-[#e6dfd2] rounded-2xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-[#C8A84B] mb-1">{item.number}</div>
-                <div className="font-semibold text-[#1A3A5C] text-sm mb-1">{item.label}</div>
-                <div className="text-xs text-[#1A3A5C]/50 leading-relaxed">{item.sub}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="bg-white px-6 py-20 md:px-10 border-y border-[#e6dfd2]">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <div className="text-xs text-[#C8A84B] tracking-widest uppercase font-semibold mb-4">The Authority Layer</div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">What is BRSA?</h2>
-            <div className="mx-auto w-12 h-[2px] bg-[#C8A84B]" />
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { title: "Standards Authority", desc: "BRSA sets and governs the behavioral readiness standard — the rules, thresholds, and methodology that define what readiness means and how it is measured.", icon: "◈" },
-              { title: "Evaluator Certification", desc: "BRSA certifies every evaluator who works within the Vimaa platform. Certification requires training, examination, and ongoing compliance.", icon: "◎" },
-              { title: "Registry & Verification", desc: "BRSA maintains the authoritative registry of certified individuals and institutions. Any party can verify standing through the BRSA verification portal.", icon: "⬡" },
-            ].map(item => (
-              <div key={item.title} className="text-center p-8 rounded-2xl border border-[#e6dfd2] hover:border-[#C8A84B]/40 transition">
-                <div className="text-3xl text-[#C8A84B] mb-4">{item.icon}</div>
-                <h3 className="font-bold text-[#1A3A5C] text-lg mb-3">{item.title}</h3>
-                <div className="w-8 h-[2px] bg-[#C8A84B] mx-auto mb-4" />
-                <p className="text-[#1A3A5C]/60 text-sm leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <section className="bg-[#1A3A5C] text-white px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="flex justify-center mb-8">
-            <Image src="/logo-seal.png" alt="BRSA Seal" width={100} height={100} className="h-24 w-auto opacity-90" />
-          </div>
-          <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight">
-            National readiness infrastructure.<br />
-            <span className="text-[#C8A84B]">Built to last.</span>
-          </h2>
-          <p className="text-white/60 max-w-2xl mx-auto leading-relaxed mb-10">
-            The long-term vision for Vimaa is to become the national standard for behavioral readiness — infrastructure that lenders, housing agencies, workforce systems, corrections programs, and education institutions rely on.
-          </p>
-          <Link href="/intake" className="inline-block bg-[#C8A84B] text-[#1A3A5C] px-10 py-4 rounded-2xl font-bold hover:opacity-90 transition text-sm tracking-wide">
-            Begin Your Intake
-          </Link>
-        </div>
-      </section>
-      <footer className="border-t-4 border-[#C8A84B] bg-[#1A3A5C] text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] md:px-10">
-          <Link href="/" className="flex items-center gap-4">
-            <Image src="/logo-shield.png" alt="Vimaa" width={48} height={48} className="h-12 w-12 object-contain" />
-            <div className="text-3xl font-semibold">VIMAA</div>
-          </Link>
-          {[
-            { title: "Contact", label: "info@legacylinehq.com", href: "mailto:info@legacylinehq.com" },
-            { title: "About", label: "About", href: "/about" },
-            { title: "Certification", label: "Certification", href: "/certification" },
-            { title: "Solutions", label: "Solutions", href: "/solutions" },
-          ].map(item => (
-            <div key={item.title}>
-              <div className="text-xl font-semibold">{item.title}</div>
-              <Link href={item.href} className="mt-4 block text-base text-white/80 hover:text-[#C8A84B] transition">
-                {item.label}
-              </Link>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-white/10 py-4 text-center text-xs text-white/40">
-          © 2026 Vimaa HQ · A BRSA Holdings Inc. platform · Standards-governed.
-        </div>
-      </footer>
     </main>
   );
 }

@@ -1,65 +1,28 @@
 import Link from "next/link";
-
 export default function LoginChooserPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-4xl">
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
-            <span className="text-2xl font-semibold tracking-tight text-white">L</span>
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
-            Choose your portal
-          </h1>
-          <p className="mt-2 text-sm text-white/50">
-            Select how you want to access Vimaa
-          </p>
-        </div>
-
-        {/* Portal Cards */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Individual Portal */}
-          <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
-            <h2 className="text-lg font-semibold text-white">Individual Portal</h2>
-            <p className="mt-2 text-sm text-white/50">
-              View your documents, track progress, and see your next steps.
-            </p>
+    <main className="relative min-h-screen text-[#f4efe6]">
+      <img src="/photos/records.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0 bg-black/70" />
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-4xl flex-col justify-center px-6 py-20">
+        <p className="text-[11px] tracking-[0.32em] text-[#C8A84B]">YAKINI · VIMAA</p>
+        <h1 className="mt-3 font-serif text-5xl">Choose the door.</h1>
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <section className="border border-white/15 bg-black/50 p-8">
+            <h2 className="font-serif text-3xl">The person</h2>
+            <p className="mt-2 text-white/70">Your record, your evidence, your next step.</p>
             <div className="mt-6 flex flex-col gap-3">
-              <Link
-                href="/login/individual/signup"
-                className="inline-flex w-full items-center justify-center rounded-xl bg-[#C8A84B] px-4 py-3 text-sm font-semibold text-black transition-colors hover:bg-[#dcc47a]"
-              >
-                Create Account
-              </Link>
-              <Link
-                href="/login/individual"
-                className="inline-flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:bg-white/15"
-              >
-                Sign In
-              </Link>
+              <Link href="/login/individual/signup" className="bg-[#C8A84B] px-4 py-3 text-center text-[11px] tracking-[0.18em] text-black">Create the record</Link>
+              <Link href="/login/individual" className="border border-white/20 px-4 py-3 text-center text-[11px] tracking-[0.18em]">Sign in</Link>
             </div>
-          </div>
-
-          {/* Organization Portal */}
-          <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
-            <h2 className="text-lg font-semibold text-white">Organization Portal</h2>
-            <p className="mt-2 text-sm text-white/50">
-              Manage participants, evaluations, and reporting.
-            </p>
-            <Link
-              href="/login/organization"
-              className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white ring-1 ring-white/10 transition-colors hover:bg-white/15"
-            >
-              Enter Organization Portal
-            </Link>
-          </div>
+          </section>
+          <section className="border border-white/15 bg-black/50 p-8">
+            <h2 className="font-serif text-3xl">The operator</h2>
+            <p className="mt-2 text-white/70">Participants, evaluations, and the packet.</p>
+            <Link href="/login/organization" className="mt-6 block border border-white/20 px-4 py-3 text-center text-[11px] tracking-[0.18em]">Enter the desk</Link>
+          </section>
         </div>
-
-        <p className="mt-6 text-center text-xs text-white/30">
-          © {new Date().getFullYear()} Vimaa · Powered by BRSA doctrine
-        </p>
       </div>
-    </div>
+    </main>
   );
 }
