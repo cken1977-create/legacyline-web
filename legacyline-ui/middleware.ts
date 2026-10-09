@@ -10,7 +10,7 @@ export function middleware(req: NextRequest) {
   if (pathname.startsWith("/dashboard/individual")) {
     if (!user) {
       const loginUrl = req.nextUrl.clone();
-      loginUrl.pathname = "/login/individual";
+      loginUrl.pathname = "/app/login";
       return NextResponse.redirect(loginUrl);
     }
     return NextResponse.next();

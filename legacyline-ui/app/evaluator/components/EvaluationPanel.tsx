@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
+// Phase S: Authorization is attached by api(); identity comes from the verified token.
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
@@ -175,7 +176,7 @@ export default function EvaluationPanel({
     try {
       const out: any = await api(`/ai/evaluate/individual/${participantId}`, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: {},
       });
       if (!out || typeof out !== "object") {
         setAiError("Invalid AI response");
@@ -220,7 +221,7 @@ export default function EvaluationPanel({
           ai_missing_data: aiEval?.pre_evaluation_brief?.missing_inputs ?? null,
           ai_recommended: aiEval?.recommended_actions ?? null,
         }),
-        headers: { "X-Actor": actorEmail },
+        headers: {},
       });
       setMsg({
         ok: true,

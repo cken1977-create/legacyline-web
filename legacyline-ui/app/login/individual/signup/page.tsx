@@ -164,7 +164,7 @@ export default function IndividualSignupPage() {
 
           <p className="mt-6 text-center text-sm text-white/50">
             Already have an account?{" "}
-            <Link href="/login/individual" className="text-[#C8A84B] hover:underline">
+            <Link href="/app/login" className="text-[#C8A84B] hover:underline">
               Sign in
             </Link>
           </p>

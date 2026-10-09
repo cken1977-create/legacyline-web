@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 
+import { authHeaders } from "../../../lib/api";
+
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 const C = {
@@ -97,7 +99,7 @@ export default function OBREvaluationPanel({
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API}/obr/subjects/${obrSubjectId}/evaluation`);
+        const res = await fetch(`${API}/obr/subjects/${obrSubjectId}/evaluation`, { headers: authHeaders() });
         const data = await res.json();
         if (data.evaluation) {
           const ev = data.evaluation;
@@ -120,7 +122,7 @@ export default function OBREvaluationPanel({
     try {
       const res = await fetch(`${API}/ai/evaluate/organization/${obrSubjectId}`, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: authHeaders(),
       });
       if (!res.ok) throw new Error("AI evaluation failed");
       const data = await res.json();
@@ -141,7 +143,7 @@ export default function OBREvaluationPanel({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Actor": actorEmail,
+          ...authHeaders(),
         },
         body: JSON.stringify({
           domain_scores: domainScores,
@@ -164,7 +166,7 @@ export default function OBREvaluationPanel({
           : "✓ Draft saved.",
       });
       if (submit) {
-        const updated = await fetch(`${API}/obr/subjects/${obrSubjectId}/evaluation`);
+        const updated = await fetch(`${API}/obr/subjects/${obrSubjectId}/evaluation`, { headers: authHeaders() });
         const data = await updated.json();
         if (data.evaluation) setEvaluation(data.evaluation);
       }

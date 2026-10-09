@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { authHeaders } from "../../../../lib/api";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app";
 
@@ -212,13 +213,13 @@ export default function IndividualDashboardPage() {
     async function load() {
       try {
         // Load participant
-        const pRes = await fetch(`${API}/participants/${id}`);
+        const pRes = await fetch(`${API}/participants/${id}`, { headers: authHeaders() });
         if (!pRes.ok) throw new Error("Participant not found");
         const pData = await pRes.json();
         setParticipant(pData);
 
         // Load intake submission if exists
-        const iRes = await fetch(`${API}/intake/by-participant/${id}`);
+        const iRes = await fetch(`${API}/intake/by-participant/${id}`, { headers: authHeaders() });
         if (iRes.ok) {
           const iData = await iRes.json();
           setIntake(iData);

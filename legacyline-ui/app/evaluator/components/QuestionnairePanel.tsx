@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { api } from "../../../lib/api";
+// Phase S: Authorization is attached by api(); identity comes from the verified token.
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
@@ -80,7 +81,7 @@ export default function QuestionnairePanel({
     try {
       const res: any = await api(`/q/start`, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: {},
         body: JSON.stringify({ participant_id: participantId }),
       });
       setActiveSession(res.session_id);
@@ -113,7 +114,7 @@ export default function QuestionnairePanel({
     try {
       const res: any = await api(`/q/${activeSession}/respond`, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: {},
         body: JSON.stringify({
           participant_id: participantId,
           question_id: questionId,
@@ -158,7 +159,7 @@ export default function QuestionnairePanel({
     try {
       await api(`/q/${activeSession}/complete`, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: {},
         body: JSON.stringify({ participant_id: participantId }),
       });
       setActiveSession(null);
