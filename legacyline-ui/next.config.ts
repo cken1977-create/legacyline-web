@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/login/individual", destination: "/app/login", permanent: false },
+      // Composer's readiness-assessment invites link to /assessment/begin,
+      // which never existed (404). Send them to the readiness intake.
+      { source: "/assessment", destination: "/intake", permanent: false },
+      { source: "/assessment/begin", destination: "/intake", permanent: false },
     ];
   },
 };
