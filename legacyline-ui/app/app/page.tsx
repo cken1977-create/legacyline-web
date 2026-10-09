@@ -215,7 +215,9 @@ function AICaseBrief({ participantId, status }: { participantId: string; status:
   useEffect(() => {
     if (!isUnlocked || !participantId) return;
     setLoading(true);
-    fetch(`${API}/participants/${participantId}/evaluation`)
+    fetch(`${API}/participants/${participantId}/evaluation`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("individual_token") ?? ""}` },
+    })
       .then((r) => r.json())
       .then((data) => {
         const ev = data?.evaluation;
@@ -345,9 +347,9 @@ export default function ParticipantApp() {
       try {
         const headers = { Authorization: `Bearer ${token}` };
         const [vaultRes, meRes, intakeRes] = await Promise.allSettled([
-          fetch(`${API}/participants/${pid}/vault`),
+          fetch(`${API}/participants/${pid}/vault`, { headers }),
           fetch(`${API}/auth/individual/me`, { headers }),
-          fetch(`${API}/intake/by-participant/${pid}`),
+          fetch(`${API}/intake/by-participant/${pid}`, { headers }),
         ]);
         if (vaultRes.status === "fulfilled" && vaultRes.value.ok) setVault(await vaultRes.value.json());
         if (meRes.status === "fulfilled" && meRes.value.ok) { const me = await meRes.value.json(); setRegistryId(me.registry_id ?? ""); }

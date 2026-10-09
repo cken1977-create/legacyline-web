@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Shell from "../_components/Shell";
-import { api } from "../../lib/api";
+import { api, authHeaders, STAFF_EMAIL_KEY, STAFF_TOKEN_KEY } from "../../lib/api";
+import StaffSignIn from "./components/StaffSignIn";
 import { StateBadge } from "./components/StateBadge";
 import { EvaluatorHeader } from "./components/EvaluatorHeader";
 import EvaluationPanel from "./components/EvaluationPanel";
@@ -314,7 +315,7 @@ function OBRProfile({
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/obr/subjects/${subject.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "X-Actor": actorEmail },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ status: target, reason }),
       });
       if (!res.ok) throw new Error("Transition failed");
@@ -645,7 +646,7 @@ function ParticipantProfile({ participant, onBack, actorEmail }: {
       await api(`/participants/${participant.id}/state`, {
         method: "POST",
         body: JSON.stringify({ to: target, reason: reason.trim() || `Transitioned to ${target} by evaluator` }),
-        headers: { "X-Actor": actorEmail },
+        headers: {},
       });
       setCurrentStatus(target);
       setSelectedTo("");
@@ -843,28 +844,63 @@ export default function EvaluatorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const PILOT_EVALUATOR_EMAIL = process.env.NEXT_PUBLIC_EVALUATOR_EMAIL ?? "";
+  // Phase S: no auto-sign-in. A verified staff token is required; the API
+  // derives the acting evaluator from that token.
+  const [staffEmail, setStaffEmail] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  function signOut() {
+    localStorage.removeItem(STAFF_TOKEN_KEY);
+    localStorage.removeItem(STAFF_EMAIL_KEY);
+    localStorage.removeItem("evaluator_id");
+    localStorage.removeItem("evaluator_email");
+    setStaffEmail(null);
+    setEvaluator(null);
+    setParticipants([]);
+    setObrSubjects([]);
+  }
 
   useEffect(() => {
+    async function checkSession() {
+      if (!localStorage.getItem(STAFF_TOKEN_KEY)) {
+        setAuthChecked(true);
+        setLoading(false);
+        return;
+      }
+      try {
+        const me = await api<{ id: string; email: string }>("/auth/staff/me");
+        setStaffEmail(me.email);
+      } catch {
+        signOut();
+        setLoading(false);
+      } finally {
+        setAuthChecked(true);
+      }
+    }
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    if (!staffEmail) return;
+    const email = staffEmail;
     async function boot() {
       setLoading(true);
+      setError("");
       try {
         const [ps, obr] = await Promise.allSettled([
           api<Participant[]>("/participants"),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/obr/subjects`).then((r) => r.json()),
+          api<OBRSubject[]>("/obr/subjects"),
         ]);
         if (ps.status === "fulfilled") setParticipants(ps.value ?? []);
+        else if (String(ps.reason?.message ?? "").includes("API 401")) { signOut(); return; }
         if (obr.status === "fulfilled") setObrSubjects(obr.value ?? []);
-        if (PILOT_EVALUATOR_EMAIL) {
-          try {
-            const ev = await api<Evaluator>(`/evaluators/lookup?email=${encodeURIComponent(PILOT_EVALUATOR_EMAIL)}`);
-            setEvaluator(ev);
-            localStorage.setItem("evaluator_id", ev.evaluator_id);
-            localStorage.setItem("evaluator_email", ev.email);
-          } catch {
-            localStorage.removeItem("evaluator_id");
-            localStorage.removeItem("evaluator_email");
-          }
+        try {
+          const ev = await api<Evaluator>(`/evaluators/lookup?email=${encodeURIComponent(email)}`);
+          setEvaluator(ev);
+          localStorage.setItem("evaluator_id", ev.evaluator_id);
+          localStorage.setItem("evaluator_email", ev.email);
+        } catch {
+          setEvaluator({ evaluator_id: "", full_name: email, email, organization: "", status: "active", certified: false, certified_at: null });
         }
       } catch (err: any) {
         setError(err?.message ?? "Failed to load.");
@@ -873,7 +909,7 @@ export default function EvaluatorPage() {
       }
     }
     boot();
-  }, []);
+  }, [staffEmail]);
 
   function openProfile(p: Participant) {
     setSelectedP(p);
@@ -913,6 +949,14 @@ export default function EvaluatorPage() {
           @media (min-width: 768px) { :root { --profile-cols: 1fr 320px; } }
         `}</style>
 
+        {authChecked && !staffEmail && <StaffSignIn onSignedIn={(em) => setStaffEmail(em)} />}
+
+        {staffEmail && (<>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "8px 16px", fontSize: 12, color: "#8899AA" }}>
+          <span>Signed in as {staffEmail}</span>
+          <button onClick={signOut} style={{ background: "none", border: "none", color: "#C8A84B", cursor: "pointer", fontSize: 12, padding: 0 }}>Sign out</button>
+        </div>
+
         <EvaluatorHeader evaluator={evaluator} activeView={view === "obr_queue" || view === "obr_profile" ? "queue" : view as any} onNav={handleNav as any} />
 
         <DomainSelector active={domain} onChange={handleDomainChange} evaluator={evaluator} />
@@ -950,6 +994,7 @@ export default function EvaluatorPage() {
             )}
           </>
         )}
+        </>)}
       </div>
     </Shell>
   );

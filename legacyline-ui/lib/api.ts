@@ -48,6 +48,24 @@ export interface AttemptResult {
   status: string;
 }
 
+// Phase S: tokens issued by legacyline-core. Staff (evaluator) token wins over
+// an individual token if both exist in this browser.
+export const STAFF_TOKEN_KEY = "staff_token";
+export const STAFF_EMAIL_KEY = "staff_email";
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return (
+    window.localStorage.getItem(STAFF_TOKEN_KEY) ||
+    window.localStorage.getItem("individual_token")
+  );
+}
+
+export function authHeaders(): Record<string, string> {
+  const t = getAuthToken();
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
 export async function api<T>(
   path: string,
   options: RequestInit = {}
@@ -57,6 +75,7 @@ export async function api<T>(
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
       ...(options.headers || {}),
     },
     cache: "no-store",

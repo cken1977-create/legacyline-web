@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { api } from "../../../lib/api";
+import { api, authHeaders } from "../../../lib/api";
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
@@ -103,7 +103,7 @@ export default function DocumentUploadPanel({
 
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "X-Actor": actorEmail },
+        headers: authHeaders(),
         body: form,
       });
 

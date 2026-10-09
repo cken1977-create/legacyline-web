@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { authHeaders } from "../../../../../lib/api";
+
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 type VaultSnapshot = {
@@ -100,7 +102,7 @@ export default function VaultPanel({ participantId }: { participantId: string })
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${API}/participants/${participantId}/vault`);
+        const res = await fetch(`${API}/participants/${participantId}/vault`, { headers: authHeaders() });
         if (!res.ok) throw new Error("Failed to load vault");
         const data = await res.json();
         setVault(data);
