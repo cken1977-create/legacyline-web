@@ -1,19 +1,25 @@
 import Link from "next/link";
+import { BRAND } from "../../lib/brand";
+import { Mark } from "./assay";
+
 export default function Navbar() {
   return (
-    <header className="absolute inset-x-0 top-0 z-20 text-[#f4efe6]">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <Link href="/">
-          <div className="text-[11px] tracking-[0.32em] text-[#C8A84B]">YAKINI</div>
-          <div className="font-serif text-2xl leading-none">Vimaa</div>
+    <header className="absolute inset-x-0 top-0 z-20" style={{ color: "var(--cream)" }}>
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-5 md:px-6">
+        <Link href="/" className="inline-flex items-center gap-2.5" aria-label={`${BRAND.name} home`}>
+          <Mark tone="cream" size={28} />
+          <span className="font-serif text-[24px] font-semibold leading-none tracking-[-0.01em]">{BRAND.name}</span>
         </Link>
-        <nav className="hidden gap-8 text-[11px] tracking-[0.22em] md:flex">
-          <Link href="/about">About</Link>
-          <Link href="/solutions">Engine</Link>
-          <Link href="/certification">Standard</Link>
-          <Link href="/lifecycle">Path</Link>
+        <nav aria-label="Main" className="hidden items-center gap-8 text-[14px] md:flex" style={{ color: "var(--cream-dim)" }}>
+          <Link className="hover:text-[var(--cream)]" href="/certification">Standard</Link>
+          <Link className="hover:text-[var(--cream)]" href="/#how">How it works</Link>
+          <Link className="hover:text-[var(--cream)]" href="/verify">Verify</Link>
+          <Link className="hover:text-[var(--cream)]" href="/about">About</Link>
         </nav>
-        <Link href="/login" className="border border-[#C8A84B] px-4 py-2 text-[11px] tracking-[0.2em] text-[#C8A84B]">Enter</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/app/login" className="ao-btn ao-btn-ghost-n ao-btn-sm hidden sm:inline-flex">Sign in</Link>
+          <Link href="/app/signup" className="ao-btn ao-btn-gold ao-btn-sm">Start your record</Link>
+        </div>
       </div>
     </header>
   );
