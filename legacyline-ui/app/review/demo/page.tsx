@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Reading Room (sample)", robots: { in
 
 // Design-review fixture with fictional cases. Never served on the production deployment.
 export default function DemoRoom() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (process.env.VERCEL_ENV === "production" && process.env.KAMILI_PUBLIC_DEMO !== "1") notFound();
   const details = Object.fromEntries(DEMO_CASES.map((c) => [c.id, c.id === DEMO_PERSON.participantId
     ? { run: DEMO_RUN, timeline: DEMO_TIMELINE, intake: DEMO_PERSON.intake }
     : { run: null, timeline: [], intake: null }]));
