@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { authHeaders } from "../../../../lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app";
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

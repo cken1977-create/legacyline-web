@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 import { authHeaders } from "../../../lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",

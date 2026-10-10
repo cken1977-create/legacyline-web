@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 export default function AppLoginPage() {
   const router = useRouter();
@@ -27,7 +27,6 @@ export default function AppLoginPage() {
         return;
       }
       const data = await res.json();
-      localStorage.setItem("individual_token", data.token);
       localStorage.setItem("participant_id", data.participant_id);
       localStorage.setItem("user_first_name", data.first_name);
       localStorage.setItem("user_last_name", data.last_name);

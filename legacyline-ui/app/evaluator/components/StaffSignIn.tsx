@@ -5,8 +5,8 @@
 import { useState } from "react";
 import { STAFF_EMAIL_KEY, STAFF_TOKEN_KEY } from "../../../lib/api";
 
-const API = (
-  process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app"
+const API = ( // P1: same-origin BFF sets an httpOnly session cookie
+  "/api/core"
 ).replace(/\/+$/, "");
 
 export default function StaffSignIn({ onSignedIn }: { onSignedIn: (email: string) => void }) {
@@ -30,7 +30,6 @@ export default function StaffSignIn({ onSignedIn }: { onSignedIn: (email: string
         return;
       }
       const data = await res.json();
-      localStorage.setItem(STAFF_TOKEN_KEY, data.token);
       localStorage.setItem(STAFF_EMAIL_KEY, data.staff?.email ?? email.trim().toLowerCase());
       setPassword("");
       onSignedIn(data.staff?.email ?? email.trim().toLowerCase());

@@ -1,6 +1,6 @@
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app"
-).replace(/\/+$/, "");
+// P1: all browser API calls go through the same-origin BFF (/api/core), which
+// attaches the bearer token from an httpOnly cookie.
+const API_BASE = "/api/core";
 
 export interface TrainingModule {
   module_id: string;
@@ -53,17 +53,21 @@ export interface AttemptResult {
 export const STAFF_TOKEN_KEY = "staff_token";
 export const STAFF_EMAIL_KEY = "staff_email";
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return (
-    window.localStorage.getItem(STAFF_TOKEN_KEY) ||
-    window.localStorage.getItem("individual_token")
-  );
+// P1: tokens are no longer readable by page code. authHeaders() is kept so
+// existing call sites compile; the BFF adds Authorization server-side.
+export function authHeaders(): Record<string, string> {
+  return {};
 }
 
-export function authHeaders(): Record<string, string> {
-  const t = getAuthToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
+// Drop bearer tokens left in localStorage by pre-P1 builds.
+if (typeof window !== "undefined") {
+  for (const k of ["individual_token", "org_token", STAFF_TOKEN_KEY]) {
+    try {
+      window.localStorage.removeItem(k);
+    } catch {
+      /* storage disabled */
+    }
+  }
 }
 
 export async function api<T>(

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import { authHeaders } from "../../../../../lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 type VaultSnapshot = {
   id: string;

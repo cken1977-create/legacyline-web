@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { clearSession, hasSession } from "../../lib/session";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -216,7 +217,6 @@ function AICaseBrief({ participantId, status }: { participantId: string; status:
     if (!isUnlocked || !participantId) return;
     setLoading(true);
     fetch(`${API}/participants/${participantId}/evaluation`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("individual_token") ?? ""}` },
     })
       .then((r) => r.json())
       .then((data) => {
@@ -334,7 +334,7 @@ export default function ParticipantApp() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("individual_token");
+    const token = hasSession("individual");
     const pid = localStorage.getItem("participant_id");
     const fn = localStorage.getItem("user_first_name");
     const ln = localStorage.getItem("user_last_name");
@@ -345,7 +345,7 @@ export default function ParticipantApp() {
 
     async function load() {
       try {
-        const headers = { Authorization: `Bearer ${token}` };
+        const headers = {};
         const [vaultRes, meRes, intakeRes] = await Promise.allSettled([
           fetch(`${API}/participants/${pid}/vault`, { headers }),
           fetch(`${API}/auth/individual/me`, { headers }),
@@ -374,7 +374,7 @@ export default function ParticipantApp() {
     }
   }
 
-  function logout() { localStorage.clear(); router.push("/app/login"); }
+  function logout() { void clearSession(); localStorage.clear(); router.push("/app/login"); }
 
   const nudges = generateNudges(vault, intake);
   const highNudges = nudges.filter(n => n.impact === "high" && !n.completed);

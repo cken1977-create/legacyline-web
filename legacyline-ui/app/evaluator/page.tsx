@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Shell from "../_components/Shell";
 import { api, authHeaders, STAFF_EMAIL_KEY, STAFF_TOKEN_KEY } from "../../lib/api";
+import { clearSession, hasSession } from "../../lib/session";
 import StaffSignIn from "./components/StaffSignIn";
 import { StateBadge } from "./components/StateBadge";
 import { EvaluatorHeader } from "./components/EvaluatorHeader";
@@ -313,7 +314,7 @@ function OBRProfile({
     setTransitioning(true);
     setTransitionMsg(null);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/obr/subjects/${subject.id}`, {
+      const res = await fetch(`/api/core/obr/subjects/${subject.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ status: target, reason }),
@@ -850,6 +851,7 @@ export default function EvaluatorPage() {
   const [authChecked, setAuthChecked] = useState(false);
 
   function signOut() {
+    void clearSession("staff");
     localStorage.removeItem(STAFF_TOKEN_KEY);
     localStorage.removeItem(STAFF_EMAIL_KEY);
     localStorage.removeItem("evaluator_id");
@@ -862,7 +864,7 @@ export default function EvaluatorPage() {
 
   useEffect(() => {
     async function checkSession() {
-      if (!localStorage.getItem(STAFF_TOKEN_KEY)) {
+      if (!hasSession("staff")) {
         setAuthChecked(true);
         setLoading(false);
         return;
