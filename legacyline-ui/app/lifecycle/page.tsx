@@ -65,7 +65,7 @@ const STATES = [
     bg: "rgba(167,139,250,0.08)",
     border: "rgba(167,139,250,0.2)",
     description:
-      "The FRARI v1.0.0 ruleset has been applied to the evidence record. A composite readiness score and trajectory have been generated deterministically by the Vimaa readiness engine. The evaluation has been approved by the BRSA Standards Authority.",
+      "The FRARI v1.0.0 ruleset has been applied to the evidence record. A composite readiness score and trajectory have been generated deterministically by the Kamili readiness engine. The evaluation has been approved by the BRSA Standards Authority.",
     triggers: [
       "Evaluator submits evaluation record",
       "BRSA Standards Authority approves evaluation",
@@ -158,10 +158,10 @@ export default function LifecyclePage() {
               fontSize: 14, fontWeight: 900, color: C.navyDeep,
             }}
           >
-            L
+            K
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: C.white, letterSpacing: "0.06em" }}>VIMAA</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.white, letterSpacing: "0.06em" }}>KAMILI</div>
             <div style={{ fontSize: 10, color: C.gold, letterSpacing: "0.1em", textTransform: "uppercase" }}>Standards Reference</div>
           </div>
         </Link>
@@ -206,7 +206,7 @@ export default function LifecyclePage() {
           Participant State Taxonomy
         </h1>
         <p style={{ fontSize: 15, color: C.gray, lineHeight: 1.8, maxWidth: 680 }}>
-          The Vimaa platform governs participant readiness through a six-state lifecycle. No stage may be skipped. Every transition is logged to an immutable audit trail with a timestamp and actor identifier. This document is the authoritative reference for all state definitions, allowed transitions, and trigger conditions.
+          The Kamili platform governs participant readiness through a six-state lifecycle. No stage may be skipped. Every transition is logged to an immutable audit trail with a timestamp and actor identifier. This document is the authoritative reference for all state definitions, allowed transitions, and trigger conditions.
         </p>
       </div>
 

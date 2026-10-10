@@ -57,10 +57,10 @@ export default function AppLoginPage() {
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 16px",
         }}>
-          <span style={{ fontSize: 28, fontWeight: 800, color: "#C8A84B" }}>L</span>
+          <span style={{ fontSize: 28, fontWeight: 800, color: "#C8A84B" }}>K</span>
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: "#F4F6F9", letterSpacing: "-0.5px" }}>
-          Vimaa
+          Kamili
         </div>
         <div style={{ fontSize: 13, color: "rgba(244,246,249,0.5)", marginTop: 4 }}>
           Your readiness record

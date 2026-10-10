@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "Vimaa OBR — Organizational Readiness",
+  title: "Kamili OBR — Organizational Readiness",
   description: "Track your organization's behavioral readiness standing under BRSA Domain III.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Vimaa OBR",
+    title: "Kamili OBR",
   },
 };
 

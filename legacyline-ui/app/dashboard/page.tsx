@@ -316,7 +316,7 @@ export default function DashboardPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-white/20 pb-4">
-          © 2026 Vimaa · Powered by BRSA doctrine · Deterministic · Auditable · Consent-based
+          © 2026 Kamili · Powered by BRSA doctrine · Deterministic · Auditable · Consent-based
         </div>
       </div>
     </div>
