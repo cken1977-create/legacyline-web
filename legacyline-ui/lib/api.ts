@@ -1,4 +1,4 @@
-const API_BASE = (
+export const CORE_BASE = (
   process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app"
 ).replace(/\/+$/, "");
 
@@ -70,7 +70,7 @@ export async function api<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = `${CORE_BASE}${path.startsWith("/") ? path : `/${path}`}`;
   const res = await fetch(url, {
     ...options,
     headers: {

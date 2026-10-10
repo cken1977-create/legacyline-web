@@ -4,17 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BRAND } from "../../lib/brand";
+import { CoreError, core, coreSafe, currentParticipantId, hasIndividualSession, signOut as endSession } from "../../lib/core";
 import { bandFor } from "../../lib/bands";
 import { AREAS, RULESET_LABEL, type Run, fmtMT } from "../../lib/frari";
 import { STATUS_STEPS, pointsMeta, summarize, type SlotState } from "../../lib/record";
 import { BandChip, Completeness, CopyMono, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
 import { IconArrowRight, IconChevron, IconLock, IconLogout, IconRecord, IconShare, IconShelf, IconShield, IconUpload, IconUser } from "../_components/assay/icons";
 
-const API = (process.env.NEXT_PUBLIC_API_URL || "https://legacyline-core-production.up.railway.app").replace(/\/+$/, "");
 
 type Tab = "record" | "evidence" | "share" | "me";
 export type RecordData = {
-  participantId: string; firstName: string; lastName: string; email: string; registryId: string; status: string;
+  participantId: string; firstName: string; lastName: string; email: string; registryId: string; status: string; createdAt?: string;
   intake: Record<string, any> | null; run: Run | null;
 };
 
@@ -29,16 +29,14 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
 
   useEffect(() => {
     if (demo) return;
-    const token = localStorage.getItem("individual_token");
-    const pid = localStorage.getItem("participant_id");
-    if (!token || !pid) { router.replace("/app/login"); return; }
-    const headers = { Authorization: `Bearer ${token}` };
+    const pid = currentParticipantId();
+    if (!hasIndividualSession() || !pid) { router.replace("/app/login"); return; }
     (async () => {
-      const get = async (p: string) => { try { const r = await fetch(`${API}${p}`, { headers, cache: "no-store" }); if (r.status === 401) return "401"; return r.ok ? await r.json() : null; } catch { return null; } };
+      const get = async (p: string) => { try { return await core(p); } catch (e) { return e instanceof CoreError && e.status === 401 ? "401" : null; } };
       const [vault, me, intake, hist] = await Promise.all([
         get(`/participants/${pid}/vault`), get(`/auth/individual/me`), get(`/intake/by-participant/${pid}`), get(`/frari/history/individual/${pid}`),
       ]);
-      if (me === "401") { localStorage.removeItem("individual_token"); router.replace("/app/login"); return; }
+      if (me === "401" || vault === "401") { await endSession("individual"); router.replace("/app/login"); return; }
       const runs: Run[] = Array.isArray(hist?.runs) ? hist.runs : Array.isArray(hist) ? hist : [];
       setData({
         participantId: pid,
@@ -47,10 +45,11 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
         email: me?.email ?? localStorage.getItem("user_email") ?? "",
         registryId: me?.registry_id ?? "",
         status: vault?.current_status ?? "registered",
+        createdAt: vault?.created_at ?? "",
         intake: intake && intake !== "401" ? intake : null,
         run: runs[0] ?? null,
       });
-      if (!vault || vault === "401") setLoadNote("Part of your record didn't load. What you see may be incomplete; try again in a moment.");
+      if (!vault) setLoadNote("Part of your record didn't load. What you see may be incomplete; try again in a moment.");
       setLoading(false);
     })();
   }, [demo, router]);
@@ -64,8 +63,7 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
     setHall("running");
     if (demo) { setTimeout(() => setHall("verified"), 1400); setTimeout(() => setHall("current"), 5400); return; }
     try {
-      const r = await fetch(`${API}/frari/assess/${data.run.id}/verify`, { headers: { Authorization: `Bearer ${localStorage.getItem("individual_token") ?? ""}` } });
-      const j = r.ok ? await r.json() : null;
+      const j = await coreSafe<{ determinism_check: boolean }>(`/frari/assess/${data.run.id}/verify`);
       setHall(j?.determinism_check ? "verified" : "stale");
       if (!j?.determinism_check) flash("Couldn't reproduce this run right now. Your reviewer has been told.");
     } catch { setHall("current"); flash("Couldn't reach the engine. Try again shortly."); }
@@ -74,11 +72,10 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
 
   function signOut() {
     if (demo) { flash("Demo: sign-out is disabled on the sample record."); return; }
-    ["individual_token", "participant_id", "user_first_name", "user_last_name", "user_email"].forEach((k) => localStorage.removeItem(k));
-    router.push("/app/login");
+    endSession("individual").then(() => router.push("/app/login"));
   }
 
-  const actHref = (s: SlotState) => demo ? undefined : `/intake?pid=${data?.participantId}&skip=${s.kind === "Answer" ? 1 : 3}`;
+  const actHref = (s: SlotState) => demo ? undefined : `/intake?slot=${s.key}`;
 
   if (loading || !data) return <Skeleton />;
 
@@ -194,7 +191,7 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
         )}
 
         {tab === "evidence" && <EvidenceShelf slots={sum.slots} hrefFor={actHref} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />}
-        {tab === "share" && <ShareTab rid={data.registryId} />}
+        {tab === "share" && <ShareTab rid={data.registryId} demo={!!demo} />}
         {tab === "me" && <MeTab d={data} onSignOut={signOut} />}
 
         <footer className="ao-meta mt-14 flex flex-wrap items-center justify-between gap-2 border-t pt-5" style={{ borderColor: "var(--linen)" }}>
@@ -331,7 +328,7 @@ function EvidenceShelf({ slots, hrefFor, onDemo }: { slots: SlotState[]; hrefFor
   );
 }
 
-function ShareTab({ rid }: { rid: string }) {
+function ShareTab({ rid, demo }: { rid: string; demo?: boolean }) {
   return (
     <div className="grid gap-5 lg:grid-cols-12">
       <section className="ao-card p-6 lg:col-span-7">
@@ -339,10 +336,11 @@ function ShareTab({ rid }: { rid: string }) {
         <p className="ao-body-2 mt-2">Give a lender, landlord or program your Registry ID. They can look it up themselves. They see your standing and when it was checked, never your documents.</p>
         {rid && <div className="mt-4 flex flex-wrap items-center gap-3 rounded-[10px] p-4" style={{ background: "var(--paper)", border: "1px solid var(--linen)" }}><CopyMono value={rid} label="Registry ID" /><Link className="ao-btn ao-btn-secondary ao-btn-sm" href={`/verify?rid=${encodeURIComponent(rid)}`}>See what they see <IconArrowRight size={16} /></Link></div>}
       </section>
-      <section className="ao-card p-6 lg:col-span-5" style={{ background: "var(--paper)" }}>
-        <p className="ao-eyebrow">Coming next</p>
-        <h2 className="ao-h2 mt-1">Packets</h2>
-        <p className="ao-body-2 mt-2">A read-only copy of your record for one named recipient, with an end date you choose and a log of every view. You'll be able to revoke it anytime.</p>
+      <section className="ao-card p-6 lg:col-span-5">
+        <h2 className="ao-h2">Your standing report</h2>
+        <p className="ao-body-2 mt-2">A one-page summary of your standing, receipts and what's on file, with a verify link. No documents. Print it or save it as a PDF.</p>
+        <Link className="ao-btn ao-btn-primary ao-btn-sm mt-4" href={demo ? "/app/demo/report" : "/app/report"}>Open my report <IconArrowRight size={16} /></Link>
+        <p className="ao-meta mt-4" style={{ borderTop: "1px solid var(--linen)", paddingTop: 12 }}>Coming next: packets for one named recipient, with an end date and a log of every view.</p>
       </section>
     </div>
   );

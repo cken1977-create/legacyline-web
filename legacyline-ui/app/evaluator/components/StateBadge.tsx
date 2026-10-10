@@ -12,8 +12,8 @@ const STATE_CONFIG: Record<
   ParticipantState,
   { label: string; color: string; bg: string; ring: string }
 > = {
-  registered:      { label: "Registered",      color: "#8899AA", bg: "rgba(136,153,170,0.12)", ring: "rgba(136,153,170,0.25)" },
-  data_collecting: { label: "Data Collecting",  color: "#60A5FA", bg: "rgba(96,165,250,0.12)",  ring: "rgba(96,165,250,0.25)"  },
+  registered:      { label: "Registered",      color: "#AEB9C5", bg: "rgba(136,153,170,0.12)", ring: "rgba(136,153,170,0.25)" },
+  data_collecting: { label: "Data Collecting",  color: "#7DB8FB", bg: "rgba(96,165,250,0.12)",  ring: "rgba(96,165,250,0.25)"  },
   under_review:    { label: "Under Review",     color: "#F59E0B", bg: "rgba(245,158,11,0.12)",  ring: "rgba(245,158,11,0.25)"  },
   evaluated:       { label: "Evaluated",        color: "#2DD4BF", bg: "rgba(45,212,191,0.12)",  ring: "rgba(45,212,191,0.25)"  },
   certified:       { label: "Certified",        color: "#34D399", bg: "rgba(52,211,153,0.12)",  ring: "rgba(52,211,153,0.25)"  },

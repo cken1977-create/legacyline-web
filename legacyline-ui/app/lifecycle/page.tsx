@@ -1,4 +1,5 @@
 "use client";
+import { BRAND } from "../../lib/brand";
 
 import Link from "next/link";
 
@@ -65,7 +66,7 @@ const STATES = [
     bg: "rgba(167,139,250,0.08)",
     border: "rgba(167,139,250,0.2)",
     description:
-      "The FRARI v1.0.0 ruleset has been applied to the evidence record. A composite readiness score and trajectory have been generated deterministically by the Vimaa readiness engine. The evaluation has been approved by the BRSA Standards Authority.",
+      "The FRARI v1.0.0 ruleset has been applied to the evidence record. A composite readiness score and trajectory have been generated deterministically by the FRARI readiness engine. The evaluation has been approved by the BRSA Standards Authority.",
     triggers: [
       "Evaluator submits evaluation record",
       "BRSA Standards Authority approves evaluation",
@@ -206,7 +207,7 @@ export default function LifecyclePage() {
           Participant State Taxonomy
         </h1>
         <p style={{ fontSize: 15, color: C.gray, lineHeight: 1.8, maxWidth: 680 }}>
-          The Vimaa platform governs participant readiness through a six-state lifecycle. No stage may be skipped. Every transition is logged to an immutable audit trail with a timestamp and actor identifier. This document is the authoritative reference for all state definitions, allowed transitions, and trigger conditions.
+          The {BRAND.name} platform governs participant readiness through a six-state lifecycle. No stage may be skipped. Every transition is logged to an immutable audit trail with a timestamp and actor identifier. This document is the authoritative reference for all state definitions, allowed transitions, and trigger conditions.
         </p>
       </div>
 

@@ -93,7 +93,7 @@ const TRANSITION_REQUIRES_REASON = new Set(["revoked"]);
 const C = {
   navy: "#1A3A5C", navyDark: "#112540", navyDeep: "#0B1C30",
   gold: "#C8A84B", goldDim: "#8A6E2F", teal: "#2DD4BF",
-  white: "#F4F6F9", gray: "#8899AA", grayLight: "#C5D0DC",
+  white: "#F4F6F9", gray: "#AEB9C5", grayLight: "#C5D0DC",
   surface: "#162E4A", surfaceHi: "#1E3D5A",
 };
 
@@ -162,22 +162,22 @@ function DomainSelector({
   const domains: { key: Domain; label: string; sublabel: string; locked: boolean; lockReason: string }[] = [
     {
       key: "individual",
-      label: "Domain I",
-      sublabel: "Individual Readiness",
+      label: "◯ Individual",
+      sublabel: "Personal records",
       locked: false,
       lockReason: "",
     },
     {
       key: "obr",
-      label: "Domain III",
-      sublabel: "Organizational (OBR)",
+      label: "▢ Organization",
+      sublabel: "OBR records",
       locked: false,
       lockReason: "Requires OBR certification",
     },
     {
       key: "frari",
-      label: "Domain II",
-      sublabel: "Institutional (FRARI)",
+      label: "△ Institution",
+      sublabel: "Coming later",
       locked: true,
       lockReason: "Requires FRARI certification",
     },
@@ -199,7 +199,7 @@ function DomainSelector({
             border: active === d.key ? `1px solid ${C.gold}66` : `1px solid ${C.surfaceHi}`,
             color: d.locked ? C.gray : active === d.key ? C.gold : C.grayLight,
             cursor: d.locked ? "not-allowed" : "pointer",
-            opacity: d.locked ? 0.5 : 1,
+            opacity: 1,
             textAlign: "left" as const,
           }}
         >
@@ -341,7 +341,7 @@ function OBRProfile({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontSize: 8, fontWeight: 700, color: "rgba(200,168,75,0.6)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>
-                OBR Subject — Domain III
+                Organization record · OBR
               </div>
               <div style={{ fontSize: 20, fontWeight: 800, color: C.white }}>{subject.name}</div>
               <div style={{ fontSize: 11, color: C.gold, marginTop: 2, fontFamily: "monospace" }}>{subject.slug}</div>
@@ -944,15 +944,15 @@ export default function EvaluatorPage() {
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700;800&display=swap');
           * { box-sizing: border-box; }
-          textarea::placeholder { color: #8899AA; }
-          input::placeholder { color: #8899AA; }
+          textarea::placeholder { color: #AEB9C5; }
+          input::placeholder { color: #AEB9C5; }
           @media (min-width: 768px) { :root { --profile-cols: 1fr 320px; } }
         `}</style>
 
         {authChecked && !staffEmail && <StaffSignIn onSignedIn={(em) => setStaffEmail(em)} />}
 
         {staffEmail && (<>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "8px 16px", fontSize: 12, color: "#8899AA" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "8px 16px", fontSize: 12, color: "#AEB9C5" }}>
           <span>Signed in as {staffEmail}</span>
           <button onClick={signOut} style={{ background: "none", border: "none", color: "#C8A84B", cursor: "pointer", fontSize: 12, padding: 0 }}>Sign out</button>
         </div>
@@ -961,7 +961,7 @@ export default function EvaluatorPage() {
 
         <DomainSelector active={domain} onChange={handleDomainChange} evaluator={evaluator} />
 
-        {loading && <div style={{ padding: 40, textAlign: "center", color: "#8899AA", fontSize: 13 }}>Loading...</div>}
+        {loading && <div style={{ padding: 40, textAlign: "center", color: "#AEB9C5", fontSize: 13 }}>Loading...</div>}
         {!loading && error && <div style={{ padding: 40, textAlign: "center", color: "#F87171", fontSize: 13 }}>{error}</div>}
 
         {!loading && !error && (

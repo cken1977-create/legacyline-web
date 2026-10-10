@@ -12,8 +12,8 @@ export const BRAND = {
   meaning: "kamili — complete",
   family: "A Yakini system",
   standard: "BRSA",
-  engine: "Vimaa · FRARI",
-  endorsement: "Standard: BRSA · Engine: Vimaa / FRARI",
+  engine: "FRARI",
+  endorsement: "Standard: BRSA · Engine: FRARI",
   legalEntity: "Yakini",
   supportEmail: "",
 } as const;

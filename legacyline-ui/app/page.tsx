@@ -65,6 +65,8 @@ export default function Page() {
               <h3 className="mt-6 font-serif text-[26px] font-semibold">{t.name}</h3>
               <p className="mt-1 text-[14px]" style={{ color: "var(--slate)" }}>{t.for}</p>
               <p className="mt-4 text-[16px] leading-[26px]" style={{ color: "var(--cream-dim)" }}>{t.body}</p>
+              {t.g === "square" && <Link href="/obr" className="mt-5 inline-flex text-[15px] font-medium underline-offset-4 hover:underline" style={{ color: "var(--gold)" }}>Organization records →</Link>}
+              {t.g === "circle" && <Link href="/app/signup" className="mt-5 inline-flex text-[15px] font-medium underline-offset-4 hover:underline" style={{ color: "var(--gold)" }}>Start your record →</Link>}
             </article>
           ))}
         </div>
@@ -131,7 +133,7 @@ export default function Page() {
           </div>
           <form action="/verify" method="get" className="flex w-full max-w-md gap-2" role="search">
             <label htmlFor="rid" className="sr-only">Registry ID</label>
-            <input id="rid" name="rid" placeholder="BRSA-IND-2026-00000" className="h-[50px] flex-1 rounded-[6px] px-4 font-mono text-[15px] outline-none" style={{ background: "var(--panel)", border: "1px solid #3A3E45", color: "var(--cream)" }} />
+            <input id="rid" name="rid" placeholder="BRSA-26-XXXXXXXX" className="h-[50px] flex-1 rounded-[6px] px-4 font-mono text-[15px] outline-none" style={{ background: "var(--panel)", border: "1px solid #3A3E45", color: "var(--cream)" }} />
             <button className="ao-btn ao-btn-gold" style={{ height: 50 }}>Verify</button>
           </form>
         </div>

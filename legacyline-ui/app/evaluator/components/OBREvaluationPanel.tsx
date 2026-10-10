@@ -8,7 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
-  white: "#F4F6F9", gray: "#8899AA", surface: "#162E4A",
+  white: "#F4F6F9", gray: "#AEB9C5", surface: "#162E4A",
   surfaceHi: "#1E3D5A", teal: "#2DD4BF", red: "#F87171",
   yellow: "#FBBF24", green: "#34D399",
 };
@@ -210,7 +210,7 @@ export default function OBREvaluationPanel({
           OBR Evaluation Record
         </div>
         <div style={{ fontSize: 10, color: "rgba(200,168,75,0.6)", marginBottom: 16 }}>
-          Domain III — Organizational Behavioral Readiness
+          Organization record (OBR)
         </div>
 
         {evaluation?.status && (
@@ -364,7 +364,7 @@ export default function OBREvaluationPanel({
           OBR AI Assistant
         </div>
         <div style={{ fontSize: 10, color: "rgba(200,168,75,0.5)", marginBottom: 12 }}>
-          BRSA Domain III — Organizational Readiness
+          BRSA · Organization record (OBR)
         </div>
 
         <button onClick={generateAI} disabled={aiLoading}
@@ -448,7 +448,7 @@ function AIList({ label, items }: { label?: string; items: string[] }) {
   if (!items?.length) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      {label && <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 4 }}>{label}</div>}
+      {label && <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 4 }}>{label}</div>}
       <ul style={{ paddingLeft: 16, margin: 0 }}>
         {items.map((x, i) => <li key={i} style={{ color: "#F4F6F9", fontSize: 12, marginBottom: 2 }}>{x}</li>)}
       </ul>
@@ -460,7 +460,7 @@ function AIField({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 2 }}>{label}</div>
       <div style={{ color: "#F4F6F9", fontSize: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{value}</div>
     </div>
   );

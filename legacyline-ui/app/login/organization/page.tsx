@@ -1,112 +1,58 @@
 "use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { BRAND } from "../../../lib/brand";
+import { CoreError, core } from "../../../lib/core";
+import { Alert, AuthShell, Field, Input } from "../../_components/assay/forms";
+import { IconEye } from "../../_components/assay/icons";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
-
-export default function LoginPage() {
+export default function ProgramSignIn() {
   const router = useRouter();
   const [org, setOrg] = useState("");
   const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setLoading(true); setError("");
     try {
-      const res = await fetch(`${API}/orgs/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: org, password }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
+      const data = await core<any>("/orgs/login", { method: "POST", body: JSON.stringify({ slug: org.trim().toLowerCase(), password }) });
+      if (data.token) {
         localStorage.setItem("org_token", data.token);
-        localStorage.setItem("org_slug", data.org.slug);
         document.cookie = `ll_org=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-        router.push("/dashboard");
-      } else {
-        setError("Invalid credentials. Please try again.");
       }
-    } catch {
-      setError("Connection error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+      localStorage.setItem("org_slug", data.org?.slug ?? org.trim().toLowerCase());
+      router.push("/dashboard");
+    } catch (e) {
+      setError(e instanceof CoreError && (e.status === 401 || e.status === 400) ? "That organization ID and password don't match. Check them and try again." : "We couldn't reach the server. Try again in a moment.");
+    } finally { setLoading(false); }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-
-        {/* Logo / Brand */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
-            <span className="text-2xl font-semibold tracking-tight text-white">L</span>
+    <AuthShell aside={<>
+      <p className="ao-eyebrow">Program Desk</p>
+      <p className="ao-serif mt-3" style={{ fontSize: 40, lineHeight: "46px", fontWeight: 600, letterSpacing: "-.015em" }}>Your cohort, one record each. No spreadsheets.</p>
+      <p className="ao-body-2 mt-5" style={{ fontSize: 16, lineHeight: "26px" }}>See who's gathering evidence, who's waiting on a reviewer and who's certified — with the receipts behind every standing.</p>
+    </>}>
+      <h1 className="ao-h1" style={{ fontSize: 32, lineHeight: "38px" }}>Program sign-in</h1>
+      <p className="ao-body-2 mt-2" style={{ fontSize: 16 }}>For partner programs and organizations on {BRAND.name}.</p>
+      <form onSubmit={submit} noValidate className="mt-8 flex flex-col gap-5">
+        <Field id="org" label="Organization ID" hint="The short ID we gave you, like riverside-partners"><Input id="org" autoComplete="username" autoCapitalize="none" spellCheck={false} value={org} onChange={(e) => setOrg(e.target.value)} /></Field>
+        <Field id="pw" label="Password">
+          <div className="relative">
+            <Input id="pw" type={show ? "text" : "password"} autoComplete="current-password" style={{ paddingRight: 52 }} value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" onClick={() => setShow(!show)} aria-label={show ? "Hide password" : "Show password"} aria-pressed={show} className="absolute right-1 top-1 grid h-10 w-10 place-items-center rounded-[6px]" style={{ color: "var(--ink-2)", background: "none", border: 0, cursor: "pointer" }}><IconEye size={20} /></button>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Vimaa</h1>
-          <p className="mt-1 text-sm text-white/50">Individual Readiness Engine</p>
-        </div>
-
-        {/* Login Card */}
-        <div className="rounded-3xl bg-white/5 p-8 ring-1 ring-white/10">
-          <h2 className="text-lg font-semibold text-white">Organization Login</h2>
-          <p className="mt-1 text-sm text-white/50">
-            Sign in to access your participant dashboard.
-          </p>
-
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Organization
-              </label>
-              <input
-                type="text"
-                value={org}
-                onChange={(e) => setOrg(e.target.value)}
-                placeholder="e.g. vizionz-sankofa"
-                required
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                className="w-full rounded-xl bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 ring-1 ring-white/10 outline-none focus:ring-[#C8A84B]/60"
-              />
-            </div>
-
-            {error && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-[#C8A84B] py-3 text-sm font-semibold text-black hover:bg-[#dcc47a] disabled:opacity-50 transition-colors"
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-        </div>
-
-        <p className="mt-6 text-center text-xs text-white/30">
-          © {new Date().getFullYear()} Vimaa · Powered by BRSA doctrine
-        </p>
+        </Field>
+        {error && <Alert>{error}</Alert>}
+        <button type="submit" className="ao-btn ao-btn-primary w-full" style={{ height: 50, fontSize: 16 }} disabled={loading || !org || !password}>{loading ? "Signing in…" : "Sign in"}</button>
+      </form>
+      <div className="mt-8 border-t pt-6" style={{ borderColor: "var(--linen)" }}>
+        <p className="ao-body-2" style={{ fontSize: 15 }}>New organization? <Link className="ao-link" href="/obr">Start an organization record</Link></p>
+        <p className="ao-body-2 mt-2" style={{ fontSize: 15 }}>Reviewer? <Link className="ao-link" href="/evaluator">Staff sign-in</Link> · Person? <Link className="ao-link" href="/app/login">Sign in here</Link></p>
       </div>
-    </div>
+    </AuthShell>
   );
 }

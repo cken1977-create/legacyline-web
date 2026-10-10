@@ -15,7 +15,7 @@ export function deriveSlots(intake: Record<string, any> | null, run: Run | null)
       else if (s.key === "selfie") on = !!docs.selfie || filled(intake.selfie_url);
       else if (s.key === "bank_statement") on = !!docs.bank_statement || filled(intake.bank_statement_url);
       else if (s.key === "consent") on = intake.consent_status === "granted";
-      else on = filled(intake[s.key]);
+      else on = filled(intake[s.key] ?? intake.answers?.[s.key]);
     }
     return { ...s, status: on ? "submitted" : "missing", points: slotPoints(s) };
   });
