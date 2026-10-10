@@ -510,7 +510,7 @@ function IntakeForm() {
       }
 
       // Step 2 — Create auth account linked to this participant
-      const authRes = await fetch(`${API}/auth/individual/signup-from-intake`, {
+      const authRes = await fetch(`/api/core/auth/individual/signup-from-intake`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -521,7 +521,7 @@ function IntakeForm() {
 
       if (authRes.ok) {
         const authData = await authRes.json();
-        localStorage.setItem("individual_token", authData.token);
+        void authData; // P1: token is now an httpOnly cookie
         localStorage.setItem("participant_id", pid);
         localStorage.setItem("user_first_name", firstName.trim());
         localStorage.setItem("user_last_name", lastName.trim());

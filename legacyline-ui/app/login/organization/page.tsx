@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,9 +26,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem("org_token", data.token);
         localStorage.setItem("org_slug", data.org.slug);
-        document.cookie = `ll_org=${data.token}; path=/; max-age=86400; SameSite=Lax`;
         router.push("/dashboard");
       } else {
         setError("Invalid credentials. Please try again.");

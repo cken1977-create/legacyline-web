@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { clearSession, hasSession } from "../../../lib/session";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -187,7 +188,7 @@ export default function OBROrgApp() {
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("org_token");
+    const token = hasSession("org");
     const slug = localStorage.getItem("org_slug");
     if (!token || !slug) { router.replace("/login/organization"); return; }
     setOrgSlug(slug);
@@ -195,7 +196,6 @@ export default function OBROrgApp() {
     async function load() {
       try {
         const res = await fetch(`${API}/orgs/${slug}/obr-profile`, {
-          headers: { Authorization: `Bearer ${token}` },
         });
         if (res.status === 401) { router.replace("/login/organization"); return; }
         if (res.ok) {
@@ -674,7 +674,7 @@ export default function OBROrgApp() {
             </Link>
 
             <button
-              onClick={() => { localStorage.removeItem("org_token"); localStorage.removeItem("org_slug"); router.push("/login/organization"); }}
+              onClick={() => { void clearSession("org"); localStorage.removeItem("org_token"); localStorage.removeItem("org_slug"); router.push("/login/organization"); }}
               style={{
                 width: "100%", padding: "14px 0", borderRadius: 14,
                 background: "transparent", border: "1px solid rgba(248,113,113,0.2)",

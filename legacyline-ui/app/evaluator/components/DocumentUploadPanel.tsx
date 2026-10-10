@@ -98,7 +98,7 @@ export default function DocumentUploadPanel({
       form.append("document_type", docType);
       form.append("reason", reason.trim());
 
-      const apiURL = process.env.NEXT_PUBLIC_API_URL ?? "";
+      const apiURL = "/api/core"; // P1: BFF
       const endpoint = `${apiURL}/participants/${participantId}/documents/update`;
 
       const res = await fetch(endpoint, {

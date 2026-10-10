@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { clearSession, hasSession } from "../../lib/session";
 import { useRouter } from "next/navigation";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -43,7 +44,7 @@ type CohortSummary = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 const LIFECYCLE_STEPS = [
   { key: "registered", label: "Registered" },
@@ -87,7 +88,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("org_token");
+    const token = hasSession("org");
     const slug = localStorage.getItem("org_slug");
     if (!token || !slug) {
       router.replace("/login/organization");
@@ -96,7 +97,7 @@ export default function DashboardPage() {
 
     async function load() {
       try {
-        const headers = { Authorization: `Bearer ${token}` };
+        const headers = {};
 
         const [sumRes, partRes] = await Promise.all([
           fetch(`${API}/orgs/${slug}/cohort-summary`, { headers }),
@@ -104,7 +105,7 @@ export default function DashboardPage() {
         ]);
 
         if (sumRes.status === 401 || partRes.status === 401) {
-          localStorage.removeItem("org_token");
+          void clearSession("org");
           localStorage.removeItem("org_slug");
           router.replace("/login/organization");
           return;
