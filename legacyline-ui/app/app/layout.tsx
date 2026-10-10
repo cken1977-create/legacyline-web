@@ -1,38 +1,17 @@
 import type { Metadata, Viewport } from "next";
+import { BRAND } from "../../lib/brand";
 
 export const metadata: Metadata = {
-  title: "Vimaa — Your readiness record",
-  description: "Track your readiness score, complete your profile, and earn your BRSA certification.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Vimaa",
-  },
-  formatDetection: {
-    telephone: false,
-  },
+  title: "My Record",
+  description: `Your ${BRAND.name} record: what's on file, what's next, and a standing anyone can verify.`,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: BRAND.shortName },
+  formatDetection: { telephone: false },
 };
 
-export const viewport: Viewport = {
-  themeColor: "#0B1C30",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+// Phase 0 (F-V3): pinch-zoom restored — no maximumScale / userScalable lock.
+export const viewport: Viewport = { themeColor: "#F7F3EA", width: "device-width", initialScale: 1 };
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-      <meta name="apple-touch-fullscreen" content="yes" />
-      {children}
-    </>
-  );
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

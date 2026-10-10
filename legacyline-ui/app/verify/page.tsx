@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Shell from "../_components/Shell";
 import { api } from "../../lib/api";
 
@@ -12,9 +12,11 @@ type VerifyResult = {
 };
 
 const STATE_CONFIG = {
-  GREEN:  { label: "Green — Ready",        color: "#34D399", bg: "rgba(52,211,153,0.1)",  ring: "rgba(52,211,153,0.3)"  },
-  YELLOW: { label: "Yellow — Developing",  color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  ring: "rgba(245,158,11,0.3)"  },
-  RED:    { label: "Red — Pre-Readiness",  color: "#F87171", bg: "rgba(248,113,113,0.1)", ring: "rgba(248,113,113,0.3)" },
+  GREEN:  { label: "Ready",        color: "#34D399", bg: "rgba(52,211,153,0.1)",  ring: "rgba(52,211,153,0.3)"  },
+  YELLOW: { label: "Developing",  color: "#F59E0B", bg: "rgba(245,158,11,0.1)",  ring: "rgba(245,158,11,0.3)"  },
+  // Phase 0: no red for people. The registry still returns RED for "never assessed",
+  // so this reads neutral until core returns not_assessed.
+  RED:    { label: "Early or not yet assessed", color: "#B9B1A3", bg: "rgba(185,177,163,0.1)", ring: "rgba(185,177,163,0.3)" },
 };
 
 export default function VerifyPage() {
@@ -22,6 +24,11 @@ export default function VerifyPage() {
   const [result, setResult] = useState<VerifyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("rid");
+    if (q) setRid(q);
+  }, []);
 
   async function handleVerify() {
     const clean = rid.trim().toUpperCase();
