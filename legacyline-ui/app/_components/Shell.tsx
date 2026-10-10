@@ -33,11 +33,11 @@ export default function Shell({
       <header className="flex items-center justify-between gap-4">
         <Link href="/" className="group flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10 backdrop-blur">
-            <span className="text-lg font-semibold tracking-tight">L</span>
+            <span className="text-lg font-semibold tracking-tight">K</span>
           </div>
           <div className="leading-tight">
             <div className="text-base font-semibold tracking-tight">
-              Vimaa
+              Kamili
             </div>
             <div className="text-xs text-white/60">
               Individual Readiness Engine
@@ -71,7 +71,7 @@ export default function Shell({
 
       <footer className="mt-14 border-t border-white/10 pt-6 text-xs text-white/50">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} Vimaa</span>
+          <span>© {new Date().getFullYear()} Kamili</span>
           <span className="text-white/40">
             Powered by BRSA doctrine • Deterministic • Auditable • Consent-based
           </span>

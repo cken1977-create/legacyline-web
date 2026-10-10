@@ -74,7 +74,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
             color: "#0B1C30",
           }}
         >
-          L
+          K
         </div>
         <div>
           <div
@@ -86,7 +86,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
               textTransform: "uppercase",
             }}
           >
-            Vimaa
+            Kamili
           </div>
           <div
             style={{

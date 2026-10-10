@@ -59,9 +59,9 @@ export default function IndividualSignupPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-white/5 ring-1 ring-white/10">
-            <span className="text-2xl font-semibold tracking-tight text-white">L</span>
+            <span className="text-2xl font-semibold tracking-tight text-white">K</span>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight text-white">Vimaa</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-white">Kamili</h1>
           <p className="mt-1 text-sm text-white/50">Create your individual account</p>
         </div>
 
@@ -171,7 +171,7 @@ export default function IndividualSignupPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-white/30">
-          © {new Date().getFullYear()} Vimaa · Powered by BRSA doctrine
+          © {new Date().getFullYear()} Kamili · Powered by BRSA doctrine
         </p>
       </div>
     </div>

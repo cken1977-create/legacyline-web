@@ -5,7 +5,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <Link href="/">
           <div className="text-[11px] tracking-[0.32em] text-[#C8A84B]">YAKINI</div>
-          <div className="font-serif text-2xl leading-none">Vimaa</div>
+          <div className="font-serif text-2xl leading-none">Kamili</div>
         </Link>
         <nav className="hidden gap-8 text-[11px] tracking-[0.22em] md:flex">
           <Link href="/about">About</Link>
