@@ -162,7 +162,7 @@ export default function LifecyclePage() {
             L
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: C.white, letterSpacing: "0.06em" }}>VIMAA</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: C.white, letterSpacing: "0.06em" }}>KAMILI</div>
             <div style={{ fontSize: 10, color: C.gold, letterSpacing: "0.1em", textTransform: "uppercase" }}>Standards Reference</div>
           </div>
         </Link>

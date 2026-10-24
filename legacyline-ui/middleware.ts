@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DEMO_REDIRECTS, isDemoMode } from "./lib/demo-mode";
 
 // P1 BFF: /api/core/* is rewritten to legacyline-core with the bearer token
 // taken from the httpOnly session cookie. Login/signup paths are served by
@@ -51,6 +52,25 @@ function proxyCore(req: NextRequest): NextResponse {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Standing demo: never touch the live scoring service, and send sign-in or
+  // live screens to their sample versions. Off on production by construction.
+  if (isDemoMode()) {
+    if (pathname.startsWith("/api/core/") || pathname.startsWith("/api/auth/")) {
+      return NextResponse.json(
+        { ok: false, error: "demo_mode", message: "This is the Kamili demo. Nothing is saved and no live data is used." },
+        { status: 403 },
+      );
+    }
+    const dest = DEMO_REDIRECTS[pathname.replace(/\/+$/, "") || "/"];
+    if (dest) {
+      const url = req.nextUrl.clone();
+      url.pathname = dest;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/api/core/")) return proxyCore(req);
 
   const org = req.cookies.get("ll_org")?.value;
@@ -96,5 +116,13 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/core/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/core/:path*",
+    "/api/auth/:path*",
+    "/login/:path*",
+    "/app/:path*",
+    "/review",
+    "/evaluator",
+  ],
 };

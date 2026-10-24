@@ -2,6 +2,8 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Source_Serif_4 } from "next/font/google";
 import { BRAND } from "../lib/brand";
+import { isDemoMode } from "../lib/demo-mode";
+import DemoChrome from "./_components/demo/DemoChrome";
 
 const serif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", weight: ["400", "600", "700"], style: ["normal", "italic"], display: "swap" });
 const sans = IBM_Plex_Sans({ subsets: ["latin"], variable: "--font-plex-sans", weight: ["400", "500", "600"], display: "swap" });
@@ -25,6 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="absolute -bottom-44 right-[-120px] h-[520px] w-[520px] rounded-full bg-[#C8A84B]/5 blur-3xl" />
           <div className="absolute left-[-140px] top-1/3 h-[420px] w-[420px] rounded-full bg-[#0d1f3c]/40 blur-3xl" />
         </div>
+        {isDemoMode() && <DemoChrome />}
         <div className="relative">{children}</div>
       </body>
     </html>

@@ -6,7 +6,7 @@ const at = "2026-10-09T19:20:00Z";
 export const DEMO_RUN: Run = {
   id: "run_7f3a9c1e", ruleset_version: "frari_individual_v1", input_event_hash: "a91c44be20d1f7e3", output_hash: "7f3a9c1e5b02d4aa", computed_at: at, triggered_by: "evaluator",
   dimension_scores: [
-    { domain: "housing", score: 60, max_score: 100, rules_passed: ["housing_type_present", "housing_cost_present", "gov_id_verified"], rules_failed: ["address_present", "consent_granted"] },
+    { domain: "housing", score: 65, max_score: 100, rules_passed: ["housing_type_present", "housing_cost_present", "gov_id_verified"], rules_failed: ["address_present", "consent_granted"] },
     { domain: "workforce", score: 80, max_score: 100, rules_passed: ["employment_present", "employed", "income_documented"], rules_failed: ["employer_documented"] },
     { domain: "financial", score: 45, max_score: 100, rules_passed: ["income_documented", "housing_cost_present"], rules_failed: ["bank_statement_present", "consent_granted"] },
     { domain: "behavioral", score: 75, max_score: 100, rules_passed: ["intake_complete", "selfie_present", "gov_id_present"], rules_failed: ["consent_granted"] },
@@ -36,9 +36,9 @@ export const DEMO_TIMELINE = [
 export const DEMO_RUN_READY: Run = {
   id: "run_c41d0b77", ruleset_version: "frari_individual_v1", input_event_hash: "5e0b19aa77c2d310", output_hash: "c41d0b77e9a35f12", computed_at: "2026-10-08T21:05:00Z", triggered_by: "evaluator",
   dimension_scores: [
-    { domain: "housing", score: 90, max_score: 100, rules_passed: ["housing_type_present", "housing_cost_present", "address_present", "gov_id_verified"], rules_failed: ["consent_granted"] },
+    { domain: "housing", score: 80, max_score: 100, rules_passed: ["housing_type_present", "housing_cost_present", "address_present", "gov_id_verified"], rules_failed: ["consent_granted"] },
     { domain: "workforce", score: 100, max_score: 100, rules_passed: ["employment_present", "employed", "income_documented", "employer_documented"], rules_failed: [] },
-    { domain: "financial", score: 70, max_score: 100, rules_passed: ["income_documented", "housing_cost_present", "bank_statement_present"], rules_failed: ["consent_granted"] },
+    { domain: "financial", score: 80, max_score: 100, rules_passed: ["income_documented", "housing_cost_present", "bank_statement_present"], rules_failed: ["consent_granted"] },
     { domain: "behavioral", score: 75, max_score: 100, rules_passed: ["intake_complete", "selfie_present", "gov_id_present"], rules_failed: ["consent_granted"] },
   ],
 };
