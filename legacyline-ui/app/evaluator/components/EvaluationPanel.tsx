@@ -6,7 +6,7 @@ import { api } from "../../../lib/api";
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
-  white: "#F4F6F9", gray: "#8899AA", surface: "#162E4A",
+  white: "#F4F6F9", gray: "#AEB9C5", surface: "#162E4A",
   surfaceHi: "#1E3D5A", teal: "#2DD4BF",
   red: "#F87171", yellow: "#FBBF24", green: "#34D399",
 };
@@ -161,11 +161,6 @@ export default function EvaluationPanel({
       errors.push("At least 2 documents must be verified in the checklist.");
     }
 
-    const scores = domainScores.map((d) => d.score);
-    const allIdentical = scores.every((s) => s === scores[0]);
-    if (allIdentical) {
-      warnings.push("All domain scores are identical. Please confirm this accurately reflects your assessment.");
-    }
 
     return { valid: errors.length === 0, errors, warnings };
   }
@@ -210,7 +205,7 @@ export default function EvaluationPanel({
       await api(`/participants/${participantId}/evaluation`, {
         method: "POST",
         body: JSON.stringify({
-          domain_scores: domainScores,
+          domain_scores: [], // engine-computed; reviewers no longer author scores
           doc_checklist: docChecklist,
           narrative_notes: narrative,
           recommended_next: recommended,
@@ -294,40 +289,13 @@ export default function EvaluationPanel({
           </div>
         )}
 
-        {/* Domain Scores */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Domain Scores (0–100)
+        {/* Scores come from the engine, not the reviewer (overhaul §F-E1: no sliders). */}
+        <div style={{ marginBottom: 24, padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>Scores</div>
+          <div style={{ fontSize: 13, color: C.white, lineHeight: 1.55 }}>
+            Reviewers no longer set scores. The FRARI engine computes them from the evidence; you verify documents and write findings.{" "}
+            <a href={`/review?case=${encodeURIComponent(participantId)}`} style={{ color: C.gold, textDecoration: "underline" }}>Decide in the Reading Room →</a>
           </div>
-          {DOMAIN_LABELS.map(({ key, label }) => {
-            const entry = domainScores.find((d) => d.domain === key) || { score: 50, notes: "" };
-            return (
-              <div key={key} style={{ marginBottom: 18 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: C.white, fontWeight: 500 }}>{label}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{entry.score}</span>
-                </div>
-                <input
-                  type="range" min={0} max={100} value={entry.score}
-                  disabled={isLocked}
-                  onChange={(e) => setScore(key, Number(e.target.value))}
-                  style={{ width: "100%", accentColor: C.gold, marginBottom: 6 }}
-                />
-                <input
-                  placeholder="Notes (optional)"
-                  value={entry.notes}
-                  disabled={isLocked}
-                  onChange={(e) => setNotes(key, e.target.value)}
-                  style={{
-                    width: "100%", background: "rgba(0,0,0,0.2)",
-                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4,
-                    padding: "6px 10px", color: C.white, fontSize: 12,
-                    outline: "none", boxSizing: "border-box",
-                  }}
-                />
-              </div>
-            );
-          })}
         </div>
 
         {/* Doc Checklist */}
@@ -651,7 +619,7 @@ export default function EvaluationPanel({
 function SummaryRow({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      <span style={{ fontSize: 12, color: "#8899AA" }}>{label}</span>
+      <span style={{ fontSize: 12, color: "#AEB9C5" }}>{label}</span>
       <span style={{ fontSize: 12, fontWeight: 600, color: valueColor ?? "#F4F6F9" }}>{value}</span>
     </div>
   );
@@ -678,7 +646,7 @@ function SubList({ label, items }: { label?: string; items: string[] }) {
   if (!items?.length) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      {label && <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 4 }}>{label}</div>}
+      {label && <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 4 }}>{label}</div>}
       <ul style={{ paddingLeft: 16, margin: 0 }}>
         {items.map((x, i) => (
           <li key={i} style={{ color: "#F4F6F9", fontSize: 12, marginBottom: 2 }}>{x}</li>
@@ -692,7 +660,7 @@ function SubField({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 2 }}>{label}</div>
       <div style={{ color: "#F4F6F9", fontSize: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{value}</div>
     </div>
   );

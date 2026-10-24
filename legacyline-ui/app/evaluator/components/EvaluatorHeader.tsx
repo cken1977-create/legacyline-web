@@ -1,5 +1,7 @@
 // app/evaluator/components/EvaluatorHeader.tsx
 "use client";
+import { BRAND } from "../../../lib/brand";
+import { Mark } from "../../_components/assay";
 
 type Evaluator = {
   evaluator_id: string;
@@ -60,22 +62,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
           flexShrink: 0,
         }}
       >
-        <div
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 6,
-            background: "linear-gradient(135deg, #C8A84B, #8A6E2F)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 13,
-            fontWeight: 900,
-            color: "#0B1C30",
-          }}
-        >
-          L
-        </div>
+        <Mark size={30} progress={1} tone="cream" />
         <div>
           <div
             style={{
@@ -86,17 +73,17 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
               textTransform: "uppercase",
             }}
           >
-            Vimaa
+            {BRAND.name}
           </div>
           <div
             style={{
               fontSize: 9,
-              color: "#8A6E2F",
+              color: "#D9C38A",
               letterSpacing: "0.12em",
               textTransform: "uppercase",
             }}
           >
-            Evaluator Console
+            Classic console
           </div>
         </div>
       </div>
@@ -115,7 +102,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
               fontSize: 12,
               fontWeight: 600,
               letterSpacing: "0.05em",
-              color: activeView === view ? "#C8A84B" : "#8899AA",
+              color: activeView === view ? "#C8A84B" : "#AEB9C5",
               borderBottom:
                 activeView === view
                   ? "2px solid #C8A84B"
@@ -127,6 +114,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
             {view === "queue" ? "Decision Queue" : "Dashboard"}
           </button>
         ))}
+        <a href="/review" style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 14px", fontSize: 12, fontWeight: 700, color: "#0E0F11", background: "#D9C38A", borderRadius: 6, margin: "10px 0 10px 12px", textDecoration: "none" }}>Open the Reading Room →</a>
       </div>
 
       {/* Evaluator identity */}
@@ -145,7 +133,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
             <div style={{ fontSize: 12, fontWeight: 700, color: "#F4F6F9" }}>
               {evaluator.full_name}
             </div>
-            <div style={{ fontSize: 10, color: "#8899AA" }}>{certLabel}</div>
+            <div style={{ fontSize: 10, color: "#AEB9C5" }}>{certLabel}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -169,7 +157,7 @@ export function EvaluatorHeader({ evaluator, activeView, onNav }: Props) {
                 {standing}
               </span>
             </div>
-            <div style={{ fontSize: 9, color: "#8899AA" }}>
+            <div style={{ fontSize: 9, color: "#AEB9C5" }}>
               {evaluator.organization}
             </div>
           </div>

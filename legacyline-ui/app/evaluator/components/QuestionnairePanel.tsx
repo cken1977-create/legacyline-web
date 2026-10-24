@@ -6,7 +6,7 @@ import { api } from "../../../lib/api";
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
-  white: "#F4F6F9", gray: "#8899AA", surface: "#162E4A",
+  white: "#F4F6F9", gray: "#AEB9C5", surface: "#162E4A",
   teal: "#2DD4BF", red: "#F87171", green: "#34D399",
   yellow: "#FBBF24",
 };
