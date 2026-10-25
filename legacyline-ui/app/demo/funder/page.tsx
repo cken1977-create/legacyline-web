@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEMO_COHORT, DEMO_OBR_PASSED, DEMO_PROGRAMS } from "../../../lib/demo";
+import { DEMO_COHORT, DEMO_OBR_PASSED, DEMO_ORG, DEMO_PROGRAMS } from "../../../lib/demo";
 import { bandFor } from "../../../lib/bands";
 import { FRARI_INDIVIDUAL, LIFECYCLE, LIFECYCLE_LABEL, obrScore, trajectory } from "../../../lib/program";
 
@@ -82,7 +82,7 @@ export default function DemoFunder() {
 
         <section className="ao-card mt-8 p-5" aria-labelledby="orgs">
           <h2 id="orgs" className="ao-h3" style={{ fontSize: 18 }}>Organization readiness</h2>
-          <p className="mt-2" style={{ fontSize: 15 }}>Riverside Community Partners (demo): <strong>{bandFor(orgRating).label} · {orgRating}</strong> · rated Oct 16, 2026. <Link className="ao-link" href="/demo/org">See the rating</Link></p>
+          <p className="mt-2" style={{ fontSize: 15 }}>{DEMO_ORG.name}: <strong>{bandFor(orgRating).label} · {orgRating}</strong> · rated {DEMO_ORG.ratedOn}. <Link className="ao-link" href="/demo/org">See the rating</Link></p>
         </section>
 
         <p className="ao-body-2 mt-6" style={{ maxWidth: 740 }}>

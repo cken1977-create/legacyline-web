@@ -59,7 +59,9 @@ export const DEMO_FRARI: Record<string, FrariInputs> = {
 
 // ── Sample cohort for the funder view: 180-day program, check-ins at day 30, 90, 180 ──
 // Fully fictional and generated from a fixed seed, so every visit shows the same numbers.
-export const DEMO_PROGRAMS = ["Vizionz Sankofa (demo)", "Westside Reentry Partners (demo)", "Self-enrolled"] as const;
+/** The one fictional partner organization used on every demo screen. */
+export const DEMO_ORG = { name: "Riverside Community Partners (demo)", slug: "demo", ratedOn: "Oct 16, 2026", ratedAt: "2026-10-16T18:00:00Z" } as const;
+export const DEMO_PROGRAMS = ["Vizionz Sankofa (demo)", DEMO_ORG.name, "Self-enrolled"] as const;
 export type CohortPerson = { id: string; program: string; enrolledDaysAgo: number; checkins: { day: 30 | 90 | 180; inputs: FrariInputs; score: number }[] };
 
 function rng(seed: number) { let x = seed >>> 0; return () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 4294967296; }; }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DEMO_ORG } from "../../lib/demo";
 import type { Metadata } from "next";
 import { BRAND, brandTitle } from "../../lib/brand";
 import { Hallmark } from "../_components/assay";
@@ -46,9 +47,9 @@ export default function OBRLanding() {
         </div>
         <div className="ao-paper rounded-[14px] p-6" style={{ color: "var(--ink)" }}>
           <p className="ao-eyebrow">Sample organization record</p>
-          <p className="ao-serif mt-2" style={{ fontSize: 22, fontWeight: 600 }}>Riverside Community Partners</p>
+          <p className="ao-serif mt-2" style={{ fontSize: 22, fontWeight: 600 }}>{DEMO_ORG.name}</p>
           <ul className="mt-4 flex flex-col gap-2" style={{ fontSize: 14 }}>
-            {["Board meets quarterly, minutes on file", "Audit within 24 months", "Written succession plan"].map((x) => <li key={x} className="flex items-center gap-2"><span style={{ color: "var(--pine)" }}><IconCheck size={16} /></span>{x}</li>)}
+            {["Board structure documented", "Last audit date documented", "Training programs documented"].map((x) => <li key={x} className="flex items-center gap-2"><span style={{ color: "var(--pine)" }}><IconCheck size={16} /></span>{x}</li>)}
           </ul>
           <div className="mt-4"><Hallmark runId="sample" outputHash="3b9e04d2" at="2026-10-02T16:00:00Z" /></div>
           <p className="ao-meta mt-3">Sample data.</p>
