@@ -22,7 +22,7 @@ export type RecordData = {
   intake: Record<string, any> | null; run: Run | null;
 };
 
-export default function MyRecord({ demo }: { demo?: RecordData }) {
+export default function MyRecord({ demo, extra }: { demo?: RecordData; extra?: React.ReactNode }) {
   const router = useRouter();
   const [data, setData] = useState<RecordData | null>(demo ?? null);
   const [loading, setLoading] = useState(!demo);
@@ -162,6 +162,7 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
                   </ol>
                 )}
               </section>
+              {extra}
             </div>
 
             <aside className="flex flex-col gap-5 lg:col-span-4">

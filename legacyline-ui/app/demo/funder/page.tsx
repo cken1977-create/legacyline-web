@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEMO_COHORT, DEMO_OBR_PASSED, DEMO_ORG, DEMO_PROGRAMS } from "../../../lib/demo";
+import { DEMO_COHORT, DEMO_COHORT_FOLLOWUP, DEMO_OBR_PASSED, DEMO_ORG, DEMO_ORG_RENEWAL, DEMO_PROGRAMS, stableHousing, steadyMoney, workingSteadily } from "../../../lib/demo";
 import { bandFor } from "../../../lib/bands";
 import { FRARI_INDIVIDUAL, LIFECYCLE, LIFECYCLE_LABEL, obrScore, trajectory } from "../../../lib/program";
 
@@ -26,6 +26,42 @@ function checkpoint(program: string | null, day: 30 | 90 | 180) {
   const traj = { improving: 0, stable: 0, declining: 0 } as Record<string, number>;
   reached.forEach(({ p, c }) => { const i = p.checkins.indexOf(c!); if (i > 0) traj[trajectory(p.checkins[i - 1].score, c!.score)]++; });
   return { enrolled: people.length, reached: reached.length, median: median(scores), bands, certified, traj };
+}
+
+function outcomes(day: 30 | 90 | 180) {
+  const rows = DEMO_COHORT.map((p) => DEMO_COHORT_FOLLOWUP[p.id][day]).filter(Boolean) as NonNullable<(typeof DEMO_COHORT_FOLLOWUP)[string][30]>[];
+  const n = rows.length; const pct = (k: number) => (n ? `${Math.round((k / n) * 100)}%` : "—");
+  const working = rows.filter((r) => r.answers.working);
+  return {
+    n,
+    housing: pct(rows.filter((r) => stableHousing(r.answers)).length),
+    work: pct(rows.filter((r) => workingSteadily(r.answers)).length),
+    hours: median(working.map((r) => r.answers.hoursLastWeek)) ?? "—",
+    started: rows.filter((r) => r.answers.jobChange === "started" || r.answers.jobChange === "changed").length,
+    lost: rows.filter((r) => r.answers.jobChange === "lost").length,
+    money: pct(rows.filter((r) => steadyMoney(r.answers)).length),
+    onTime: pct(rows.filter((r) => r.onTime).length),
+    signIns: median(rows.map((r) => r.signIns)) ?? "—",
+    uploads: median(rows.map((r) => r.uploads)) ?? "—",
+    coaching: n ? (rows.reduce((a, r) => a + r.coaching, 0) / n).toFixed(1) : "—",
+    response: n ? (Math.round(median(rows.map((r) => r.responseDays * 10))!) / 10).toFixed(1) : "—",
+    reviewed: rows.filter((r) => r.reReviewed).length,
+    changed: rows.filter((r) => r.reReviewChanged).length,
+    triggered: rows.filter((r) => r.triggered).length,
+  };
+}
+
+function SimpleTable({ id, title, caption, cols, rows }: { id: string; title: string; caption: string; cols: string[]; rows: (string | number)[][] }) {
+  return (
+    <section className="ao-card mt-8" style={{ overflowX: "auto", padding: 0 }} aria-labelledby={id}>
+      <h2 id={id} className="ao-h3" style={{ padding: "14px 16px 0", fontSize: 18 }}>{title}</h2>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
+        <caption className="ao-meta" style={{ textAlign: "left", padding: "4px 16px 10px" }}>{caption}</caption>
+        <thead><tr>{cols.map((c, i) => <th key={c} scope="col" style={i ? th : { ...th, textAlign: "left" }}>{c}</th>)}</tr></thead>
+        <tbody>{rows.map((r) => <tr key={String(r[0])}>{r.map((v, i) => i ? <td key={i} className="ao-mono" style={td}>{v}</td> : <th key={i} scope="row" style={{ ...td, textAlign: "left", fontWeight: 400 }}>{v}</th>)}</tr>)}</tbody>
+      </table>
+    </section>
+  );
 }
 
 export default function DemoFunder() {
@@ -82,12 +118,22 @@ export default function DemoFunder() {
 
         <section className="ao-card mt-8 p-5" aria-labelledby="orgs">
           <h2 id="orgs" className="ao-h3" style={{ fontSize: 18 }}>Organization readiness</h2>
-          <p className="mt-2" style={{ fontSize: 15 }}>{DEMO_ORG.name}: <strong>{bandFor(orgRating).label} · {orgRating}</strong> · rated {DEMO_ORG.ratedOn}. <Link className="ao-link" href="/demo/org">See the rating</Link></p>
+          <p className="mt-2" style={{ fontSize: 15 }}>{DEMO_ORG.name}: <strong>{bandFor(orgRating).label} · {orgRating}</strong> · rated {DEMO_ORG.ratedOn}, valid until {DEMO_ORG_RENEWAL.expiresOn} (organizations recertify every year). <Link className="ao-link" href="/demo/org">See the rating</Link></p>
         </section>
 
-        <p className="ao-body-2 mt-6" style={{ maxWidth: 740 }}>
-          <strong>Not shown yet:</strong> follow-up questions about housing, work and money at each check-in. The program doesn&apos;t define those questions yet, so the demo only shows measures the written standard already has.
-        </p>
+        <SimpleTable id="life" title="Housing, work and money at each check-in" caption="All programs · from the check-in questions (proposed set, awaiting approval) · sample data"
+          cols={["Check-in", "Answered", "Stable housing", "Working steadily", "Median hours (working)", "Started or changed job", "Lost a job", "Steady money"]}
+          rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.n, o.housing, o.work, o.hours, o.started, o.lost, o.money]; })} />
+        <p className="ao-meta mt-2">Stable housing: own place or paying part, there 3+ months or no moves, not a month behind. Working steadily: 3+ of the last 4 weeks and 20+ hours. Steady money: income the same or more, and most bills on time.</p>
+
+        <SimpleTable id="eng" title="Taking part" caption="All programs · engagement data collected between check-ins · sample data"
+          cols={["Check-in", "On time", "Median sign-ins / month", "Median uploads (90 days)", "Coaching touches / person", "Median response (days)"]}
+          rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.onTime, o.signIns, o.uploads, o.coaching, o.response]; })} />
+
+        <SimpleTable id="rr" title="Scheduled re-reviews" caption="Evidence re-verified and score recomputed by the rules at every check-in · sample data"
+          cols={["Check-in", "Re-reviews done", "Score changed after re-review", "Early re-review triggered"]}
+          rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.reviewed, o.changed, o.triggered]; })} />
+        <p className="ao-meta mt-2">Early re-review triggers: a jump of 15+ points, a burst of uploads right before a check-in, reused documents, answers that contradict the evidence, or a late check-in. Scores can&apos;t be coasted on: evidence stops counting after 90 days.</p>
       </div>
     </main>
   );

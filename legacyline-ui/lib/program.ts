@@ -125,7 +125,7 @@ export const CERT_STAGES = [
   { name: "Doctrine training", text: "Study all 8 BRSA doctrine modules." },
   { name: "Knowledge assessment", text: "80-question exam, 10 per module. Pass with 80% (64 of 80) and at least 8 of 10 in each module." },
   { name: "Supervised practicum", text: "Evaluations under a certified Senior Evaluator before working alone." },
-  { name: "Continuing alignment", text: "Required recertification as standards change. Certification is version-tracked and lapses if not maintained." },
+  { name: "Annual recertification", text: "Certification lasts one year. Evaluators recertify every year (and whenever the standard changes). Lapsed evaluators can't sign off reviews." },
 ];
 export const CERT_SOURCE = "BRSA Platform (Apr 2026), Evaluator Study Guide passing standard, Evaluator Certification Doctrine Art. VII";
 
@@ -164,3 +164,52 @@ export function obrScore(passed: Set<string>) {
   const composite = Math.round(areas.reduce((s, a) => s + a.score * a.weight, 0));
   return { composite, areas };
 }
+
+// ── Annual renewal (Clarence, Oct 24 2026) ─────────────────────────────────
+export const RENEWAL = {
+  org: "An organization's rating lasts one year. Organizations recertify every year.",
+  evaluator: "An evaluator's certification lasts one year. Evaluators recertify every year.",
+  windowDays: 60, // renewal opens this many days before expiry (proposal)
+};
+
+// ── Organization score guardrail ───────────────────────────────────────────
+export const OBR_GUARDRAIL = [
+  "Evaluators enter and verify evidence. They don't score.",
+  "Area scores are computed by the published organization rules from the verified evidence.",
+  "A person oversees: they can flag, pause or send back a rating, always with a written reason that is logged.",
+  "No one can type in or override a computed score.",
+];
+
+// ── Follow-up system (PROPOSAL, follow-up-system-v1.md) ────────────────────
+export const FOLLOW_UP_DAYS = [0, 30, 90, 180] as const;
+export type FollowUpDay = (typeof FOLLOW_UP_DAYS)[number];
+export const FOLLOW_UP_AREAS = [
+  { key: "housing", label: "Housing", questions: ["Where are you staying right now?", "How long have you been at this place?", "How many times have you moved since the last check-in?", "Are you behind on rent or housing costs?", "Do you expect to still be here at the next check-in?"] },
+  { key: "work", label: "Work", questions: ["Are you working right now?", "About how many hours did you work last week?", "How many weeks did you work in the last 4?", "Since the last check-in, did you start, leave or change a job?", "Is your schedule steady week to week?"] },
+  { key: "money", label: "Income and money", questions: ["About how much came in last month, from all sources? (ranges)", "Compared with the last check-in, is that more, the same or less?", "Do you have a bank or credit union account?", "Did you pay your main bills on time last month?", "Do you have any money set aside for an emergency?"] },
+] as const;
+export type FollowUpAnswers = {
+  housing: string; housingMonths: number; moves: number; behindRent: boolean;
+  working: boolean; hoursLastWeek: number; weeksWorked4: number; jobChange: "none" | "started" | "left" | "lost" | "changed";
+  incomeRange: string; incomeTrend: "more" | "same" | "less"; bank: boolean; billsOnTime: "all" | "most" | "some" | "none";
+};
+export const stableHousing = (a: FollowUpAnswers) => /own place|paying part/i.test(a.housing) && (a.housingMonths >= 3 || a.moves === 0) && !a.behindRent;
+export const workingSteadily = (a: FollowUpAnswers) => a.working && a.weeksWorked4 >= 3 && a.hoursLastWeek >= 20;
+export const steadyMoney = (a: FollowUpAnswers) => a.incomeTrend !== "less" && (a.billsOnTime === "all" || a.billsOnTime === "most");
+
+export const ENGAGEMENT_SIGNALS = [
+  { key: "signIns", label: "Sign-ins", unit: "days this month" },
+  { key: "uploads", label: "Evidence uploads", unit: "in the last 90 days" },
+  { key: "checkIns", label: "Check-ins done on time", unit: "" },
+  { key: "coaching", label: "Coaching touches", unit: "since enrolling" },
+  { key: "responseDays", label: "Median response time", unit: "days" },
+] as const;
+
+export const RE_REVIEW_RULES = [
+  "Re-reviews are scheduled at days 30, 90 and 180, then every 90 days after certification.",
+  "An evaluator re-verifies the evidence; the rules recompute the score. Answers never change the score directly.",
+  "A score past its re-review date shows as due. After 30 more days, a certified status is paused until the re-review is done.",
+  "Evidence only counts for 90 days, so the score drops on its own if someone stops taking part.",
+  "Early re-review if: score jumps 15+ points, 5+ uploads in 48 hours before a check-in, a document is reused, answers contradict the evidence, a check-in is 14+ days late, or consent changes.",
+  "About 1 in 10 active records is spot-checked between check-ins.",
+];

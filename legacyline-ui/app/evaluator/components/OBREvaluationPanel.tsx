@@ -146,8 +146,7 @@ export default function OBREvaluationPanel({
           ...authHeaders(),
         },
         body: JSON.stringify({
-          domain_scores: domainScores,
-          doc_checklist: docChecklist,
+          verified_evidence: docChecklist.filter((d) => d.checked).map((d) => d.item),
           narrative_notes: narrative,
           recommended_next: recommended,
           attestation,
@@ -158,7 +157,7 @@ export default function OBREvaluationPanel({
           ai_recommended: aiEval?.recommended_actions ?? null,
         }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) { const j = await res.json().catch(() => null); throw new Error(j?.message ?? j?.error ?? "Save failed"); }
       setMsg({
         ok: true,
         text: submit
@@ -176,14 +175,6 @@ export default function OBREvaluationPanel({
       setSaving(false);
       setSubmitting(false);
     }
-  }
-
-  function setScore(domain: string, score: number) {
-    setDomainScores((prev) => prev.map((d) => d.domain === domain ? { ...d, score } : d));
-  }
-
-  function setNotes(domain: string, notes: string) {
-    setDomainScores((prev) => prev.map((d) => d.domain === domain ? { ...d, notes } : d));
   }
 
   function toggleDoc(key: string) {
@@ -225,30 +216,30 @@ export default function OBREvaluationPanel({
           </div>
         )}
 
-        {/* Domain Scores */}
+        {/* Area scores: computed by the organization rules, never entered by a person */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Domain Scores (0–100)
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Area scores (computed)
+          </div>
+          <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>
+            Scores are computed from the evidence on file by the published organization rules when you submit. You verify the evidence below; you can&apos;t type in or change a score.
           </div>
           {OBR_DOMAINS.map(({ key, label }) => {
-            const entry = domainScores.find((d) => d.domain === key) ?? { score: 50, notes: "" };
+            const entry = domainScores.find((d) => d.domain === key);
+            const computed = isLocked && entry && evaluation?.composite_score != null;
             return (
-              <div key={key} style={{ marginBottom: 18 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: C.white, fontWeight: 500 }}>{label}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{entry.score}</span>
-                </div>
-                <input type="range" min={0} max={100} value={entry.score}
-                  disabled={isLocked}
-                  onChange={(e) => setScore(key, Number(e.target.value))}
-                  style={{ width: "100%", accentColor: C.gold, marginBottom: 6 }} />
-                <input placeholder="Notes (optional)" value={entry.notes}
-                  disabled={isLocked}
-                  onChange={(e) => setNotes(key, e.target.value)}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, padding: "6px 10px", color: C.white, fontSize: 12, outline: "none", boxSizing: "border-box" as const }} />
+              <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 13, color: C.white }}>{label}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: computed ? C.gold : C.gray }}>{computed ? entry!.score : "computed on submit"}</span>
               </div>
             );
           })}
+          {evaluation?.composite_score != null && (
+            <div style={{ marginTop: 10, fontSize: 13, color: C.white }}>
+              Organization score <strong style={{ color: C.gold }}>{evaluation.composite_score}</strong>
+              {evaluation.expires_at ? <> · rating valid until {new Date(evaluation.expires_at).toLocaleDateString("en-US", { timeZone: "America/Denver", month: "short", day: "numeric", year: "numeric" })}</> : null}
+            </div>
+          )}
         </div>
 
         {/* Doc Checklist */}

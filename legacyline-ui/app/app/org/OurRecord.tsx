@@ -57,7 +57,7 @@ export default function OurRecord({ demo, extra, score }: { demo?: OBRProfile; e
           <section className="ao-card mt-8 p-6" aria-label="Standing">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div><p className="ao-eyebrow">Record standing</p><p className="ao-serif mt-1" style={{ fontSize: 26, fontWeight: 600 }}>{s?.status === "certified" ? "Certified" : score !== undefined ? <>{bandFor(score).label} <span className="ao-mono">{score}</span><span className="ao-mono" style={{ fontSize: 15, color: "var(--ink-3)" }}> / 100</span></> : "Not yet assessed"}</p>
-                <p className="ao-body-2 mt-1">{s?.status === "certified" ? "Your record was certified by two independent reviewers."   : score !== undefined ? "Rated by a certified reviewer under the published organization ruleset. Details below." : submitted ? "A certified reviewer will run the organization ruleset on your record." : "Send your record for review to get a standing."}</p></div>
+                <p className="ao-body-2 mt-1">{s?.status === "certified" ? "Your record was certified by two independent reviewers."   : score !== undefined ? "Computed by the published organization rules from evidence a certified reviewer verified. Valid for one year. Details below." : submitted ? "A certified reviewer will run the organization ruleset on your record." : "Send your record for review to get a standing."}</p></div>
               <BandChip score={score ?? null} certified={s?.status === "certified"} />
             </div>
             <div className="mt-3"><Hallmark state="none" /></div>

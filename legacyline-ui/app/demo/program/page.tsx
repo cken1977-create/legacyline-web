@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "../../../lib/brand";
-import { BANDS_SOURCE, EVIDENCE_DOMAINS, EVIDENCE_DOMAINS_SOURCE, FRARI_COMPONENTS, FRARI_INDIVIDUAL, INTAKE_FIELDS, OBR, OBR_AREAS, PUBLISHED_BANDS, STANDARD } from "../../../lib/program";
+import { BANDS_SOURCE, EVIDENCE_DOMAINS, EVIDENCE_DOMAINS_SOURCE, FRARI_COMPONENTS, FRARI_INDIVIDUAL, INTAKE_FIELDS, OBR, OBR_AREAS, PUBLISHED_BANDS, STANDARD, OBR_GUARDRAIL, RENEWAL, FOLLOW_UP_DAYS, FOLLOW_UP_AREAS, ENGAGEMENT_SIGNALS, RE_REVIEW_RULES } from "../../../lib/program";
 
 export const metadata: Metadata = { title: "The program", robots: { index: false, follow: false } };
 
@@ -73,6 +73,17 @@ export default function ProgramPage() {
           </div>
           <p className="ao-mono mt-3" style={{ fontSize: 14 }}>{OBR.formula}</p>
           <p className="ao-meta mt-2">Source: {OBR.source}</p>
+          <ul className="ao-card mt-3 p-4 flex flex-col gap-1" style={{ fontSize: 14, listStyle: "disc", paddingLeft: 32 }}>{OBR_GUARDRAIL.map((g) => <li key={g}>{g}</li>)}<li>{RENEWAL.org}</li></ul>
+        </section>
+
+        <section className="mt-8" aria-labelledby="fu">
+          <h2 id="fu" className="ao-h2">Check-ins and re-reviews <span className="ao-meta">(proposed, awaiting approval)</span></h2>
+          <p className="ao-body-2 mt-2">Check-ins at day {FOLLOW_UP_DAYS.join(", day ")}. Each one asks the same short questions so change shows up over time, refreshes the evidence, and includes a re-review.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            {FOLLOW_UP_AREAS.map((a) => <div key={a.key} className="ao-card p-4"><p style={{ fontWeight: 600 }}>{a.label}</p><ul className="mt-2 flex flex-col gap-1" style={{ fontSize: 14, listStyle: "disc", paddingLeft: 18 }}>{a.questions.map((q) => <li key={q}>{q}</li>)}</ul></div>)}
+          </div>
+          <p className="ao-meta mt-3" style={{ fontWeight: 600, color: "var(--ink)" }}>Also tracked between check-ins: {ENGAGEMENT_SIGNALS.map((e) => e.label.toLowerCase()).join(", ")}.</p>
+          <ul className="mt-2 flex flex-col gap-1" style={{ fontSize: 14, listStyle: "disc", paddingLeft: 18 }}>{RE_REVIEW_RULES.map((r) => <li key={r}>{r}</li>)}</ul>
         </section>
       </div>
     </main>
