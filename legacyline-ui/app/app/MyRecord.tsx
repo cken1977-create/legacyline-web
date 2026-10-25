@@ -8,6 +8,8 @@ import { CoreError, core, coreSafe, currentParticipantId, hasIndividualSession, 
 import { bandFor } from "../../lib/bands";
 import { type FrariInputs, frariScore } from "../../lib/program";
 import FrariPanel from "../_components/program/FrariPanel";
+import FollowThrough, { type FollowData } from "./FollowThrough";
+import { NUDGES_ON, STAGE_GUIDE } from "../../lib/person";
 import { AREAS, RULESET_LABEL, type Run, fmtMT } from "../../lib/frari";
 import { STATUS_STEPS, pointsMeta, summarize, type SlotState } from "../../lib/record";
 import { BandChip, Completeness, CopyMono, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
@@ -22,7 +24,7 @@ export type RecordData = {
   intake: Record<string, any> | null; run: Run | null;
 };
 
-export default function MyRecord({ demo, extra }: { demo?: RecordData; extra?: React.ReactNode }) {
+export default function MyRecord({ demo, extra, follow, nudgesOn }: { demo?: RecordData; extra?: React.ReactNode; follow?: FollowData; nudgesOn?: boolean }) {
   const router = useRouter();
   const [data, setData] = useState<RecordData | null>(demo ?? null);
   const [loading, setLoading] = useState(!demo);
@@ -88,6 +90,23 @@ export default function MyRecord({ demo, extra }: { demo?: RecordData; extra?: R
   const band = bandFor(score);
   const initials = `${data.firstName?.[0] ?? ""}${data.lastName?.[0] ?? ""}`.toUpperCase() || "·";
 
+  // Next steps: the rules the record hasn't met yet.
+  const nextStepsEl = (
+              <section aria-labelledby="next">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h2 id="next" className="ao-h2">Next steps</h2>
+                  <span className="ao-meta">From the rules your record hasn't met yet</span>
+                </div>
+                {sum.next.length === 0 ? (
+                  <div className="ao-card p-5 ao-body-2">Everything the standard asks for is on file. Nice work. Keep documents current; we'll tell you when something needs a refresh.</div>
+                ) : (
+                  <ol className="flex flex-col gap-3">
+                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
+                  </ol>
+                )}
+              </section>
+  );
+
   return (
     <div className="ao-paper">
       {demo && <DemoBanner />}
@@ -148,20 +167,11 @@ export default function MyRecord({ demo, extra }: { demo?: RecordData; extra?: R
                 </div>}
               </section>
 
-              {/* Next steps */}
-              <section aria-labelledby="next">
-                <div className="mb-3 flex items-baseline justify-between">
-                  <h2 id="next" className="ao-h2">Next steps</h2>
-                  <span className="ao-meta">From the rules your record hasn't met yet</span>
-                </div>
-                {sum.next.length === 0 ? (
-                  <div className="ao-card p-5 ao-body-2">Everything the standard asks for is on file. Nice work. Keep documents current; we'll tell you when something needs a refresh.</div>
-                ) : (
-                  <ol className="flex flex-col gap-3">
-                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
-                  </ol>
-                )}
-              </section>
+              {demo && !follow ? nextStepsEl : (
+                <FollowThrough pid={data.participantId} status={data.status} nextSteps={sum.next} nudgesOn={nudgesOn ?? NUDGES_ON} demo={follow} onDemoNote={flash}>
+                  {nextStepsEl}
+                </FollowThrough>
+              )}
               {extra}
             </div>
 
@@ -294,8 +304,14 @@ function Journey({ status }: { status: string }) {
           </li>
         ))}
       </ol>
-      <p className="mt-3" style={{ fontSize: 15, fontWeight: 600 }}>{cur.label}</p>
+      <p className="mt-3" style={{ fontSize: 15, fontWeight: 600 }}>Step {idx + 1} of {STATUS_STEPS.length}: {cur.label}</p>
       <p className="ao-body-2">{cur.plain}</p>
+      {STAGE_GUIDE[cur.key] && (
+        <dl className="mt-3 flex flex-col gap-2 ao-body-2">
+          <div><dt className="ao-meta">What you do now</dt><dd>{STAGE_GUIDE[cur.key].you}</dd></div>
+          <div><dt className="ao-meta">What happens next</dt><dd>{STAGE_GUIDE[cur.key].next}</dd></div>
+        </dl>
+      )}
     </div>
   );
 }

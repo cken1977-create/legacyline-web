@@ -249,3 +249,21 @@ export const DEMO_VERIFY: Record<string, { registry_id: string; readiness_state:
   "BRSA-26-7F3A0417": { registry_id: "BRSA-26-7F3A0417", readiness_state: "YELLOW", status: "under_review", last_updated_at: "2026-10-19T19:20:00Z", standing: "yellow", score: 59, ruleset_version: "frari-individual-v1.0.0", output_hash_short: "7f3a9c1e", as_of: "2026-10-19T19:20:00Z" },
   "BRSA-26-7F3A0420": { registry_id: "BRSA-26-7F3A0420", readiness_state: "GREEN", status: "evaluated", last_updated_at: "2026-10-21T17:00:00Z", standing: "green", score: 91, ruleset_version: "frari-individual-v1.0.0", output_hash_short: "c41d0b77", as_of: "2026-10-21T17:00:00Z" },
 };
+
+// ── Maya in the person app (core check-in keys; same story as DEMO_PERSON_CHECKINS) ──
+const MAYA_ANSWERS: Record<0 | 30 | 90, Record<string, string>> = {
+  0: { housing: "family_not_paying", housing_for: "1_3m", moves: "0", behind_rent: "no_rent", expect_stay: "probably", working: "looking", hours_last_week: "0", weeks_worked_4: "0", job_change: "none", schedule_steady: "no", income_range: "under_500", income_trend: "same", bank_account: "no", bills_on_time: "some", emergency_savings: "none", help_note: "", consent_continue: "yes" },
+  30: { housing: "family_paying_part", housing_for: "3_6m", moves: "0", behind_rent: "no", expect_stay: "yes", working: "one_job", hours_last_week: "11_20", weeks_worked_4: "2", job_change: "started", schedule_steady: "mostly", income_range: "500_999", income_trend: "more", bank_account: "no", bills_on_time: "most", emergency_savings: "none", help_note: "", consent_continue: "yes" },
+  90: { housing: "own_renting", housing_for: "1_3m", moves: "1", behind_rent: "no", expect_stay: "yes", working: "one_job", hours_last_week: "21_30", weeks_worked_4: "4", job_change: "none", schedule_steady: "yes", income_range: "2000_2999", income_trend: "more", bank_account: "opening", bills_on_time: "all", emergency_savings: "under_100", help_note: "More hours at work.", consent_continue: "yes" },
+};
+export const DEMO_FOLLOW = {
+  enrolledAt: "2026-07-21T18:00:00Z",
+  now: DEMO_TODAY_ISO,
+  consent: "pending" as const,
+  coach: { name: DEMO_COACH.name, lastTouch: "Oct 21, 2026", next: "Oct 28, 2026" },
+  reReview: { status: "current" as const, next_due_at: "2027-01-17T18:00:00Z", last_review_at: "2026-10-19T18:00:00Z" },
+  checkIns: ([0, 30, 90] as const).map((day, i) => ({
+    day, answers: MAYA_ANSWERS[day], score: DEMO_PERSON_CHECKINS[i].score,
+    submitted_at: ["2026-07-21T18:00:00Z", "2026-08-24T18:00:00Z", "2026-10-19T18:00:00Z"][i], days_late: day === 30 ? 4 : 0,
+  })),
+};
