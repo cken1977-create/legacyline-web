@@ -10,11 +10,23 @@ import { type FrariInputs, frariScore } from "../../lib/program";
 import FrariPanel from "../_components/program/FrariPanel";
 import FollowThrough, { type FollowData } from "./FollowThrough";
 import { NUDGES_ON, STAGE_GUIDE } from "../../lib/person";
-import { AREAS, RULESET_LABEL, type Run, fmtMT } from "../../lib/frari";
+import { AREAS, RULESET_LABEL, type Run, fmtMT, ruleLabel } from "../../lib/frari";
 import { STATUS_STEPS, pointsMeta, summarize, type SlotState } from "../../lib/record";
 import { BandChip, Completeness, CopyMono, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
 import { IconArrowRight, IconChevron, IconLock, IconLogout, IconRecord, IconShare, IconShelf, IconShield, IconUpload, IconUser } from "../_components/assay/icons";
 
+
+/** The 12 scored intake fields (FRARI v1.0.0) that a step fills in. Other steps don't change the score directly. */
+const INTAKE_SLOTS = new Set(["address", "housing_type", "employment_status", "monthly_income", "monthly_housing_cost", "gov_id", "bank_statement"]);
+/** Points this step adds to the published score, from the formula itself. null when it can't be computed truthfully. */
+function scoreGain(slotKey: string, f?: FrariInputs): number | null {
+  if (!f) return null;
+  const next: FrariInputs | null = slotKey === "consent" ? (f.consent === "granted" ? null : { ...f, consent: "granted" })
+    : INTAKE_SLOTS.has(slotKey) ? (f.intakeFilled >= 12 ? null : { ...f, intakeFilled: f.intakeFilled + 1 }) : null;
+  if (!next) return null;
+  const g = frariScore(next).composite - frariScore(f).composite;
+  return g > 0 ? g : null;
+}
 
 type Tab = "record" | "evidence" | "share" | "me";
 export type RecordData = {
@@ -101,7 +113,7 @@ export default function MyRecord({ demo, extra, follow, nudgesOn }: { demo?: Rec
                   <div className="ao-card p-5 ao-body-2">Everything the standard asks for is on file. Nice work. Keep documents current; we'll tell you when something needs a refresh.</div>
                 ) : (
                   <ol className="flex flex-col gap-3">
-                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
+                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} gain={scoreGain(s.key, data.frari)} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
                   </ol>
                 )}
               </section>
@@ -208,7 +220,7 @@ export default function MyRecord({ demo, extra, follow, nudgesOn }: { demo?: Rec
           </div>
         )}
 
-        {tab === "evidence" && <EvidenceShelf slots={sum.slots} hrefFor={actHref} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />}
+        {tab === "evidence" && <EvidenceShelf slots={sum.slots} gainFor={(k) => scoreGain(k, data.frari)} hrefFor={actHref} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />}
         {tab === "share" && <ShareTab rid={data.registryId} demo={!!demo} />}
         {tab === "me" && <MeTab d={data} onSignOut={signOut} />}
 
@@ -263,7 +275,7 @@ function DomainStrip({ run }: { run: Run }) {
   );
 }
 
-function NextStep({ slot, i, href, onDemo }: { slot: SlotState; i: number; href?: string; onDemo: () => void }) {
+function NextStep({ slot, i, gain, href, onDemo }: { slot: SlotState; i: number; gain: number | null; href?: string; onDemo: () => void }) {
   const [open, setOpen] = useState(false);
   const m = pointsMeta(slot);
   const Btn = href ? Link : "button";
@@ -273,7 +285,7 @@ function NextStep({ slot, i, href, onDemo }: { slot: SlotState; i: number; href?
         <div className="min-w-0 flex-1">
           <p style={{ fontSize: 16, lineHeight: "22px", fontWeight: 600 }}>{slot.ask}</p>
           <p className="ao-body-2 mt-1">{slot.why}</p>
-          <p className="ao-mono ao-meta mt-2">+{m.total}{m.areas > 1 ? ` across ${m.areas} areas` : ""} · FRARI v1 · {m.ruleIds[0]}</p>
+          <p className="ao-meta mt-2">{gain ? <><strong style={{ color: "var(--ink)" }}>+{gain} points</strong> to your score · </> : null}{ruleLabel(m.ruleIds[0])}</p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <button className="ao-btn ao-btn-quiet ao-btn-sm" aria-expanded={open} onClick={() => setOpen(!open)}>Why?</button>
@@ -285,7 +297,9 @@ function NextStep({ slot, i, href, onDemo }: { slot: SlotState; i: number; href?
       </div>
       {open && (
         <div className="ao-fade border-t px-5 py-4 ao-body-2" style={{ borderColor: "var(--linen)", background: "var(--paper)" }}>
-          This step meets {m.ruleIds.length > 1 ? "these rules" : "this rule"} in {RULESET_LABEL}: <span className="ao-mono" style={{ fontSize: 13 }}>{m.ruleIds.join(", ")}</span>. The points are published in the standard; nobody adds them by hand. A reviewer confirms what you send before it counts as verified.
+          This step checks off {m.ruleIds.map(ruleLabel).join(" and ")} in your documentation check.{" "}
+          {gain ? <>Under the published score formula it adds {gain} points to your score.</> : slot.key === "consent" || INTAKE_SLOTS.has(slot.key) ? <>It counts in the published score formula.</> : <>It isn't one of the 12 intake fields in the score formula, so it has no point number of its own.</>}{" "}
+          Nobody adds points by hand. A reviewer confirms what you send before it counts as verified.
         </div>
       )}
     </li>
@@ -316,7 +330,7 @@ function Journey({ status }: { status: string }) {
   );
 }
 
-function EvidenceShelf({ slots, hrefFor, onDemo }: { slots: SlotState[]; hrefFor: (s: SlotState) => string | undefined; onDemo: () => void }) {
+function EvidenceShelf({ slots, gainFor, hrefFor, onDemo }: { slots: SlotState[]; gainFor: (key: string) => number | null; hrefFor: (s: SlotState) => string | undefined; onDemo: () => void }) {
   return (
     <div className="flex flex-col gap-5">
       {AREAS.map((a) => {
@@ -335,7 +349,7 @@ function EvidenceShelf({ slots, hrefFor, onDemo }: { slots: SlotState[]; hrefFor
                   <li key={s.key} className="ao-row flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5" style={{ borderTop: "1px solid var(--linen)" }}>
                     <div className="min-w-[180px] flex-1">
                       <p style={{ fontSize: 15, fontWeight: 500 }}>{s.label}</p>
-                      <p className="ao-meta">{s.kind} · +{s.points} in FRARI v1</p>
+                      <p className="ao-meta">{s.kind}{s.status === "missing" && gainFor(s.key) ? ` · +${gainFor(s.key)} points to your score` : ""}</p>
                     </div>
                     <StatusWord status={s.status} />
                     {s.status === "missing" ? (
