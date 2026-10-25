@@ -53,7 +53,7 @@ export const SLOTS: Slot[] = [
   { key: "employment_status", area: "work", label: "Work status", ask: "Tell us about your work", why: "Any status counts, including looking for work.", kind: "Answer", action: "Answer", rules: ["employment_present", "employed"] },
   { key: "employer_name", area: "work", label: "Employer", ask: "Confirm your employer", why: "Reviewers match it against your pay records.", kind: "Answer", action: "Answer", rules: ["employer_documented"] },
   { key: "monthly_income", area: "income", label: "Monthly income", ask: "Add your monthly income", why: "An honest number is more useful than a big one.", kind: "Answer", action: "Answer", rules: ["income_documented"] },
-  { key: "bank_statement", area: "income", label: "Bank statement", ask: "Add a recent bank statement", why: "Lenders look for steady deposits over time.", kind: "Document", action: "Upload", rules: ["bank_statement_present"] },
+  { key: "bank_statement", area: "income", label: "Bank statement", ask: "Add a recent bank statement", why: "It shows money coming in and going out over time, as a record of steady habits.", kind: "Document", action: "Upload", rules: ["bank_statement_present"] },
   { key: "consent", area: "consent", label: "Consent to review", ask: "Review and grant consent to share", why: "Nothing is shared with a reviewer until you say so.", kind: "Consent", action: "Review", rules: ["consent_granted"] },
 ];
 
@@ -93,7 +93,7 @@ export const RULE_LABEL: Record<string, string> = {
   address_present: "Address documented",
   gov_id_verified: "Government ID on file",
   gov_id_present: "Government ID submitted",
-  consent_granted: "Consent granted",
+  consent_granted: "Consent given",
   employment_present: "Work status documented",
   employed: "Currently employed",
   employer_documented: "Employer on file",
@@ -102,6 +102,21 @@ export const RULE_LABEL: Record<string, string> = {
   intake_complete: "Intake completed",
   selfie_present: "Identity selfie submitted",
 };
+
+/** Plain-English name for a rule key; never shows the raw key on screen. */
+export const ruleLabel = (r: string) => RULE_LABEL[r] ?? r.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+
+/** Plain-English name for a ruleset version stamp (shown in hallmarks). */
+export function rulesetLabel(v?: string | null): string {
+  if (!v) return "";
+  const known: Record<string, string> = {
+    frari_individual_v1: RULESET_LABEL,
+    "frari-individual-v1.0.0": "FRARI v1.0.0",
+    frari_organization_v1: "Organization rules v1",
+    "obr-organizational-v1.0.0": "OBR organizational v1.0.0",
+  };
+  return known[v] ?? v.replace(/[_-]/g, " ");
+}
 
 export const DOMAIN_LABEL: Record<string, string> = { housing: "Housing", workforce: "Work", financial: "Financial", behavioral: "Consistency" };
 

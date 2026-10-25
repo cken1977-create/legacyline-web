@@ -32,7 +32,7 @@ export function BandChip({ score, certified }: { score: number | null; certified
   const b = bandFor(score);
   return (
     <span className={`ao-chip chip-${b.key}`}>
-      {b.key !== "none" && b.key !== "pre" && b.key !== "ready" && <span className="ao-chip-dot" />}
+      {b.key !== "none" && <span className="ao-chip-dot" />}
       {b.label}
     </span>
   );

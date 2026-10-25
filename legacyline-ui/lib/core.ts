@@ -19,7 +19,7 @@ export async function core<T = any>(path: string, init: RequestInit = {}): Promi
   const text = await res.text().catch(() => "");
   let body: any = null;
   try { body = text ? JSON.parse(text) : null; } catch { body = text; }
-  if (!res.ok) throw new CoreError(res.status, body?.error ?? String(res.status), body?.message ?? body?.error ?? res.statusText);
+  if (!res.ok) throw new CoreError(res.status, body?.code ?? body?.error ?? String(res.status), body?.message ?? body?.error ?? res.statusText);
   return body as T;
 }
 
