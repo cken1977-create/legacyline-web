@@ -20,7 +20,8 @@
 //
 // In demo mode every screen shows a "Sample data, all fictional" banner, the
 // "View as" switch picks a role, sign-in pages go to sample views, and calls to
-// the live scoring service (/api/core, /api/auth) are refused, so no real data
+// the live scoring service (every /api route) are refused, and live case
+// screens (/subject/...) go to the sample Reading Room, so no real data
 // can be read or written.
 
 export const DEMO_PROJECT = "kamili-demo";
@@ -88,6 +89,7 @@ export const DEMO_REDIRECTS: Record<string, string> = {
   "/review": "/review/demo",
   "/evaluator": "/review/demo",
   "/verify": "/verify/demo",
+  "/intake": "/demo",
 };
 
 /** The /demo sample pages exist on previews, and on production only for the separate demo project. */

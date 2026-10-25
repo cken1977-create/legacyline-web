@@ -60,11 +60,21 @@ export function middleware(req: NextRequest) {
     if (isRealHost(req.headers.get("host")) || isRealHost(req.nextUrl.host)) {
       return NextResponse.redirect("https://demo.kamilihq.com/demo");
     }
-    if (pathname.startsWith("/api/core/") || pathname.startsWith("/api/auth/")) {
+    // No server route in the demo may reach the live scoring service: refuse
+    // every /api call, not only /api/core and /api/auth.
+    if (pathname === "/api" || pathname.startsWith("/api/")) {
       return NextResponse.json(
         { ok: false, error: "demo_mode", message: "This is the Kamili demo. Nothing is saved and no live data is used." },
         { status: 403 },
       );
+    }
+    // Live case screens read the scoring service on the server. Send them to
+    // the sample Reading Room; intake goes to the demo start.
+    if (pathname.startsWith("/subject/") || pathname === "/subject") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/review/demo";
+      url.search = "";
+      return NextResponse.redirect(url);
     }
     const dest = DEMO_REDIRECTS[pathname.replace(/\/+$/, "") || "/"];
     if (dest) {
@@ -124,7 +134,9 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/api/core/:path*",
-    "/api/auth/:path*",
+    "/api/:path*",
+    "/subject/:path*",
+    "/intake",
     "/login/:path*",
     "/app/:path*",
     "/review",
