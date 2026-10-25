@@ -206,8 +206,9 @@ function CheckInForm({ day, onSubmit, onCancel }: { day: number; onSubmit: (a: A
       {CHECK_IN_QUESTIONS.map((q, i) => {
         const head = i === 0 || CHECK_IN_QUESTIONS[i - 1].area !== q.area ? q.area : null;
         return (
-          <fieldset key={q.key} className="mt-3">
-            {head && <p className="ao-eyebrow mt-3">{head}</p>}
+          <div key={q.key}>
+          {head && <p className="ao-eyebrow mt-5">{head}</p>}
+          <fieldset className="mt-3">
             <legend style={{ fontSize: 15, fontWeight: 600 }}>{i + 1}. {q.q}</legend>
             {q.free ? (
               <textarea className="mt-1 w-full rounded-[8px] p-2" maxLength={1000} rows={2} style={{ border: "1px solid var(--rule)", background: "var(--card)" }} value={a[q.key] ?? ""} onChange={(e) => setA({ ...a, [q.key]: e.target.value })} />
@@ -221,6 +222,7 @@ function CheckInForm({ day, onSubmit, onCancel }: { day: number; onSubmit: (a: A
               </div>
             )}
           </fieldset>
+          </div>
         );
       })}
       {msg && <p role="status" className="mt-3 rounded-[8px] px-3 py-2" style={{ background: "var(--amber-tint)", fontSize: 14 }}>{msg}</p>}
