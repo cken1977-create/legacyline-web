@@ -135,7 +135,7 @@ export const OBR = {
   id: "obr-organizational-v1.0.0",
   label: "OBR organizational v1.0.0",
   formula: "score = leadership × 0.30 + staff × 0.25 + policy × 0.25 + financial × 0.20",
-  source: "BRSA-RS-001 (weights and area definitions); area points from frari_organization_v1 rules (legacyline-core migration 046)",
+  source: "BRSA-RS-001 (weights and area definitions); area points from the published organization rules, version 1",
 };
 export const OBR_AREAS: { key: ObrAreaKey; label: string; weight: number; meaning: string; rules: { id: string; label: string; points: number }[] }[] = [
   { key: "leadership", label: "Leadership & governance", weight: 0.30, meaning: "Leadership, board structure, governance documents and decision-making accountability.", rules: [

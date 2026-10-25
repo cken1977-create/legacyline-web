@@ -30,7 +30,7 @@ export default function ProgramPage() {
         </section>
 
         <section className="mt-8" aria-labelledby="person">
-          <h2 id="person" className="ao-h2">A person&apos;s readiness score <span className="ao-mono ao-meta">{FRARI_INDIVIDUAL.id}</span></h2>
+          <h2 id="person" className="ao-h2">A person&apos;s readiness score <span className="ao-meta">{FRARI_INDIVIDUAL.label}</span></h2>
           <p className="ao-body-2 mt-2">Four parts, each scored 0–100, then weighted. Same inputs always give the same score.</p>
           <div className="ao-card mt-3" style={{ overflowX: "auto", padding: 0 }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
@@ -61,7 +61,7 @@ export default function ProgramPage() {
         </section>
 
         <section className="mt-8" aria-labelledby="org">
-          <h2 id="org" className="ao-h2">An organization&apos;s readiness rating <span className="ao-mono ao-meta">{OBR.id}</span></h2>
+          <h2 id="org" className="ao-h2">An organization&apos;s readiness rating <span className="ao-meta">{OBR.label}</span></h2>
           <p className="ao-body-2 mt-2">Four areas, each scored 0–100 from documented items, then weighted. Same Green, Yellow and Red thresholds as for people.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {OBR_AREAS.map((a) => (

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { BANDS } from "../../lib/bands";
 import { BRAND } from "../../lib/brand";
 import { core } from "../../lib/core";
-import { fmtMT } from "../../lib/frari";
+import { fmtMT, rulesetLabel } from "../../lib/frari";
 import { Wordmark } from "../_components/assay";
 import { IconSearch, IconShield } from "../_components/assay/icons";
 
@@ -72,7 +72,7 @@ export default function Verify({ demo }: { demo?: Record<string, Result> }) {
               {([["Registry ID", <span key="rid" style={{ whiteSpace: "nowrap" }}>{r.registry_id}</span>, true],
                 ["Stage", STATE[r.status] ?? r.status, false],
                 ["Checked", r.as_of ? fmtMT(r.as_of, true) : "—", false],
-                ["Hallmark", r.output_hash_short ? <><span style={{ whiteSpace: "nowrap" }}>run {r.output_hash_short} ·</span>{" "}<span style={{ whiteSpace: "nowrap" }}>{r.ruleset_version}</span></> : "—", true]] as [string, React.ReactNode, boolean][]).map(([k, v, mono]) => (
+                ["Hallmark", r.output_hash_short ? <><span style={{ whiteSpace: "nowrap" }}>run {r.output_hash_short} ·</span>{" "}<span style={{ whiteSpace: "nowrap" }}>{rulesetLabel(r.ruleset_version)}</span></> : "—", true]] as [string, React.ReactNode, boolean][]).map(([k, v, mono]) => (
                 <div key={k} className="px-6 py-4"><dt className="ao-meta">{k}</dt><dd className={mono ? "ao-mono" : ""} style={{ fontSize: 14, fontWeight: 500, marginTop: 2, overflowWrap: "break-word" }}>{v}</dd></div>
               ))}
             </dl>

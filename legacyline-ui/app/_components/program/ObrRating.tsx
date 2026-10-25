@@ -13,7 +13,7 @@ export default function ObrRating({ passed, assessedOn, expiresOn, renewalOpens,
       <div className="ao-card mt-3 p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <p className="flex items-baseline gap-3"><span className="ao-serif" style={{ fontSize: 28, fontWeight: 600 }}>{band.label}</span><span className="ao-mono" style={{ fontSize: 28 }}>{r.composite}<span style={{ fontSize: 15, color: "var(--ink-3)" }}> / 100</span></span></p>
-          <span className="ao-meta">Rated {assessedOn}{expiresOn ? <> · <strong style={{ color: "var(--ink)" }}>valid until {expiresOn}</strong></> : null} · <span className="ao-mono">{OBR.id}</span></span>
+          <span className="ao-meta">Rated {assessedOn}{expiresOn ? <> · <strong style={{ color: "var(--ink)" }}>valid until {expiresOn}</strong></> : null} · <span>{OBR.label}</span></span>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {r.areas.map((a) => (
