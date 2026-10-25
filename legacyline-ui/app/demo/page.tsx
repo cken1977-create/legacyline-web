@@ -29,6 +29,7 @@ export default function DemoHome() {
           The program, the scoring rules and the evaluator steps are the real {BRAND.name} program. Only the people,
           organizations and numbers are sample data. Follow the story below, or pick any view.
         </p>
+        <p className="ao-body-2 mt-3" style={{ fontSize: 16 }}>Short on time? <Link className="ao-link" href="/watch">Watch the eight-minute video</Link>, or one part at a time.</p>
         {!on && <p className="ao-body-2 mt-3" role="note"><strong>Note:</strong> demo mode is off on this deployment, so the banner and sign-in redirects are not active.</p>}
         <section className="ao-card mt-8 p-5" aria-labelledby="story">
           <h2 id="story" className="ao-h2" style={{ fontSize: 20 }}>Follow one story</h2>
