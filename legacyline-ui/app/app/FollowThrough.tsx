@@ -113,7 +113,7 @@ export default function FollowThrough({ pid, status, nextSteps, nudgesOn, demo, 
               <span className="ao-mono" style={{ width: 64, fontSize: 13 }}>Day {s.day}</span>
               <span className="min-w-0 flex-1 ao-body-2">{s.status === "done" ? `Done ${fmt(s.row?.submitted_at ?? s.due)}${s.row?.days_late ? ` · ${s.row.days_late} days late` : ""}` : s.status === "upcoming" ? `Opens ${fmt(s.opens)} · due ${fmt(s.due)}` : s.status === "late" ? `${s.daysLate} days late · was due ${fmt(s.due)}` : `Open now · due ${fmt(s.due)}`}</span>
               {s.status === "done" ? <span className="ao-chip chip-green"><span className="ao-chip-dot" />Done</span>
-                : s.status === "upcoming" ? <span className="ao-chip chip-none">Later</span>
+                : s.status === "upcoming" ? (demo ? <button className="ao-btn ao-btn-quiet ao-btn-sm" onClick={() => setForm(s.day)}>Preview</button> : <span className="ao-chip chip-none">Later</span>)
                 : <button className="ao-btn ao-btn-primary ao-btn-sm" onClick={() => setForm(s.day)}>Start</button>}
             </li>
           ))}
