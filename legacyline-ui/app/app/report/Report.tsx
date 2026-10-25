@@ -8,7 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { bandFor } from "../../../lib/bands";
 import { BRAND } from "../../../lib/brand";
 import { core, currentParticipantId, hasIndividualSession } from "../../../lib/core";
-import { DOMAIN_LABEL, RULE_LABEL, RULESET_LABEL, Run, compositeOf, fmtMT, rulePoints, ruleSets, shortHash } from "../../../lib/frari";
+import { DOMAIN_LABEL, RULESET_LABEL, Run, compositeOf, fmtMT, ruleLabel, ruleSets, rulesetLabel, shortHash } from "../../../lib/frari";
 import { deriveSlots } from "../../../lib/record";
 import { Wordmark } from "../../_components/assay";
 import type { RecordData } from "../MyRecord";
@@ -59,7 +59,7 @@ export default function Report({ demo }: { demo?: RecordData }) {
             <p className="ao-serif mt-1" style={{ fontSize: 30, fontWeight: 600 }}>{certified ? "Certified" : score === null ? "Not yet assessed" : bandFor(score).label}{score !== null && <span className="ao-mono" style={{ fontSize: 24, fontWeight: 500 }}> · {score}<span style={{ fontSize: 14, color: "var(--ink-3)" }}> / 100</span></span>}</p>
             <p className="ao-body-2 mt-2 max-w-[520px]">A documentation check against the {BRAND.standard} standard ({RULESET_LABEL}). It measures how complete and consistent the record is — not a judgment of the person.</p>
           </div>
-          {d.run && <div className="ao-mono self-end rounded-[8px] px-3 py-2" style={{ fontSize: 12, border: "1px solid var(--rule)", lineHeight: "18px" }}>Hallmark<br />run {shortHash(d.run.output_hash)} · {fmtMT(d.run.computed_at)}<br />{d.run.ruleset_version}</div>}
+          {d.run && <div className="ao-mono self-end rounded-[8px] px-3 py-2" style={{ fontSize: 12, border: "1px solid var(--rule)", lineHeight: "18px" }}>Hallmark<br />run {shortHash(d.run.output_hash)} · {fmtMT(d.run.computed_at)}<br />{rulesetLabel(d.run.ruleset_version)}</div>}
         </section>
 
         {d.run && (
@@ -76,11 +76,11 @@ export default function Report({ demo }: { demo?: RecordData }) {
         <section className="grid gap-8 py-7 sm:grid-cols-2" style={{ borderBottom: "1px solid var(--linen)" }}>
           <div>
             <h2 className="ao-h2">Receipts · passed</h2>
-            <ul className="mt-3 flex flex-col gap-1.5" style={{ fontSize: 14 }}>{[...passed].map((r) => <li key={r} className="flex justify-between gap-3"><span>✓ {RULE_LABEL[r] ?? r}</span><span className="ao-mono ao-meta">+{rulePoints(r).total}</span></li>)}{!passed.size && <li className="ao-meta">No run yet.</li>}</ul>
+            <ul className="mt-3 flex flex-col gap-1.5" style={{ fontSize: 14 }}>{[...passed].map((r) => <li key={r} className="flex justify-between gap-3"><span>✓ {ruleLabel(r)}</span></li>)}{!passed.size && <li className="ao-meta">No run yet.</li>}</ul>
           </div>
           <div>
             <h2 className="ao-h2">Still open</h2>
-            <ul className="mt-3 flex flex-col gap-1.5" style={{ fontSize: 14 }}>{[...failed].filter((r) => !passed.has(r)).map((r) => <li key={r} className="flex justify-between gap-3"><span style={{ color: "var(--ink-2)" }}>○ {RULE_LABEL[r] ?? r}</span><span className="ao-mono ao-meta">{rulePoints(r).total}</span></li>)}</ul>
+            <ul className="mt-3 flex flex-col gap-1.5" style={{ fontSize: 14 }}>{[...failed].filter((r) => !passed.has(r)).map((r) => <li key={r} className="flex justify-between gap-3"><span style={{ color: "var(--ink-2)" }}>○ {ruleLabel(r)}</span></li>)}</ul>
           </div>
         </section>
 

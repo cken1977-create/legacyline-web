@@ -6,7 +6,7 @@ import { BRAND } from "../../lib/brand";
 import { bandFor } from "../../lib/bands";
 import { STAFF_EMAIL_KEY, STAFF_TOKEN_KEY } from "../../lib/api";
 import { CoreError, core, hasStaffSession, signOut as endSession } from "../../lib/core";
-import { DOMAIN_LABEL, RULE_LABEL, RULES, type Run, compositeOf, fmtMT, shortHash } from "../../lib/frari";
+import { DOMAIN_LABEL, RULES, ruleLabel, rulesetLabel, type Run, compositeOf, fmtMT, shortHash } from "../../lib/frari";
 import { deriveSlots, type SlotState } from "../../lib/record";
 import { BandChip, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
 import { IconArrowRight, IconBook, IconCheck, IconChevron, IconClock, IconFlag, IconLock, IconLogout, IconQueue, IconRefresh, IconSearch, TierGlyph } from "../_components/assay/icons";
@@ -275,7 +275,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
         const run = d!.run!;
         await core(`/participants/${c.id}/evaluation`, { method: "POST", body: JSON.stringify({
           submit: true,
-          domain_scores: run.dimension_scores.map((x) => ({ domain: x.domain, score: x.score, notes: `FRARI ${run.ruleset_version} run ${shortHash(run.output_hash)}` })),
+          domain_scores: run.dimension_scores.map((x) => ({ domain: x.domain, score: x.score, notes: `${rulesetLabel(run.ruleset_version)} run ${shortHash(run.output_hash)}` })),
           doc_checklist: slots.filter((s) => verified.has(s.key) && s.status !== "missing").map((s) => ({ document: s.key, item: s.label, verified: true, checked: true, notes: "Verified in Reading Room" })),
           narrative_notes: findings,
           recommended_next: kind === "recommend" ? "certification" : "evaluated",
@@ -354,7 +354,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
             {slots.filter((s) => s.status === "missing").map((s) => (
               <li key={s.key} className="ao-card p-3.5" style={{ borderLeft: "3px solid var(--amber)" }}>
                 <p style={{ fontSize: 14, fontWeight: 600 }}>{s.label} is missing</p>
-                <p className="ao-meta mt-0.5" style={{ color: "var(--ink-2)" }}>Holds back {s.points} pts · <span className="ao-mono">{s.rules[0]}</span></p>
+                <p className="ao-meta mt-0.5" style={{ color: "var(--ink-2)" }}>Holds back {s.points} check points · {ruleLabel(s.rules[0])}</p>
               </li>
             ))}
             <li className="ao-card p-3.5" style={{ borderLeft: "3px solid var(--engine)" }}>
@@ -467,7 +467,7 @@ function Receipts({ run, fresh, loading }: { run: Run | null; fresh: Set<string>
               </tr>
               {rows.map(({ r, ok }) => (
                 <tr key={dm.domain + r} className={fresh.has(r) ? "ao-highlight" : ""} style={{ borderTop: "1px solid var(--linen)" }}>
-                  <td className="px-5 py-2.5"><div style={{ fontWeight: 500 }}>{RULE_LABEL[r] ?? r}</div><div className="ao-mono" style={{ fontSize: 12, color: "var(--ink-3)" }}>{r}</div></td>
+                  <td className="px-5 py-2.5"><div style={{ fontWeight: 500 }}>{ruleLabel(r)}</div></td>
                   <td className="py-2.5" style={{ color: ok ? "var(--pine)" : "var(--ink-3)", fontWeight: 500, whiteSpace: "nowrap" }}>{ok ? <span className="inline-flex items-center gap-1"><IconCheck size={15} />Passed</span> : "— Missing"}</td>
                   <td className="ao-mono px-5 py-2.5 text-right" style={{ color: ok ? "var(--ink)" : "var(--ink-3)" }}>{ok ? "+" : ""}{RULES[r]?.domains[dm.domain] ?? "—"}</td>
                 </tr>
@@ -477,7 +477,7 @@ function Receipts({ run, fresh, loading }: { run: Run | null; fresh: Set<string>
         })}
       </table>
       <div className="ao-mono flex flex-wrap gap-x-4 gap-y-1 px-5 py-3" style={{ fontSize: 12, color: "var(--ink-2)", background: "var(--vellum)", borderLeft: "2px solid var(--seal)" }}>
-        <span>{run.ruleset_version}</span><span>input {shortHash(run.input_event_hash)}</span><span>output {shortHash(run.output_hash)}</span><span>{fmtMT(run.computed_at, true)}</span>
+        <span>{rulesetLabel(run.ruleset_version)}</span><span>input {shortHash(run.input_event_hash)}</span><span>output {shortHash(run.output_hash)}</span><span>{fmtMT(run.computed_at, true)}</span>
       </div>
     </div>
   );

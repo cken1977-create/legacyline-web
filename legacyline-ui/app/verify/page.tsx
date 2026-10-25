@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { BANDS } from "../../lib/bands";
 import { BRAND } from "../../lib/brand";
 import { core } from "../../lib/core";
-import { fmtMT } from "../../lib/frari";
+import { fmtMT, rulesetLabel } from "../../lib/frari";
 import { Wordmark } from "../_components/assay";
 import { IconSearch, IconShield } from "../_components/assay/icons";
 
@@ -57,7 +57,7 @@ export default function Verify() {
               <p className="ao-body-2 mt-2">{standing === "not_assessed" ? "This record hasn't been checked against the standard yet. That says nothing about the person." : certified ? "Two independent reviewers confirmed this record." : `A documentation check against the ${BRAND.standard} standard.`}</p>
             </div>
             <dl className="grid grid-cols-2" style={{ borderTop: "1px solid var(--linen)" }}>
-              {[["Registry ID", r.registry_id, true], ["Stage", STATE[r.status] ?? r.status, false], ["Checked", r.as_of ? fmtMT(r.as_of, true) : "—", false], ["Hallmark", r.output_hash_short ? `run ${r.output_hash_short} · ${r.ruleset_version}` : "—", true]].map(([k, v, mono], i) => (
+              {[["Registry ID", r.registry_id, true], ["Stage", STATE[r.status] ?? r.status, false], ["Checked", r.as_of ? fmtMT(r.as_of, true) : "—", false], ["Hallmark", r.output_hash_short ? `run ${r.output_hash_short} · ${rulesetLabel(r.ruleset_version)}` : "—", true]].map(([k, v, mono], i) => (
                 <div key={k as string} className="px-6 py-4" style={{ borderTop: i > 1 ? "1px solid var(--linen)" : 0, borderLeft: i % 2 ? "1px solid var(--linen)" : 0 }}><dt className="ao-meta">{k}</dt><dd className={mono ? "ao-mono" : ""} style={{ fontSize: 14, fontWeight: 500, marginTop: 2, wordBreak: "break-all" }}>{v}</dd></div>
               ))}
             </dl>
