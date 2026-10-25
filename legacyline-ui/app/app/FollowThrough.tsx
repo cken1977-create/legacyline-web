@@ -154,7 +154,7 @@ export default function FollowThrough({ pid, status, nextSteps, nudgesOn, demo, 
           <h2 id="coaching" className="ao-h3" style={{ fontSize: 18 }}>Coaching</h2>
           {d.coach && <p className="ao-meta mt-1">{d.coach.name} · last talked {d.coach.lastTouch} · next {d.coach.next}</p>}
           <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 ao-body-2">
-            {nextSteps[0] && <li>{nextSteps[0].ask}: {nextSteps[0].why}</li>}
+            {nextSteps.filter((s) => s.key !== "consent").slice(0, 1).map((s) => <li key={s.key}>{s.ask}. {s.why}</li>)}
             {coachingTips(last).map((t) => <li key={t}>{t}</li>)}
           </ul>
           <p className="ao-meta mt-2">Coaching keeps going after certification. Your steps update after every check-in and every new document.</p>

@@ -15,5 +15,7 @@ t("late check-in mentions early re-review at 14+", n.some((x) => x.id === "check
 t("re-review due shows grace end", n.some((x) => x.kind === "rereview" && /Grace period ends/.test(x.body)));
 const p = personNudges({ status: "certified", consent: "granted", schedule: checkInSchedule(enrolled, [0, 30, 90, 180].map((day) => ({ day, submitted_at: D(day).toISOString(), answers: {} })), D(200)), reReview: { status: "paused" }, nextSteps: [], now: D(200) });
 t("paused certification is a do-now nudge", p.some((x) => x.kind === "rereview" && x.urgency === "now" && /paused/.test(x.title)));
+const dd = personNudges({ status: "registered", consent: "none", schedule: [], reReview: null, nextSteps: [{ key: "consent", ask: "c", why: "", action: "Review" }, { key: "bank_statement", ask: "b", why: "", action: "Upload" }] as never, now: D(1) });
+t("consent not nudged twice", dd.filter((x) => x.kind === "consent" || x.id === "evidence-consent").length === 1 && dd.some((x) => x.id === "evidence-bank_statement"));
 t("coaching tip from rent answer", coachingTips({ behind_rent: "1m_plus" })[0].includes("rent"));
 console.log(fails ? `${fails} FAILED` : "all passed"); process.exit(fails ? 1 : 0);

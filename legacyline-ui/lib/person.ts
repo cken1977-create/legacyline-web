@@ -130,7 +130,8 @@ export function personNudges(p: {
     const days = Math.ceil((new Date(p.reReview.next_due_at).getTime() - p.now.getTime()) / DAY_MS);
     if (days <= 14) n.push({ id: "rereview-soon", kind: "rereview", urgency: "soon", title: `Re-review in ${days} day${days === 1 ? "" : "s"}`, body: "Make sure your documents are current. Evidence older than 90 days stops counting." });
   }
-  const step = p.nextSteps[0];
+  // The consent step already has its own nudge; point to the next document or answer instead.
+  const step = p.nextSteps.find((s) => s.key !== "consent");
   if (step) n.push({ id: `evidence-${step.key}`, kind: "evidence", urgency: "soon", title: step.ask, body: step.why, action: { label: step.action, href: `/intake?slot=${step.key}` } });
   for (const tip of coachingTips(p.lastAnswers).slice(0, 1)) n.push({ id: "coach", kind: "coaching", urgency: "info", title: "From your coaching plan", body: tip });
   if (p.status === "certified" && p.consent === "granted") n.push({ id: "share", kind: "share", urgency: "info", title: "Share your standing", body: "Give your Registry ID to a landlord or employer. They see your standing, never your files.", action: { label: "Share", href: "#share" } });
