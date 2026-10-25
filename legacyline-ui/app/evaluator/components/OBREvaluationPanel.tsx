@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 
 import { authHeaders } from "../../../lib/api";
+import OBROversight from "../../_components/program/OBROversight";
 
 const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
@@ -240,6 +241,11 @@ export default function OBREvaluationPanel({
               {evaluation.expires_at ? <> · rating valid until {new Date(evaluation.expires_at).toLocaleDateString("en-US", { timeZone: "America/Denver", month: "short", day: "numeric", year: "numeric" })}</> : null}
             </div>
           )}
+        </div>
+
+        {/* Oversight: flag / pause / send back with a logged reason. No score edits. */}
+        <div style={{ marginBottom: 24, padding: 16, borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)" }}>
+          <OBROversight obrSubjectId={obrSubjectId} dark />
         </div>
 
         {/* Doc Checklist */}

@@ -5,7 +5,7 @@ import { stableHousing, steadyMoney, workingSteadily, trajectory } from "../../.
 const yes = (b: boolean) => <span style={{ color: b ? "var(--pine)" : "var(--ink-3)", fontWeight: 600 }}>{b ? "Yes" : "Not yet"}</span>;
 const JOB: Record<string, string> = { none: "No change", started: "Started a job", left: "Left a job", lost: "Lost a job", changed: "Changed jobs" };
 
-/** Person view: check-in timeline (proposed questions), engagement, scheduled re-review, continuous coaching. Sample data only. */
+/** Person view: check-in timeline (approved v1.0 questions), engagement, scheduled re-review, continuous coaching. Sample data only. */
 export default function PersonFollowUp() {
   const done = DEMO_PERSON_CHECKINS.filter((c) => c.answers);
   return (
@@ -28,7 +28,7 @@ export default function PersonFollowUp() {
       </section>
 
       <section aria-labelledby="checkins" className="mt-8">
-        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 id="checkins" className="ao-h2">Check-ins</h2><span className="ao-meta">Housing, work and money questions (proposed set)</span></div>
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2"><h2 id="checkins" className="ao-h2">Check-ins</h2><span className="ao-meta">Housing, work and money questions · follow-up system v1.0</span></div>
         <div className="ao-card" style={{ overflowX: "auto", padding: 0 }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <caption className="sr-only">Maya&apos;s check-in answers</caption>
@@ -75,8 +75,9 @@ export default function PersonFollowUp() {
             <dt className="ao-meta">Next</dt><dd style={{ fontWeight: 600 }}>{DEMO_PERSON_REVIEW.next}</dd>
             <dt className="ao-meta">Status</dt><dd>{DEMO_PERSON_REVIEW.status}</dd>
             <dt className="ao-meta">Checks</dt><dd>{DEMO_PERSON_REVIEW.triggers}</dd>
+            <dt className="ao-meta">Spot check</dt><dd>{DEMO_PERSON_REVIEW.spot}</dd>
           </dl>
-          <p className="ao-meta mt-3">A score not re-reviewed on time shows as due, and evidence older than 90 days stops counting, so a score can&apos;t be coasted on.</p>
+          <p className="ao-meta mt-3">A score not re-reviewed on time shows as due. After a 30-day grace period, a certified status is paused until the re-review is done. Evidence older than 90 days stops counting, so a score can&apos;t be coasted on.</p>
         </div>
       </section>
     </>

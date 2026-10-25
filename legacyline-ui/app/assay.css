@@ -152,3 +152,12 @@
   .ao-tabbar, .ao-noprint { display: none !important; }
   .ao-paper { background: #fff; }
 }
+
+/* Demo chrome: on phones show only the current view; "View as (all views)" opens the full list. */
+.demo-roles-more { display: none; }
+@media (max-width: 640px) {
+  .demo-roles .demo-role:not([aria-current="page"]) { display: none; }
+  .demo-roles-more { display: inline; }
+  .oversight-row { grid-template-columns: 1fr !important; gap: 2px !important; }
+  .obr-log-row { grid-template-columns: 1fr !important; gap: 2px !important; }
+}

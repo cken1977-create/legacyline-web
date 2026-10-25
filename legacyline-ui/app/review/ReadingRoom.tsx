@@ -386,7 +386,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
             {inReview && <>
               <button className="ao-btn ao-btn-secondary ao-btn-sm" disabled={busy} onClick={() => setSheet("return")}>Return with findings</button>
               <button className="ao-btn ao-btn-primary ao-btn-sm" disabled={!canDecide} onClick={() => setSheet("evaluate")}>Mark evaluated</button>
-              <button className="ao-btn ao-btn-seal-outline ao-btn-sm" disabled={!canDecide || (score ?? 0) < 80} title={(score ?? 0) < 80 ? "Certification needs the Ready band (80+)" : undefined} onClick={() => setSheet("recommend")}>Recommend certification →</button>
+              <button className="ao-btn ao-btn-seal-outline ao-btn-sm" disabled={!canDecide || (score ?? 0) < 70} title={(score ?? 0) < 70 ? "Certification needs the Green band (70+)" : undefined} onClick={() => setSheet("recommend")}>Recommend certification →</button>
             </>}
             {secondKeyLane && (isFirstKey
               ? <span className="ao-meta" style={{ color: "var(--ink-2)" }}>You submitted this review. A second reviewer must certify.</span>

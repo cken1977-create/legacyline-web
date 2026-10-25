@@ -21,10 +21,13 @@ export function isDemoMode(): boolean {
 export type DemoRole = { key: string; label: string; href: string; blurb: string };
 
 export const DEMO_ROLES: DemoRole[] = [
+  { key: "pilots", label: "Pilot overview", href: "/demo/pilots", blurb: "Every pilot organization at a glance, against its checkpoint targets. Counts only." },
   { key: "person", label: "Person", href: "/app/demo", blurb: "A participant's own readiness record: score, areas, what's still missing." },
   { key: "staff", label: "Program staff", href: "/demo/desk", blurb: "The Program Desk: everyone in the program, where each person stands." },
   { key: "evaluator", label: "Evaluator", href: "/review/demo", blurb: "The Reading Room: review evidence, record findings, two-person sign-off." },
   { key: "org", label: "Organization", href: "/demo/org", blurb: "The organization's own readiness record (OBR)." },
+  { key: "orgreview", label: "Organization review (staff)", href: "/demo/org-review", blurb: "Computed organization scores and the oversight controls: flag, pause, send back, all logged." },
+  { key: "verify", label: "Verify a record", href: "/verify/demo", blurb: "What a landlord or employer sees when someone shares their Registry ID: standing only, never files." },
   { key: "funder", label: "Funder", href: "/demo/funder", blurb: "Counts and readiness across programs. No names, no files." },
   { key: "training", label: "Evaluator training", href: "/demo/training", blurb: "The real 8-module course and certification steps, with one exam question per module." },
   { key: "program", label: "The standard", href: "/demo/program", blurb: "The written program itself: the definition, formulas, bands and 12 evidence domains." },
@@ -45,4 +48,5 @@ export const DEMO_REDIRECTS: Record<string, string> = {
   "/dashboard/individual": "/demo/desk",
   "/review": "/review/demo",
   "/evaluator": "/review/demo",
+  "/verify": "/verify/demo",
 };

@@ -180,7 +180,8 @@ export const OBR_GUARDRAIL = [
   "No one can type in or override a computed score.",
 ];
 
-// ── Follow-up system (PROPOSAL, follow-up-system-v1.md) ────────────────────
+// ── Follow-up system v1.0 (APPROVED Oct 24 2026, follow-up-system-v1.md; engine: core followup.go) ──
+export const FOLLOW_UP_VERSION = "Follow-up system v1.0 (approved Oct 24, 2026)";
 export const FOLLOW_UP_DAYS = [0, 30, 90, 180] as const;
 export type FollowUpDay = (typeof FOLLOW_UP_DAYS)[number];
 export const FOLLOW_UP_AREAS = [
@@ -211,5 +212,6 @@ export const RE_REVIEW_RULES = [
   "A score past its re-review date shows as due. After 30 more days, a certified status is paused until the re-review is done.",
   "Evidence only counts for 90 days, so the score drops on its own if someone stops taking part.",
   "Early re-review if: score jumps 15+ points, 5+ uploads in 48 hours before a check-in, a document is reused, answers contradict the evidence, a check-in is 14+ days late, or consent changes.",
-  "About 1 in 10 active records is spot-checked between check-ins.",
+  "About 1 in 10 active records per organization is spot-checked each quarter, picked by a fixed formula so the choice can be audited.",
+  "Income is asked as a range, never an exact amount.",
 ];

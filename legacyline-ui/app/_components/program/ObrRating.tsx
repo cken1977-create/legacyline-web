@@ -40,7 +40,7 @@ export default function ObrRating({ passed, assessedOn, expiresOn, renewalOpens,
         {log && <>
           <p className="ao-meta mt-4" style={{ fontWeight: 600, color: "var(--ink)" }}>Oversight log (permanent; entries can&apos;t be edited or deleted)</p>
           <ol className="mt-2 flex flex-col" style={{ listStyle: "none", padding: 0, fontSize: 14 }}>
-            {log.map((e) => <li key={e.at} className="py-2" style={{ borderBottom: "1px solid var(--linen)", display: "grid", gridTemplateColumns: "190px 130px 1fr", gap: 10 }}><span className="ao-mono ao-meta">{e.at}</span><span style={{ fontWeight: 600 }}>{e.action}</span><span>{e.reason} <span className="ao-meta">· {e.who}</span></span></li>)}
+            {log.map((e) => <li key={e.at} className="py-2 obr-log-row" style={{ borderBottom: "1px solid var(--linen)", display: "grid", gridTemplateColumns: "190px 130px 1fr", gap: 10 }}><span className="ao-mono ao-meta">{e.at}</span><span style={{ fontWeight: 600 }}>{e.action}</span><span>{e.reason} <span className="ao-meta">· {e.who}</span></span></li>)}
           </ol>
         </>}
       </div>

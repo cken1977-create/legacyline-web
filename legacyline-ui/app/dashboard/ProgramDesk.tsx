@@ -14,9 +14,10 @@ type Summary = { org: { name: string; slug: string; created_at: string }; total_
 const STAGES = [["registered", "Registered"], ["data_collecting", "Gathering evidence"], ["under_review", "Waiting for review"], ["evaluated", "Reviewed"], ["certified", "Certified"]] as const;
 const CHIP: Record<string, string> = { registered: "chip-neutral", data_collecting: "chip-amber", under_review: "chip-engine", evaluated: "chip-proficient", certified: "chip-certified", revoked: "chip-neutral" };
 const LABEL: Record<string, string> = Object.fromEntries([...STAGES, ["revoked", "Revoked"]]);
-const days = (d: string) => Math.max(0, Math.floor((Date.now() - new Date(d).getTime()) / 864e5));
+const days = (d: string, now = Date.now()) => Math.max(0, Math.floor((now - new Date(d).getTime()) / 864e5));
 
-export default function ProgramDesk({ demo }: { demo?: { summary: Summary; people: Person[] } }) {
+export default function ProgramDesk({ demo }: { demo?: { summary: Summary; people: Person[]; today?: string } }) {
+  const now = demo?.today ? Date.parse(demo.today) : undefined;
   const router = useRouter();
   const [summary, setSummary] = useState<Summary | null>(demo?.summary ?? null);
   const [people, setPeople] = useState<Person[]>(demo?.people ?? []);
@@ -79,9 +80,9 @@ export default function ProgramDesk({ demo }: { demo?: { summary: Summary; peopl
                 <li key={p.id} className="ao-row flex items-center gap-4 px-5" style={{ minHeight: 56, borderTop: "1px solid var(--linen)" }}>
                   <span className="ao-mono ao-meta w-10">#{p.subject_number}</span>
                   <span className="min-w-0 flex-1 truncate" style={{ fontWeight: 500 }}>{p.first_name} {p.last_name}</span>
-                  {p.flagged && <span className="ao-chip chip-amber hidden sm:inline-flex"><IconFlag size={12} />Needs attention</span>}
+                  {p.flagged && <><span className="sm:hidden" role="img" aria-label="Needs attention" style={{ color: "var(--amber)" }}><IconFlag size={16} /></span><span className="hidden sm:inline"><span className="ao-chip chip-amber"><IconFlag size={12} />Needs attention</span></span></>}
                   <span className={`ao-chip ${CHIP[p.status] ?? "chip-neutral"}`}>{LABEL[p.status] ?? p.status}</span>
-                  <span className="ao-mono ao-meta hidden w-14 text-right md:inline">{days(p.created_at)}d</span>
+                  <span className="ao-mono ao-meta hidden w-14 text-right md:inline">{days(p.created_at, now)}d</span>
                 </li>
               ))}
             </ul>

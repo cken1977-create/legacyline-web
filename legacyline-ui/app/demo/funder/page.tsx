@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEMO_COHORT, DEMO_COHORT_FOLLOWUP, DEMO_OBR_PASSED, DEMO_ORG, DEMO_ORG_RENEWAL, DEMO_PROGRAMS, stableHousing, steadyMoney, workingSteadily } from "../../../lib/demo";
+import { DEMO_COHORT, DEMO_COHORT_FOLLOWUP, DEMO_PILOTS, DEMO_PROGRAMS, RELATED_PARTY_NOTE, stableHousing, steadyMoney, workingSteadily } from "../../../lib/demo";
 import { bandFor } from "../../../lib/bands";
-import { FRARI_INDIVIDUAL, LIFECYCLE, LIFECYCLE_LABEL, obrScore, trajectory } from "../../../lib/program";
+import { FOLLOW_UP_VERSION, FRARI_INDIVIDUAL, LIFECYCLE, LIFECYCLE_LABEL, trajectory } from "../../../lib/program";
 
 export const metadata: Metadata = { title: "Funder view (sample)", robots: { index: false, follow: false } };
 
@@ -48,6 +48,7 @@ function outcomes(day: 30 | 90 | 180) {
     reviewed: rows.filter((r) => r.reReviewed).length,
     changed: rows.filter((r) => r.reReviewChanged).length,
     triggered: rows.filter((r) => r.triggered).length,
+    spot: rows.filter((r) => r.spotCheck).length,
   };
 }
 
@@ -67,8 +68,7 @@ function SimpleTable({ id, title, caption, cols, rows }: { id: string; title: st
 export default function DemoFunder() {
   if (process.env.VERCEL_ENV === "production") notFound();
   const programs: (string | null)[] = [...DEMO_PROGRAMS, null];
-  const orgRating = obrScore(DEMO_OBR_PASSED).composite;
-  const nowStage = (prog: string | null, stage: string) => DEMO_COHORT.filter((p) => (prog === null || p.program === prog) && p.checkins.at(-1)?.inputs.stage === stage).length;
+  const nowStage = (prog: string | null, stage: string) => DEMO_COHORT.filter((p) => (prog === null || p.program === prog) && p.stageNow === stage).length;
   return (
     <main className="ao-paper min-h-screen px-5 py-12">
       <div style={{ maxWidth: 1040, margin: "0 auto" }}>
@@ -118,10 +118,13 @@ export default function DemoFunder() {
 
         <section className="ao-card mt-8 p-5" aria-labelledby="orgs">
           <h2 id="orgs" className="ao-h3" style={{ fontSize: 18 }}>Organization readiness</h2>
-          <p className="mt-2" style={{ fontSize: 15 }}>{DEMO_ORG.name}: <strong>{bandFor(orgRating).label} · {orgRating}</strong> · rated {DEMO_ORG.ratedOn}, valid until {DEMO_ORG_RENEWAL.expiresOn} (organizations recertify every year). <Link className="ao-link" href="/demo/org">See the rating</Link></p>
+          <ul className="mt-2 flex flex-col gap-1.5" style={{ fontSize: 15 }}>
+            {DEMO_PILOTS.map((p) => <li key={p.name}><strong>{p.name}</strong>: {p.org.note}{p.org.status === "rated" && <> · organizations recertify every year · <Link className="ao-link" href="/demo/org">See the rating</Link></>}</li>)}
+          </ul>
+          <p className="ao-meta mt-3">{RELATED_PARTY_NOTE}</p>
         </section>
 
-        <SimpleTable id="life" title="Housing, work and money at each check-in" caption="All programs · from the check-in questions (proposed set, awaiting approval) · sample data"
+        <SimpleTable id="life" title="Housing, work and money at each check-in" caption={`All programs · ${FOLLOW_UP_VERSION} · sample data`}
           cols={["Check-in", "Answered", "Stable housing", "Working steadily", "Median hours (working)", "Started or changed job", "Lost a job", "Steady money"]}
           rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.n, o.housing, o.work, o.hours, o.started, o.lost, o.money]; })} />
         <p className="ao-meta mt-2">Stable housing: own place or paying part, there 3+ months or no moves, not a month behind. Working steadily: 3+ of the last 4 weeks and 20+ hours. Steady money: income the same or more, and most bills on time.</p>
@@ -131,9 +134,9 @@ export default function DemoFunder() {
           rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.onTime, o.signIns, o.uploads, o.coaching, o.response]; })} />
 
         <SimpleTable id="rr" title="Scheduled re-reviews" caption="Evidence re-verified and score recomputed by the rules at every check-in · sample data"
-          cols={["Check-in", "Re-reviews done", "Score changed after re-review", "Early re-review triggered"]}
-          rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.reviewed, o.changed, o.triggered]; })} />
-        <p className="ao-meta mt-2">Early re-review triggers: a jump of 15+ points, a burst of uploads right before a check-in, reused documents, answers that contradict the evidence, or a late check-in. Scores can&apos;t be coasted on: evidence stops counting after 90 days.</p>
+          cols={["Check-in", "Re-reviews done", "Score changed after re-review", "Early re-review triggered", "Spot checks (1 in 10)"]}
+          rows={DAYS.map((d) => { const o = outcomes(d); return [`Day ${d}`, o.reviewed, o.changed, o.triggered, o.spot]; })} />
+        <p className="ao-meta mt-2">Early re-review triggers: a jump of 15+ points, 5+ uploads in the 48 hours before a check-in, a reused document, answers that contradict the evidence, a check-in 14+ days late, or a consent change. After certification, re-reviews come every 90 days with a 30-day grace period. Scores can&apos;t be coasted on: evidence stops counting after 90 days.</p>
       </div>
     </main>
   );

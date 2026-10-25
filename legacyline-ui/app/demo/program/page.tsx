@@ -77,7 +77,7 @@ export default function ProgramPage() {
         </section>
 
         <section className="mt-8" aria-labelledby="fu">
-          <h2 id="fu" className="ao-h2">Check-ins and re-reviews <span className="ao-meta">(proposed, awaiting approval)</span></h2>
+          <h2 id="fu" className="ao-h2">Check-ins and re-reviews <span className="ao-meta">(follow-up system v1.0, approved Oct 24, 2026)</span></h2>
           <p className="ao-body-2 mt-2">Check-ins at day {FOLLOW_UP_DAYS.join(", day ")}. Each one asks the same short questions so change shows up over time, refreshes the evidence, and includes a re-review.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             {FOLLOW_UP_AREAS.map((a) => <div key={a.key} className="ao-card p-4"><p style={{ fontWeight: 600 }}>{a.label}</p><ul className="mt-2 flex flex-col gap-1" style={{ fontSize: 14, listStyle: "disc", paddingLeft: 18 }}>{a.questions.map((q) => <li key={q}>{q}</li>)}</ul></div>)}

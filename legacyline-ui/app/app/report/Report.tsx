@@ -12,6 +12,8 @@ import { DOMAIN_LABEL, RULE_LABEL, RULESET_LABEL, Run, compositeOf, fmtMT, ruleP
 import { deriveSlots } from "../../../lib/record";
 import { Wordmark } from "../../_components/assay";
 import type { RecordData } from "../MyRecord";
+import { DEMO_TODAY_ISO } from "../../../lib/demo";
+import { frariScore } from "../../../lib/program";
 
 export default function Report({ demo }: { demo?: RecordData }) {
   const router = useRouter();
@@ -27,12 +29,16 @@ export default function Report({ demo }: { demo?: RecordData }) {
     });
   }, [demo, router]);
 
-  const score = compositeOf(d?.run ?? null);
+  // Same score as the record: the published FRARI v1.0.0 formula when its inputs are present.
+  const score = d?.frari ? frariScore(d.frari).composite : compositeOf(d?.run ?? null);
   const slots = useMemo(() => deriveSlots(d?.intake ?? null, d?.run ?? null), [d]);
   const { passed, failed } = ruleSets(d?.run ?? null);
-  const prepared = new Date();
+  // Fixed in the demo (and computed after mount live) so server and browser render the same text.
+  const prepared = useMemo(() => (demo ? new Date(DEMO_TODAY_ISO) : new Date()), [demo]);
+  const [origin, setOrigin] = useState("https://legacylinehq.com");
+  useEffect(() => { setOrigin(window.location.origin); }, []); // eslint-disable-line react-hooks/set-state-in-effect
   const valid = new Date(prepared.getTime() + 90 * 864e5);
-  const verifyUrl = d?.registryId ? `${typeof window !== "undefined" ? window.location.origin : "https://legacylinehq.com"}/verify?rid=${d.registryId}` : "";
+  const verifyUrl = d?.registryId ? `${origin}${demo ? "/verify/demo" : "/verify"}?rid=${d.registryId}` : "";
   const certified = d?.status === "certified";
 
   if (!d) return <div className="ao-paper grid min-h-screen place-items-center"><p className="ao-meta">Preparing your report…</p></div>;
@@ -57,7 +63,7 @@ export default function Report({ demo }: { demo?: RecordData }) {
           <div>
             <p className="ao-eyebrow">Record standing</p>
             <p className="ao-serif mt-1" style={{ fontSize: 30, fontWeight: 600 }}>{certified ? "Certified" : score === null ? "Not yet assessed" : bandFor(score).label}{score !== null && <span className="ao-mono" style={{ fontSize: 24, fontWeight: 500 }}> · {score}<span style={{ fontSize: 14, color: "var(--ink-3)" }}> / 100</span></span>}</p>
-            <p className="ao-body-2 mt-2 max-w-[520px]">A documentation check against the {BRAND.standard} standard ({RULESET_LABEL}). It measures how complete and consistent the record is — not a judgment of the person.</p>
+            <p className="ao-body-2 mt-2 max-w-[520px]">{d.frari ? <>Readiness score under the published {BRAND.standard} formula (FRARI v1.0.0): evidence, progress, completeness and consent. It isn&apos;t a judgment of the person.</> : <>A documentation check against the {BRAND.standard} standard ({RULESET_LABEL}). It measures how complete and consistent the record is. It isn&apos;t a judgment of the person.</>}</p>
           </div>
           {d.run && <div className="ao-mono self-end rounded-[8px] px-3 py-2" style={{ fontSize: 12, border: "1px solid var(--rule)", lineHeight: "18px" }}>Hallmark<br />run {shortHash(d.run.output_hash)} · {fmtMT(d.run.computed_at)}<br />{d.run.ruleset_version}</div>}
         </section>

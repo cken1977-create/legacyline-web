@@ -65,7 +65,7 @@ export function middleware(req: NextRequest) {
     if (dest) {
       const url = req.nextUrl.clone();
       url.pathname = dest;
-      url.search = "";
+      if (dest !== "/verify/demo") url.search = ""; // a shared ?rid= link still works on the sample verify page
       return NextResponse.redirect(url);
     }
     return NextResponse.next();
@@ -124,5 +124,6 @@ export const config = {
     "/app/:path*",
     "/review",
     "/evaluator",
+    "/verify",
   ],
 };
