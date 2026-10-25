@@ -53,7 +53,7 @@ export const SLOTS: Slot[] = [
   { key: "employment_status", area: "work", label: "Work status", ask: "Tell us about your work", why: "Any status counts, including looking for work.", kind: "Answer", action: "Answer", rules: ["employment_present", "employed"] },
   { key: "employer_name", area: "work", label: "Employer", ask: "Confirm your employer", why: "Reviewers match it against your pay records.", kind: "Answer", action: "Answer", rules: ["employer_documented"] },
   { key: "monthly_income", area: "income", label: "Monthly income", ask: "Add your monthly income", why: "An honest number is more useful than a big one.", kind: "Answer", action: "Answer", rules: ["income_documented"] },
-  { key: "bank_statement", area: "income", label: "Bank statement", ask: "Add a recent bank statement", why: "Lenders look for steady deposits over time.", kind: "Document", action: "Upload", rules: ["bank_statement_present"] },
+  { key: "bank_statement", area: "income", label: "Bank statement", ask: "Add a recent bank statement", why: "It shows money coming in and going out over time, as a record of steady habits.", kind: "Document", action: "Upload", rules: ["bank_statement_present"] },
   { key: "consent", area: "consent", label: "Consent to review", ask: "Review and grant consent to share", why: "Nothing is shared with a reviewer until you say so.", kind: "Consent", action: "Review", rules: ["consent_granted"] },
 ];
 

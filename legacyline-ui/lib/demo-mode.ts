@@ -26,6 +26,8 @@ export const DEMO_ROLES: DemoRole[] = [
   { key: "evaluator", label: "Evaluator", href: "/review/demo", blurb: "The Reading Room: review evidence, record findings, two-person sign-off." },
   { key: "org", label: "Organization", href: "/demo/org", blurb: "The organization's own readiness record (OBR)." },
   { key: "funder", label: "Funder", href: "/demo/funder", blurb: "Counts and readiness across programs. No names, no files." },
+  { key: "training", label: "Evaluator training", href: "/demo/training", blurb: "The real 8-module course and certification steps, with one exam question per module." },
+  { key: "program", label: "The standard", href: "/demo/program", blurb: "The written program itself: the definition, formulas, bands and 12 evidence domains." },
 ];
 
 /** Exact paths that send to a sample view in demo mode (sign-in and live screens). */

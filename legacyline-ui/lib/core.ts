@@ -22,6 +22,10 @@ export async function core<T = any>(path: string, init: RequestInit = {}): Promi
   return body as T;
 }
 
+/** True when the standing demo blocked a write (nothing is saved in the demo). */
+export const isDemoBlock = (e: unknown) => e instanceof CoreError && e.code === "demo_mode";
+export const DEMO_BLOCK_MSG = "This is the demo, so nothing is saved. In a real program this step would send your answers.";
+
 export const coreSafe = async <T = any>(path: string, init?: RequestInit): Promise<T | null> => { try { return await core<T>(path, init); } catch { return null; } };
 
 function cookie(name: string) {

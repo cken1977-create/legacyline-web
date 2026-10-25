@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BRAND } from "../../lib/brand";
 import { bandFor } from "../../lib/bands";
+import { type FrariInputs, frariScore } from "../../lib/program";
+import FrariPanel from "../_components/program/FrariPanel";
 import { STAFF_EMAIL_KEY } from "../../lib/api";
 import { CoreError, core, hasStaffSession, signOut as endSession } from "../../lib/core";
 import { DOMAIN_LABEL, RULE_LABEL, RULES, type Run, compositeOf, fmtMT, shortHash } from "../../lib/frari";
@@ -14,7 +16,7 @@ import { IconArrowRight, IconBook, IconCheck, IconChevron, IconClock, IconFlag, 
 const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 export type Case = { id: string; registry_id: string; first_name: string; last_name: string; status: string; created_at: string; program?: string };
-type Detail = { run: Run | null; timeline: { from_status?: string; to_status: string; created_at: string; actor?: string }[]; intake: Record<string, any> | null };
+type Detail = { frari?: FrariInputs; run: Run | null; timeline: { from_status?: string; to_status: string; created_at: string; actor?: string }[]; intake: Record<string, any> | null };
 export type RoomDemo = { cases: Case[]; details: Record<string, Detail>; reviewer: string; initialCase?: string; evals?: Record<string, EvalRec> };
 
 const LANES = [
@@ -208,7 +210,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
   }, [c.id, demo]);
 
   const slots = useMemo(() => deriveSlots(d?.intake ?? null, d?.run ?? null), [d]);
-  const score = compositeOf(d?.run ?? null);
+  const score = d?.frari ? frariScore(d.frari).composite : compositeOf(d?.run ?? null);
   const evidenceAt = d?.intake?.submitted_at ? new Date(d.intake.submitted_at).getTime() : 0;
   const runFresh = !!d?.run && new Date(d.run.computed_at).getTime() >= evidenceAt;
   const verifiedCount = slots.filter((s) => verified.has(s.key) && s.status !== "missing").length;
@@ -328,6 +330,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
                 <BandChip score={score} certified={status === "certified"} />
               </div>
               <div className="mt-2">{d?.run ? <Hallmark runId={d.run.id} outputHash={d.run.output_hash} at={d.run.computed_at} state={!runFresh && hall === "current" ? "stale" : hall} onVerify={verify} /> : <Hallmark state="none" />}</div>
+              {d?.frari && <FrariPanel inputs={d.frari} compact />}
             </section>
             {msg && <div role="status" className="ao-fade mt-4 rounded-[8px] px-4 py-3" style={{ background: msg.tone === "ok" ? "var(--pine-tint)" : "var(--amber-tint)", color: "var(--ink)", fontSize: 14 }}>{msg.text}</div>}
 

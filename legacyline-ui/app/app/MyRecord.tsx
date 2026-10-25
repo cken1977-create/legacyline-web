@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { BRAND } from "../../lib/brand";
 import { CoreError, core, coreSafe, currentParticipantId, hasIndividualSession, signOut as endSession } from "../../lib/core";
 import { bandFor } from "../../lib/bands";
+import { type FrariInputs, frariScore } from "../../lib/program";
+import FrariPanel from "../_components/program/FrariPanel";
 import { AREAS, RULESET_LABEL, type Run, fmtMT } from "../../lib/frari";
 import { STATUS_STEPS, pointsMeta, summarize, type SlotState } from "../../lib/record";
 import { BandChip, Completeness, CopyMono, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
@@ -14,6 +16,8 @@ import { IconArrowRight, IconChevron, IconLock, IconLogout, IconRecord, IconShar
 
 type Tab = "record" | "evidence" | "share" | "me";
 export type RecordData = {
+  /** FRARI v1.0.0 inputs (published formula). Present in the demo; live records get it from the readiness snapshot later. */
+  frari?: FrariInputs;
   participantId: string; firstName: string; lastName: string; email: string; registryId: string; status: string; createdAt?: string;
   intake: Record<string, any> | null; run: Run | null;
 };
@@ -80,7 +84,7 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
   if (loading || !data) return <Skeleton />;
 
   const certified = data.status === "certified";
-  const score = sum.score;
+  const score = data.frari ? frariScore(data.frari).composite : sum.score;
   const band = bandFor(score);
   const initials = `${data.firstName?.[0] ?? ""}${data.lastName?.[0] ?? ""}`.toUpperCase() || "·";
 
@@ -129,16 +133,19 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
                   {data.run ? <Hallmark runId={data.run.id} outputHash={data.run.output_hash} at={data.run.computed_at} state={hall} onVerify={verify} />
                     : <Hallmark state="none" />}
                 </div>
+                {data.frari && <FrariPanel inputs={data.frari} />}
                 <p className="ao-body-2 mt-4" style={{ maxWidth: 620 }}>
-                  {data.run
+                  {data.frari
+                    ? <>The score above is the published {BRAND.standard} readiness formula. Below is the documentation check: which items are on file, area by area. Neither is a judgment of you, and anyone can re-run them and get the same result.</>
+                    : data.run
                     ? <>This is a documentation check: it measures what's on file against {RULESET_LABEL}. It is not a judgment of you. Anyone can re-run it and get the same result.</>
                     : <>Your first check runs once a reviewer starts your record. Fill the steps below first; each one is a rule in the standard.</>}
                 </p>
-                {data.run && <DomainStrip run={data.run} />}
-                <div className="mt-4 flex items-center gap-2 rounded-[8px] px-3 py-2" style={{ background: "var(--vellum)" }}>
+                {data.run && <><p className="ao-meta mt-4" style={{ color: "var(--ink-2)" }}>Documentation check by area</p><DomainStrip run={data.run} /></>}
+                {!data.frari && <div className="mt-4 flex items-center gap-2 rounded-[8px] px-3 py-2" style={{ background: "var(--vellum)" }}>
                   <span className="ao-chip chip-none" style={{ background: "var(--card)" }}>Not yet assessed</span>
-                  <span className="ao-meta" style={{ color: "var(--ink-2)" }}>Readiness standing arrives when the {BRAND.standard} instrument is published.</span>
-                </div>
+                  <span className="ao-meta" style={{ color: "var(--ink-2)" }}>Your readiness score appears after your first review.</span>
+                </div>}
               </section>
 
               {/* Next steps */}

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BRAND } from "../../../lib/brand";
-import { core } from "../../../lib/core";
+import { core, DEMO_BLOCK_MSG, isDemoBlock } from "../../../lib/core";
 import { Mark, Wordmark } from "../../_components/assay";
 import { TierGlyph } from "../../_components/assay/icons";
 import { Alert, DocUpload, Field, Input, Select, Steps } from "../../_components/assay/forms";
@@ -83,7 +83,7 @@ export default function OBRRegister() {
         const body = Object.fromEntries(SECTIONS[0].qs.map((q) => [q.k, form[q.k] ?? ""]));
         const d = await core<any>("/obr/subjects", { method: "POST", body: JSON.stringify(body) });
         setSubjectId(d.obr_subject_id);
-      } catch { setErr("We couldn't register the organization. Your answers are saved; try again."); setBusy(false); return; }
+      } catch (e) { setErr(isDemoBlock(e) ? DEMO_BLOCK_MSG : "We couldn't register the organization. Your answers are saved; try again."); setBusy(false); return; }
       setBusy(false);
     }
     setStep((s) => s + 1); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -97,7 +97,7 @@ export default function OBRRegister() {
       Object.entries(files).forEach(([k, f]) => f && fd.append(k, f));
       await core(`/obr/subjects/${subjectId}/intake`, { method: "POST", body: fd });
       localStorage.removeItem(KEY); setDone(true);
-    } catch { setErr("We couldn't send it. Everything is still saved here; try again."); }
+    } catch (e) { setErr(isDemoBlock(e) ? DEMO_BLOCK_MSG : "We couldn't send it. Everything is still saved here; try again."); }
     finally { setBusy(false); }
   }
 

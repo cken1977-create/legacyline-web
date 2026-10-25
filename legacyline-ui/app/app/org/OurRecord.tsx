@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BRAND } from "../../../lib/brand";
 import { core, signOut } from "../../../lib/core";
 import { fmtMT } from "../../../lib/frari";
+import { bandFor } from "../../../lib/bands";
 import { BandChip, Hallmark, Mark, Wordmark } from "../../_components/assay";
 import { IconArrowRight, IconCheck, IconLogout, TierGlyph } from "../../_components/assay/icons";
 
@@ -17,7 +18,7 @@ export type OBRProfile = {
 const STEPS = [["registered", "Registered"], ["data_collecting", "Gathering evidence"], ["under_review", "Under review"], ["evaluated", "Reviewed"], ["certified", "Certified"]] as const;
 const AREAS = [["Leadership & governance", "var(--d-plum)"], ["Staff", "var(--d-juniper)"], ["Policy & compliance", "var(--d-adobe)"], ["Financial health", "var(--d-ledger)"]] as const;
 
-export default function OurRecord({ demo }: { demo?: OBRProfile }) {
+export default function OurRecord({ demo, extra, score }: { demo?: OBRProfile; extra?: React.ReactNode; score?: number }) {
   const router = useRouter();
   const [p, setP] = useState<OBRProfile | null>(demo ?? null);
   const [err, setErr] = useState("");
@@ -55,9 +56,9 @@ export default function OurRecord({ demo }: { demo?: OBRProfile }) {
         {p?.registered && <>
           <section className="ao-card mt-8 p-6" aria-label="Standing">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div><p className="ao-eyebrow">Record standing</p><p className="ao-serif mt-1" style={{ fontSize: 26, fontWeight: 600 }}>{s?.status === "certified" ? "Certified" : "Not yet assessed"}</p>
-                <p className="ao-body-2 mt-1">{s?.status === "certified" ? "Your record was certified by two independent reviewers." : submitted ? "A certified reviewer will run the organization ruleset on your record." : "Send your record for review to get a standing."}</p></div>
-              <BandChip score={null} certified={s?.status === "certified"} />
+              <div><p className="ao-eyebrow">Record standing</p><p className="ao-serif mt-1" style={{ fontSize: 26, fontWeight: 600 }}>{s?.status === "certified" ? "Certified" : score !== undefined ? <>{bandFor(score).label} <span className="ao-mono">{score}</span><span className="ao-mono" style={{ fontSize: 15, color: "var(--ink-3)" }}> / 100</span></> : "Not yet assessed"}</p>
+                <p className="ao-body-2 mt-1">{s?.status === "certified" ? "Your record was certified by two independent reviewers."   : score !== undefined ? "Rated by a certified reviewer under the published organization ruleset. Details below." : submitted ? "A certified reviewer will run the organization ruleset on your record." : "Send your record for review to get a standing."}</p></div>
+              <BandChip score={score ?? null} certified={s?.status === "certified"} />
             </div>
             <div className="mt-3"><Hallmark state="none" /></div>
           </section>
@@ -84,9 +85,10 @@ export default function OurRecord({ demo }: { demo?: OBRProfile }) {
                 </div>
               ))}
             </div>
-            <p className="ao-meta mt-3">{submitted ? `Sent ${fmtMT(p.intake_submitted_at!)}.` : "Nothing has been sent for review yet."} Scores appear only after a reviewer runs the {BRAND.standard} organization ruleset.</p>
+            <p className="ao-meta mt-3">{submitted ? `Sent ${fmtMT(p.intake_submitted_at!)}.` : "Nothing has been sent for review yet."} {score !== undefined ? "" : `Scores appear only after a reviewer runs the ${BRAND.standard} organization ruleset.`}</p>
           </section>
         </>}
+        {extra}
       </main>
     </div>
   );

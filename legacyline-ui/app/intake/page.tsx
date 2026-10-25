@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { BRAND } from "../../lib/brand";
-import { core, currentParticipantId, hasIndividualSession } from "../../lib/core";
+import { core, currentParticipantId, hasIndividualSession, DEMO_BLOCK_MSG, isDemoBlock } from "../../lib/core";
 import { Wordmark } from "../_components/assay";
 import { Alert, DocUpload, EMPTY_STORY, Story, StoryForm, storyToForm } from "../_components/assay/forms";
 import { IconArrowRight, IconLock } from "../_components/assay/icons";
@@ -59,7 +59,7 @@ function AddToRecord() {
     if (!pid) return;
     setSaving(true); setNote(null);
     try { const fd = storyToForm(story); fd.append("tier", "2"); await core(`/intake/${pid}`, { method: "POST", body: fd }); setNote({ tone: "ok", text: "Saved to your record." }); }
-    catch { setNote({ tone: "error", text: "We couldn't save that. Your answers are still here; try again." }); }
+    catch (e) { setNote({ tone: "error", text: isDemoBlock(e) ? DEMO_BLOCK_MSG : "We couldn't save that. Your answers are still here; try again." }); }
     finally { setSaving(false); }
   }
 
@@ -67,7 +67,7 @@ function AddToRecord() {
     if (!pid) return;
     setSaving(true); setNote(null);
     try { await core(`/intake/${pid}`, { method: "POST", body: storyToForm(story) }); setSent(true); setTimeout(() => router.push("/app"), 1600); }
-    catch { setNote({ tone: "error", text: "We couldn't send it. Nothing was lost; try again." }); }
+    catch (e) { setNote({ tone: "error", text: isDemoBlock(e) ? DEMO_BLOCK_MSG : "We couldn't send it. Nothing was lost; try again." }); }
     finally { setSaving(false); }
   }
 

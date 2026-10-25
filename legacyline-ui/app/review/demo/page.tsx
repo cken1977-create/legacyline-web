@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReadingRoom from "../ReadingRoom";
-import { DEMO_CASES, DEMO_PERSON, DEMO_RUN, DEMO_RUN_READY, DEMO_TIMELINE } from "../../../lib/demo";
+import { DEMO_CASES, DEMO_FRARI, DEMO_PERSON, DEMO_RUN, DEMO_RUN_READY, DEMO_TIMELINE } from "../../../lib/demo";
+import EvaluatorRubric from "../../_components/program/EvaluatorRubric";
 
 export const metadata: Metadata = { title: "Reading Room (sample)", robots: { index: false, follow: false } };
 
@@ -10,9 +11,12 @@ export const metadata: Metadata = { title: "Reading Room (sample)", robots: { in
 export default function DemoRoom() {
   if (process.env.VERCEL_ENV === "production") notFound();
   const details = Object.fromEntries(DEMO_CASES.map((c) => [c.id,
-    c.id === DEMO_PERSON.participantId ? { run: DEMO_RUN, timeline: DEMO_TIMELINE, intake: DEMO_PERSON.intake }
-    : c.id === "ptc-demo-0004" ? { run: DEMO_RUN_READY, timeline: [], intake: { docs_uploaded: { gov_id: true, selfie: true, bank_statement: true }, housing_type: "rent", monthly_housing_cost: "950", employment_status: "employed_full", employer_name: "Mesa Logistics", monthly_income: "3600", address: "1 Demo Way" } }
-    : { run: null, timeline: [], intake: null }]));
-  const evals = { "ptc-demo-0004": { status: "submitted", evaluator_email: "j.okafor.demo@example.com", recommended_next: "certification", narrative_notes: "Verified photo ID against the selfie, bank statement (Sept) matches stated income within 5%, lease shows the current address. Recommending certification." } };
-  return <ReadingRoom demo={{ cases: DEMO_CASES, details, evals, reviewer: "reviewer.demo@example.com", initialCase: DEMO_PERSON.participantId }} />;
+    c.id === DEMO_PERSON.participantId ? { frari: DEMO_FRARI[c.id], run: DEMO_RUN, timeline: DEMO_TIMELINE, intake: DEMO_PERSON.intake }
+    : c.id === "ptc-demo-0004" ? { frari: DEMO_FRARI[c.id], run: DEMO_RUN_READY, timeline: [], intake: { docs_uploaded: { gov_id: true, selfie: true, bank_statement: true }, housing_type: "rent", monthly_housing_cost: "950", employment_status: "employed_full", employer_name: "Mesa Logistics", monthly_income: "3600", address: "1 Demo Way" } }
+    : { frari: DEMO_FRARI[c.id], run: null, timeline: [], intake: null }]));
+  const evals = { "ptc-demo-0004": { status: "submitted", evaluator_email: "j.okafor.demo@example.com", recommended_next: "certification", narrative_notes: "Identity Verification: government ID name matches lease and bank statement. Housing Stability: lease dated Aug 1 shows the same address as the ID. Employment & Economic Activity: September bank statement shows two deposits from Mesa Logistics. Program Engagement: attended 4 of 4 scheduled sessions in September. Recommending certification." } };
+  return <>
+    <ReadingRoom demo={{ cases: DEMO_CASES, details, evals, reviewer: "reviewer.demo@example.com", initialCase: DEMO_PERSON.participantId }} />
+    <EvaluatorRubric />
+  </>;
 }

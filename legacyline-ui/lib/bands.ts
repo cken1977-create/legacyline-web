@@ -1,11 +1,10 @@
-// One band table for the whole product (visual system §2.10, overhaul §6.4).
-// "Not yet assessed" = no run. "Certified" is a state, never a band. No red for people.
+// Published BRSA bands (BRSA-RS-001): Green 70 and above, Yellow 40–69, below 40 Red.
+// Same thresholds for people and organizations. "Not yet assessed" = no score.
+// "Certified" is a lifecycle state, never a band.
 export const BANDS = [
-  { key: "pre", label: "Pre-readiness", min: 0, max: 34 },
-  { key: "early", label: "Early", min: 35, max: 49 },
-  { key: "developing", label: "Developing", min: 50, max: 64 },
-  { key: "proficient", label: "Proficient", min: 65, max: 79 },
-  { key: "ready", label: "Ready", min: 80, max: 100 },
+  { key: "red", label: "Red", min: 0, max: 39 },
+  { key: "yellow", label: "Yellow", min: 40, max: 69 },
+  { key: "green", label: "Green", min: 70, max: 100 },
 ] as const;
 
 export type BandKey = (typeof BANDS)[number]["key"] | "none";
