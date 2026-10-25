@@ -1,20 +1,59 @@
 // Kamili standing demo: one switch for the whole deployment.
 //
-// Demo mode is ON only when ALL of these hold:
-//   - the deployment is NOT production (VERCEL_ENV !== "production"), and
-//   - either KAMILI_DEMO_MODE=1 is set, or the deployment was built from a
-//     branch whose name starts with "demo/".
-// Production can never turn it on, even if this code is merged.
+// Demo mode is ON in exactly two cases:
+//
+//  1. A preview (non-production) build where KAMILI_DEMO_MODE=1 is set, or the
+//     branch name starts with "demo/". Previews sit behind the Vercel login.
+//
+//  2. The production build of the SEPARATE public demo project only. All of
+//     these must hold, and they are set on that project alone:
+//       - KAMILI_DEMO_MODE=1
+//       - KAMILI_DEMO_PROJECT="kamili-demo"
+//       - KAMILI_DEMO_HOST is on DEMO_HOSTS (demo.kamilihq.com)
+//       - the project's production address is not one of the real site's
+//         addresses (REAL_HOSTS)
+//     The real site's project has none of these set, so even if this code is
+//     merged, its production build can never turn demo mode on.
+//
+// At request time the middleware also refuses to serve a demo build on any of
+// the real site's addresses (see isRealHost).
 //
 // In demo mode every screen shows a "Sample data, all fictional" banner, the
 // "View as" switch picks a role, sign-in pages go to sample views, and calls to
 // the live scoring service (/api/core, /api/auth) are refused, so no real data
 // can be read or written.
 
-export function isDemoMode(): boolean {
-  if (process.env.VERCEL_ENV === "production") return false;
-  if (process.env.KAMILI_DEMO_MODE === "1") return true;
-  const ref = process.env.VERCEL_GIT_COMMIT_REF || "";
+export const DEMO_PROJECT = "kamili-demo";
+export const DEMO_HOSTS = ["demo.kamilihq.com"];
+export const REAL_HOSTS = [
+  "legacylinehq.com",
+  "www.legacylinehq.com",
+  "kamilihq.com",
+  "www.kamilihq.com",
+  "kamili.org",
+  "www.kamili.org",
+  "legacyline-web.vercel.app",
+];
+
+function bareHost(h: string | null | undefined): string {
+  return (h || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/[/:].*$/, "").replace(/\.$/, "");
+}
+
+export function isRealHost(h: string | null | undefined): boolean {
+  return REAL_HOSTS.includes(bareHost(h));
+}
+
+export function isDemoMode(env: Record<string, string | undefined> = process.env): boolean {
+  const flag = env.KAMILI_DEMO_MODE === "1";
+  if (env.VERCEL_ENV === "production") {
+    if (!flag) return false;
+    if (env.KAMILI_DEMO_PROJECT !== DEMO_PROJECT) return false;
+    if (!DEMO_HOSTS.includes(bareHost(env.KAMILI_DEMO_HOST))) return false;
+    if (isRealHost(env.VERCEL_PROJECT_PRODUCTION_URL)) return false;
+    return true;
+  }
+  if (flag) return true;
+  const ref = env.VERCEL_GIT_COMMIT_REF || "";
   return ref.startsWith("demo/");
 }
 
@@ -50,3 +89,8 @@ export const DEMO_REDIRECTS: Record<string, string> = {
   "/evaluator": "/review/demo",
   "/verify": "/verify/demo",
 };
+
+/** The /demo sample pages exist on previews, and on production only for the separate demo project. */
+export function demoPagesAllowed(): boolean {
+  return process.env.VERCEL_ENV !== "production" || isDemoMode();
+}

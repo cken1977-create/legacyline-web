@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "../../lib/brand";
-import { DEMO_ROLES, isDemoMode } from "../../lib/demo-mode";
+import { DEMO_ROLES, isDemoMode, demoPagesAllowed } from "../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "Demo", robots: { index: false, follow: false } };
 
@@ -18,7 +18,7 @@ const STORY: [string, string, string][] = [
 ];
 
 export default function DemoHome() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   const on = isDemoMode();
   return (
     <main className="ao-paper min-h-screen px-5 py-12">

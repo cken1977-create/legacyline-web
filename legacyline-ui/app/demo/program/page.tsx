@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "../../../lib/brand";
 import { BANDS_SOURCE, EVIDENCE_DOMAINS, EVIDENCE_DOMAINS_SOURCE, FRARI_COMPONENTS, FRARI_INDIVIDUAL, INTAKE_FIELDS, OBR, OBR_AREAS, PUBLISHED_BANDS, STANDARD, OBR_GUARDRAIL, RENEWAL, FOLLOW_UP_DAYS, FOLLOW_UP_AREAS, ENGAGEMENT_SIGNALS, RE_REVIEW_RULES } from "../../../lib/program";
+import { demoPagesAllowed } from "../../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "The program", robots: { index: false, follow: false } };
 
@@ -10,7 +11,7 @@ const td = { padding: "10px 14px", borderBottom: "1px solid var(--linen)", verti
 
 // The real program, from Clarence's written standard. Nothing on this page is sample data.
 export default function ProgramPage() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   return (
     <main className="ao-paper min-h-screen px-5 py-12">
       <div style={{ maxWidth: 960, margin: "0 auto" }}>

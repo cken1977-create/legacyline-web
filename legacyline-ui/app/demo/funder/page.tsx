@@ -4,6 +4,7 @@ import Link from "next/link";
 import { DEMO_COHORT, DEMO_COHORT_FOLLOWUP, DEMO_PILOTS, DEMO_PROGRAMS, RELATED_PARTY_NOTE, stableHousing, steadyMoney, workingSteadily } from "../../../lib/demo";
 import { bandFor } from "../../../lib/bands";
 import { FOLLOW_UP_VERSION, FRARI_INDIVIDUAL, LIFECYCLE, LIFECYCLE_LABEL, trajectory } from "../../../lib/program";
+import { demoPagesAllowed } from "../../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "Funder view (sample)", robots: { index: false, follow: false } };
 
@@ -66,7 +67,7 @@ function SimpleTable({ id, title, caption, cols, rows }: { id: string; title: st
 }
 
 export default function DemoFunder() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   const programs: (string | null)[] = [...DEMO_PROGRAMS, null];
   const nowStage = (prog: string | null, stage: string) => DEMO_COHORT.filter((p) => (prog === null || p.program === prog) && p.stageNow === stage).length;
   return (

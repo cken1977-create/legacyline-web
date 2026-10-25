@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DEMO_COHORT, DEMO_COHORT_FOLLOWUP, DEMO_PILOTS, DEMO_TODAY, DEMO_TODAY_ISO, PILOT_TARGETS, RELATED_PARTY_NOTE } from "../../../lib/demo";
 import { bandFor } from "../../../lib/bands";
+import { demoPagesAllowed } from "../../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "Pilot overview (sample)", robots: { index: false, follow: false } };
 
@@ -36,7 +37,7 @@ function vsTarget(actual: number, target: number) {
 }
 
 export default function PilotOverview() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   const rows = DEMO_PILOTS.map((p) => ({ p, s: stats(p.name, p.start) }));
   return (
     <main className="ao-paper min-h-screen px-5 py-12">

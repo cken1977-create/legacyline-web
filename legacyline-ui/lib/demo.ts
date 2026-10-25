@@ -78,7 +78,7 @@ export const DEMO_PILOTS: DemoPilot[] = [
 ];
 export const SELF_ENROLLED = "Self-enrolled";
 export const DEMO_PROGRAMS = [...DEMO_PILOTS.map((p) => p.name), SELF_ENROLLED] as const;
-export const RELATED_PARTY_NOTE = "Related-party disclosure: [Clarence to word: Vizionz Sankofa is led by a member of Clarence Kennedy's family.]";
+export const RELATED_PARTY_NOTE = "Disclosure: Vizionz Sankofa is led by a member of the Kamili founder's family.";
 
 export type CohortCheckin = { day: 30 | 90 | 180; inputs: FrariInputs; score: number };
 export type CohortPerson = { id: string; program: string; enrolledDaysAgo: number; checkins: CohortCheckin[]; stageNow: Lifecycle; intakeNow: number; name?: string; registryId?: string; flagged?: boolean };

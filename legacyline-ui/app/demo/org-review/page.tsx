@@ -3,13 +3,14 @@ import type { Metadata } from "next";
 import ObrRating from "../../_components/program/ObrRating";
 import OBROversight from "../../_components/program/OBROversight";
 import { DEMO_OBR_OVERSIGHT, DEMO_OBR_PASSED, DEMO_ORG, DEMO_ORG_RENEWAL } from "../../../lib/demo";
+import { demoPagesAllowed } from "../../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "Organization review (staff, sample)", robots: { index: false, follow: false } };
 
 // Staff view of an organization rating: computed scores (read-only) and the oversight controls.
 // Never served on production. Actions here are added to the on-screen log only.
 export default function DemoOrgReview() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   return (
     <main className="ao-paper min-h-screen px-5 py-12">
       <div style={{ maxWidth: 900, margin: "0 auto" }}>

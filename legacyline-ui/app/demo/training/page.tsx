@@ -4,13 +4,14 @@ import { CERT_SOURCE, CERT_STAGES, RENEWAL } from "../../../lib/program";
 import { DEMO_EVALUATORS, DEMO_TODAY } from "../../../lib/demo";
 import { TRAINING_MODULES } from "../../../lib/program-training";
 import SampleQuestion from "../../_components/program/SampleQuestion";
+import { demoPagesAllowed } from "../../../lib/demo-mode";
 
 export const metadata: Metadata = { title: "Evaluator training", robots: { index: false, follow: false } };
 
 // The real evaluator course: module doctrine and key concepts from the BRSA Evaluator Study
 // Guide, one real exam question per module. Never served on production.
 export default function TrainingPage() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (!demoPagesAllowed()) notFound();
   return (
     <main className="ao-paper min-h-screen px-5 py-12">
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
