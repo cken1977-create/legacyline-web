@@ -20,6 +20,8 @@ export type FollowData = {
   /** Demo only: a fixed "today" so the sample story always reads the same. */
   now?: string;
   coach?: { name: string; lastTouch: string; next: string };
+  /** Coaching plan steps, each tied to a gap in the record. Tap a step to see what it changes. */
+  coaching?: { gap: string; step: string; effect: string; due: string }[];
 };
 
 const fmt = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Denver" });
@@ -153,10 +155,12 @@ export default function FollowThrough({ pid, status, nextSteps, nudgesOn, demo, 
         <section aria-labelledby="coaching" className="ao-card p-5">
           <h2 id="coaching" className="ao-h3" style={{ fontSize: 18 }}>Coaching</h2>
           {d.coach && <p className="ao-meta mt-1">{d.coach.name} · last talked {d.coach.lastTouch} · next {d.coach.next}</p>}
-          <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 ao-body-2">
-            {nextSteps.filter((s) => s.key !== "consent").slice(0, 1).map((s) => <li key={s.key}>{s.ask}. {s.why}</li>)}
-            {coachingTips(last).map((t) => <li key={t}>{t}</li>)}
-          </ul>
+          {d.coaching?.length ? <CoachingPlan steps={d.coaching} demo={!!demo} onDemoNote={onDemoNote} /> : (
+            <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 ao-body-2">
+              {nextSteps.filter((s) => s.key !== "consent").slice(0, 1).map((s) => <li key={s.key}>{s.ask}. {s.why}</li>)}
+              {coachingTips(last).map((t) => <li key={t}>{t}</li>)}
+            </ul>
+          )}
           <p className="ao-meta mt-2">Coaching keeps going after certification. Your steps update after every check-in and every new document.</p>
         </section>
 
@@ -231,5 +235,29 @@ function CheckInForm({ day, onSubmit, onCancel }: { day: number; onSubmit: (a: A
         <button type="button" className="ao-btn ao-btn-quiet" onClick={onCancel}>Not now</button>
       </div>
     </form>
+  );
+}
+
+function CoachingPlan({ steps, demo, onDemoNote }: { steps: NonNullable<FollowData["coaching"]>; demo: boolean; onDemoNote?: (m: string) => void }) {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <ol className="mt-2 flex flex-col gap-2">
+      {steps.map((c, i) => (
+        <li key={c.step} className="rounded-[10px]" style={{ border: "1px solid var(--linen)", background: open === i ? "var(--paper)" : "var(--card)" }}>
+          <button type="button" aria-expanded={open === i} onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-start gap-3 p-3 text-left" style={{ minHeight: 44, cursor: "pointer", background: "transparent", border: 0 }}>
+            <span className="ao-mono grid h-6 w-6 shrink-0 place-items-center rounded-full" style={{ background: "var(--ink)", color: "var(--paper)", fontSize: 12 }}>{i + 1}</span>
+            <span className="min-w-0 flex-1" style={{ fontSize: 15, fontWeight: 600 }}>{c.step}</span>
+            <span className="ao-meta shrink-0">{c.due}</span>
+          </button>
+          {open === i && (
+            <div className="ao-fade px-3 pb-3 pl-12 ao-body-2">
+              <p><span className="ao-meta">Why: </span>{c.gap}</p>
+              <p className="mt-1"><span className="ao-meta">What it changes: </span>{c.effect}</p>
+              {demo && <button type="button" className="ao-btn ao-btn-primary ao-btn-sm mt-2" onClick={() => onDemoNote?.("Demo: this would open the step. Nothing is saved.")}>Start this step</button>}
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
   );
 }

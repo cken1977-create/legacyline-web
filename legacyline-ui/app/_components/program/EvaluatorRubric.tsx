@@ -33,6 +33,7 @@ export default function EvaluatorRubric() {
               {PROTOCOLS.map((p) => <li key={p.ref} className="flex gap-3"><span className="ao-mono" style={{ minWidth: 118, color: "var(--ink-2)" }}>{p.ref}</span><span>{p.text}</span></li>)}
             </ul>
             <p className="ao-meta mt-3">Two-person sign-off: one evaluator reviews, a second countersigns. No one approves their own review.</p>
+            <p className="ao-meta mt-1" style={{ color: "var(--ink)", fontWeight: 600 }}>Evaluators renew their certification every year. A lapsed evaluator can&apos;t sign off a review.</p>
           </div>
         </div>
 

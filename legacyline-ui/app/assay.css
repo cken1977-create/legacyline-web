@@ -161,3 +161,10 @@
   .oversight-row { grid-template-columns: 1fr !important; gap: 2px !important; }
   .obr-log-row { grid-template-columns: 1fr !important; gap: 2px !important; }
 }
+
+/* Verify result: one column on phones (no mid-ID wraps), two from 640px. */
+.verify-dl > div + div { border-top: 1px solid var(--linen); }
+@media (min-width: 640px) {
+  .verify-dl > div:nth-child(2) { border-top: 0; border-left: 1px solid var(--linen); }
+  .verify-dl > div:nth-child(4) { border-left: 1px solid var(--linen); }
+}

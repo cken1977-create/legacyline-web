@@ -7,6 +7,7 @@ import { BRAND } from "../../../lib/brand";
 import { core, signOut } from "../../../lib/core";
 import { fmtMT } from "../../../lib/frari";
 import { bandFor } from "../../../lib/bands";
+import { OBR } from "../../../lib/program";
 import { BandChip, Hallmark, Mark, Wordmark } from "../../_components/assay";
 import { IconArrowRight, IconCheck, IconLogout, TierGlyph } from "../../_components/assay/icons";
 
@@ -60,7 +61,9 @@ export default function OurRecord({ demo, extra, score }: { demo?: OBRProfile; e
                 <p className="ao-body-2 mt-1">{s?.status === "certified" ? "Your record was certified by two independent reviewers."   : score !== undefined ? "Computed by the published organization rules from evidence a certified reviewer verified. Valid for one year. Details below." : submitted ? "A certified reviewer will run the organization ruleset on your record." : "Send your record for review to get a standing."}</p></div>
               <BandChip score={score ?? null} certified={s?.status === "certified"} />
             </div>
-            <div className="mt-3"><Hallmark state="none" /></div>
+            <div className="mt-3">{score !== undefined
+              ? <span className="ao-hallmark ao-mono">{OBR.label}{p?.last_assessed ? <><span className="sep" aria-hidden>·</span>rated {fmtMT(p.last_assessed)}</> : null}</span>
+              : <Hallmark state="none" />}</div>
           </section>
 
           <section aria-labelledby="journey" className="mt-8">

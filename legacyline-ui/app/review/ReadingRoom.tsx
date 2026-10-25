@@ -95,12 +95,13 @@ export default function ReadingRoom({ demo }: { demo?: RoomDemo }) {
             <p className="ao-eyebrow mt-6 px-2">Review</p>
             <ul className="mt-2 flex flex-col gap-0.5">
               <NavItem icon={<IconQueue size={18} />} label="Reading Room" active onClick={() => open(null)} />
-              <NavItem icon={<IconBook size={18} />} label="Academy" href="https://brsa-evaluators.vercel.app" />
-              <NavItem icon={<IconArrowRight size={18} />} label="Classic console" href="/evaluator" />
+              <NavItem icon={<IconBook size={18} />} label="Academy" href={demo ? "/demo/training" : "/certification"} />
+              {!demo && <NavItem icon={<IconArrowRight size={18} />} label="Classic console" href="/evaluator" />}
             </ul>
           </div>
           <div className="px-2">
             <p className="ao-meta truncate" title={email}>{email}</p>
+            <p className="ao-meta mt-1" style={{ color: "var(--ink-2)" }}>Certified evaluator. Evaluators renew every year.</p>
             <button className="ao-btn ao-btn-quiet ao-btn-sm mt-1 -ml-2.5" onClick={signOut}><IconLogout size={16} /> Sign out</button>
           </div>
         </nav>
@@ -345,7 +346,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
             {tab === "timeline" && <Timeline items={d?.timeline ?? []} run={d?.run ?? null} />}
             {tab === "notes" && ev?.narrative_notes && <div className="ao-card p-5"><p className="ao-eyebrow">Findings on file</p><p className="ao-body-2 mt-2" style={{ whiteSpace: "pre-wrap" }}>{ev.narrative_notes}</p><p className="ao-meta mt-2">{ev.evaluator_email}</p></div>}
             {(tab === "interview" || tab === "consent" || (tab === "notes" && !ev?.narrative_notes)) && (
-              <div className="ao-card p-6"><p className="ao-h2" style={{ fontSize: 16 }}>{tab === "notes" ? "No findings yet" : `${tab[0].toUpperCase() + tab.slice(1)} lives in the classic console for now`}</p><p className="ao-body-2 mt-1">{tab === "notes" ? "Findings you write when you decide are kept here." : "It moves into the Reading Room in the next build."}</p>{tab !== "notes" && <a className="ao-btn ao-btn-secondary ao-btn-sm mt-4" href="/evaluator">Open classic console <IconArrowRight size={16} /></a>}</div>
+              <div className="ao-card p-6"><p className="ao-h2" style={{ fontSize: 16 }}>{tab === "notes" ? "No findings yet" : demo ? `${tab[0].toUpperCase() + tab.slice(1)} isn't part of the sample record` : `${tab[0].toUpperCase() + tab.slice(1)} lives in the classic console for now`}</p><p className="ao-body-2 mt-1">{tab === "notes" ? "Findings you write when you decide are kept here." : demo ? "The sample shows evidence and findings." : "It moves into the Reading Room in the next build."}</p>{tab !== "notes" && !demo && <a className="ao-btn ao-btn-secondary ao-btn-sm mt-4" href="/evaluator">Open classic console <IconArrowRight size={16} /></a>}</div>
             )}
           </div>
         </main>
@@ -360,10 +361,12 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
                 <p className="ao-meta mt-0.5" style={{ color: "var(--ink-2)" }}>Holds back {s.points} pts · <span className="ao-mono">{s.rules[0]}</span></p>
               </li>
             ))}
-            <li className="ao-card p-3.5" style={{ borderLeft: "3px solid var(--engine)" }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: "var(--engine)" }}>Proposed · Steward</p>
-              <p className="ao-body-2 mt-1">The assistant's pre-read brief arrives in Phase 5. It will propose, never score.</p>
-            </li>
+            {!demo && (
+              <li className="ao-card p-3.5" style={{ borderLeft: "3px solid var(--engine)" }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--engine)" }}>Proposed · Steward</p>
+                <p className="ao-body-2 mt-1">The assistant&apos;s pre-read brief will propose, never score.</p>
+              </li>
+            )}
           </ul>
         </aside>
       </div>
@@ -374,7 +377,7 @@ function CaseView({ c, demo, reviewer, onBack, onChanged }: { c: Case; demo?: Ro
           <div className="ao-mono flex min-w-0 items-center gap-2" style={{ fontSize: 12, color: "var(--ink-2)" }} aria-live="polite">
             {running ? <span style={{ color: "var(--engine)" }}>Running FRARI v1…</span> : d?.run ? (runFresh ? <>Last run {shortHash(d.run.output_hash)} · {ago(d.run.computed_at)} · evidence unchanged ✓</> : <span style={{ color: "var(--amber)" }}>Evidence changed since run {shortHash(d.run.output_hash)}</span>) : <span style={{ color: "var(--amber)" }}>No run yet</span>}
           </div>
-          <button className="ao-btn ao-btn-secondary ao-btn-sm" onClick={runEngine} disabled={running || status === "certified"}><IconRefresh size={16} /> {d?.run ? "Re-run engine" : "Run engine"}</button>
+          {!demo && <button className="ao-btn ao-btn-secondary ao-btn-sm" onClick={runEngine} disabled={running || status === "certified"}><IconRefresh size={16} /> {d?.run ? "Re-run engine" : "Run engine"}</button>}
           {inReview && (
             <label className="flex flex-1 cursor-pointer items-center gap-2.5" style={{ fontSize: 14, color: "var(--ink-2)", minWidth: 240 }}>
               <input type="checkbox" checked={attest} onChange={(e) => setAttest(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--action)" }} />

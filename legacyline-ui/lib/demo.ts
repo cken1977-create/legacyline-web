@@ -261,6 +261,7 @@ export const DEMO_FOLLOW = {
   now: DEMO_TODAY_ISO,
   consent: "pending" as const,
   coach: { name: DEMO_COACH.name, lastTouch: "Oct 21, 2026", next: "Oct 28, 2026" },
+  coaching: DEMO_COACHING.map((c) => ({ ...c, step: c.step.replace(" together at the Oct 28 call", "") })),
   reReview: { status: "current" as const, next_due_at: "2027-01-17T18:00:00Z", last_review_at: "2026-10-19T18:00:00Z" },
   checkIns: ([0, 30, 90] as const).map((day, i) => ({
     day, answers: MAYA_ANSWERS[day], score: DEMO_PERSON_CHECKINS[i].score,
