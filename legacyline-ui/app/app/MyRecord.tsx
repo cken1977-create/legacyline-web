@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { BRAND } from "../../lib/brand";
 import { CoreError, core, coreSafe, currentParticipantId, hasIndividualSession, signOut as endSession } from "../../lib/core";
 import { bandFor } from "../../lib/bands";
+import { type FrariInputs, frariScore } from "../../lib/program";
+import FrariPanel from "../_components/program/FrariPanel";
+import FollowThrough, { type FollowData } from "./FollowThrough";
+import { NUDGES_ON, STAGE_GUIDE } from "../../lib/person";
 import { AREAS, RULESET_LABEL, type Run, fmtMT } from "../../lib/frari";
 import { STATUS_STEPS, pointsMeta, summarize, type SlotState } from "../../lib/record";
 import { BandChip, Completeness, CopyMono, DemoBanner, Hallmark, type HallmarkState, StatusWord, Wordmark } from "../_components/assay";
@@ -14,11 +18,13 @@ import { IconArrowRight, IconChevron, IconLock, IconLogout, IconRecord, IconShar
 
 type Tab = "record" | "evidence" | "share" | "me";
 export type RecordData = {
+  /** FRARI v1.0.0 inputs (published formula). Present in the demo; live records get it from the readiness snapshot later. */
+  frari?: FrariInputs;
   participantId: string; firstName: string; lastName: string; email: string; registryId: string; status: string; createdAt?: string;
   intake: Record<string, any> | null; run: Run | null;
 };
 
-export default function MyRecord({ demo }: { demo?: RecordData }) {
+export default function MyRecord({ demo, extra, follow, nudgesOn }: { demo?: RecordData; extra?: React.ReactNode; follow?: FollowData; nudgesOn?: boolean }) {
   const router = useRouter();
   const [data, setData] = useState<RecordData | null>(demo ?? null);
   const [loading, setLoading] = useState(!demo);
@@ -80,9 +86,26 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
   if (loading || !data) return <Skeleton />;
 
   const certified = data.status === "certified";
-  const score = sum.score;
+  const score = data.frari ? frariScore(data.frari).composite : sum.score;
   const band = bandFor(score);
   const initials = `${data.firstName?.[0] ?? ""}${data.lastName?.[0] ?? ""}`.toUpperCase() || "·";
+
+  // Next steps: the rules the record hasn't met yet.
+  const nextStepsEl = (
+              <section aria-labelledby="next">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h2 id="next" className="ao-h2">Next steps</h2>
+                  <span className="ao-meta">From the rules your record hasn't met yet</span>
+                </div>
+                {sum.next.length === 0 ? (
+                  <div className="ao-card p-5 ao-body-2">Everything the standard asks for is on file. Nice work. Keep documents current; we'll tell you when something needs a refresh.</div>
+                ) : (
+                  <ol className="flex flex-col gap-3">
+                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
+                  </ol>
+                )}
+              </section>
+  );
 
   return (
     <div className="ao-paper">
@@ -129,32 +152,27 @@ export default function MyRecord({ demo }: { demo?: RecordData }) {
                   {data.run ? <Hallmark runId={data.run.id} outputHash={data.run.output_hash} at={data.run.computed_at} state={hall} onVerify={verify} />
                     : <Hallmark state="none" />}
                 </div>
+                {data.frari && <FrariPanel inputs={data.frari} />}
                 <p className="ao-body-2 mt-4" style={{ maxWidth: 620 }}>
-                  {data.run
+                  {data.frari
+                    ? <>The score above is the published {BRAND.standard} readiness formula. Below is the documentation check: which items are on file, area by area. Neither is a judgment of you, and anyone can re-run them and get the same result.</>
+                    : data.run
                     ? <>This is a documentation check: it measures what's on file against {RULESET_LABEL}. It is not a judgment of you. Anyone can re-run it and get the same result.</>
                     : <>Your first check runs once a reviewer starts your record. Fill the steps below first; each one is a rule in the standard.</>}
                 </p>
-                {data.run && <DomainStrip run={data.run} />}
-                <div className="mt-4 flex items-center gap-2 rounded-[8px] px-3 py-2" style={{ background: "var(--vellum)" }}>
+                {data.run && <><p className="ao-meta mt-4" style={{ color: "var(--ink-2)" }}>Documentation check by area</p><DomainStrip run={data.run} /></>}
+                {!data.frari && <div className="mt-4 flex items-center gap-2 rounded-[8px] px-3 py-2" style={{ background: "var(--vellum)" }}>
                   <span className="ao-chip chip-none" style={{ background: "var(--card)" }}>Not yet assessed</span>
-                  <span className="ao-meta" style={{ color: "var(--ink-2)" }}>Readiness standing arrives when the {BRAND.standard} instrument is published.</span>
-                </div>
+                  <span className="ao-meta" style={{ color: "var(--ink-2)" }}>Your readiness score appears after your first review.</span>
+                </div>}
               </section>
 
-              {/* Next steps */}
-              <section aria-labelledby="next">
-                <div className="mb-3 flex items-baseline justify-between">
-                  <h2 id="next" className="ao-h2">Next steps</h2>
-                  <span className="ao-meta">From the rules your record hasn't met yet</span>
-                </div>
-                {sum.next.length === 0 ? (
-                  <div className="ao-card p-5 ao-body-2">Everything the standard asks for is on file. Nice work. Keep documents current; we'll tell you when something needs a refresh.</div>
-                ) : (
-                  <ol className="flex flex-col gap-3">
-                    {sum.next.map((s, i) => <NextStep key={s.key} slot={s} i={i} href={actHref(s)} onDemo={() => flash("Demo: uploads are disabled on the sample record.")} />)}
-                  </ol>
-                )}
-              </section>
+              {demo && !follow ? nextStepsEl : (
+                <FollowThrough pid={data.participantId} status={data.status} nextSteps={sum.next} nudgesOn={nudgesOn ?? NUDGES_ON} demo={follow} onDemoNote={flash}>
+                  {nextStepsEl}
+                </FollowThrough>
+              )}
+              {extra}
             </div>
 
             <aside className="flex flex-col gap-5 lg:col-span-4">
@@ -286,8 +304,14 @@ function Journey({ status }: { status: string }) {
           </li>
         ))}
       </ol>
-      <p className="mt-3" style={{ fontSize: 15, fontWeight: 600 }}>{cur.label}</p>
+      <p className="mt-3" style={{ fontSize: 15, fontWeight: 600 }}>Step {idx + 1} of {STATUS_STEPS.length}: {cur.label}</p>
       <p className="ao-body-2">{cur.plain}</p>
+      {STAGE_GUIDE[cur.key] && (
+        <dl className="mt-3 flex flex-col gap-2 ao-body-2">
+          <div><dt className="ao-meta">What you do now</dt><dd>{STAGE_GUIDE[cur.key].you}</dd></div>
+          <div><dt className="ao-meta">What happens next</dt><dd>{STAGE_GUIDE[cur.key].next}</dd></div>
+        </dl>
+      )}
     </div>
   );
 }

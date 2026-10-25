@@ -76,6 +76,13 @@
 .chip-proficient { color: var(--ink); background: var(--pine-tint); }
 .chip-proficient .ao-chip-dot { background: var(--pine); }
 .chip-ready { color: var(--paper); background: var(--pine); }
+/* Published BRSA bands (BRSA-RS-001) */
+.chip-green { color: var(--ink); background: var(--pine-tint); }
+.chip-green .ao-chip-dot { background: var(--pine); }
+.chip-yellow { color: var(--ink); background: var(--amber-tint); }
+.chip-yellow .ao-chip-dot { background: var(--amber); }
+.chip-red { color: var(--ink); background: var(--vellum); border: 1px solid var(--rule); }
+.chip-red .ao-chip-dot { background: var(--brick); }
 .chip-certified { color: var(--ink); background: var(--seal); }
 .chip-engine { color: var(--ink); background: var(--engine-tint); }
 .chip-engine .ao-chip-dot { background: var(--engine); }
