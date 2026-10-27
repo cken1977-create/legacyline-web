@@ -13,6 +13,16 @@ export const metadata: Metadata = {
   title: { default: `${BRAND.name} — ${BRAND.tagline}`, template: `%s · ${BRAND.name}` },
   description: `${BRAND.name} keeps one honest readiness record per person, checked against the ${BRAND.standard} standard by a deterministic engine anyone can re-run.`,
   applicationName: BRAND.name,
+  // Default link-preview card (Kamili mark + wordmark). Pages that set their own
+  // openGraph/twitter (e.g. /watch) replace this with their own Kamili artwork.
+  openGraph: {
+    type: "website",
+    siteName: BRAND.name,
+    title: `${BRAND.name} — ${BRAND.tagline}`,
+    images: [{ url: "/og/kamili-og.png", width: 1200, height: 630, alt: `${BRAND.name} — ${BRAND.tagline}` }],
+  },
+  twitter: { card: "summary_large_image", title: `${BRAND.name} — ${BRAND.tagline}`, images: ["/og/kamili-og.png"] },
+  appleWebApp: { title: BRAND.name },
 };
 
 // Zoom is never locked (WCAG 1.4.4).
