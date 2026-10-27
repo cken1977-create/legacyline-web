@@ -28,6 +28,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com https://vercel.live",
   "img-src 'self' data: blob: https:",
+  // Demo videos on /watch stream from the public file store.
+  "media-src 'self' https://r3ttymbsgoc2vq9s.public.blob.vercel-storage.com",
   `connect-src 'self' ${apiOrigins.join(" ")} https://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://vitals.vercel-insights.com`,
   "frame-src 'self' https://vercel.live",
   "frame-ancestors 'none'",

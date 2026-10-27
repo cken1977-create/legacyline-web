@@ -4,7 +4,7 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-[#0c0c0c] text-[#f4efe6]">
       <section className="relative min-h-[78vh] overflow-hidden">
-        <img src="https://cdn.midjourney.com/9c6d01a7-4c8d-4b12-8f7f-ff4ad317d644/0_1.png" alt="Desert mountains in evening light" className="absolute inset-0 h-full w-full object-cover" />
+        <img src="/photos/room.jpg" alt="A quiet room looking onto the desert" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
         <Navbar />
         <div className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-36">

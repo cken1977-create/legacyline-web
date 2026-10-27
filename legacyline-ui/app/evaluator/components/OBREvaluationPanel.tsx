@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 
 import { authHeaders } from "../../../lib/api";
+import OBROversight from "../../_components/program/OBROversight";
 
 const API = "/api/core"; // P1: same-origin BFF (httpOnly session cookie)
 
 const C = {
   navy: "#1A3A5C", navyDeep: "#0B1C30", gold: "#C8A84B",
-  white: "#F4F6F9", gray: "#8899AA", surface: "#162E4A",
+  white: "#F4F6F9", gray: "#AEB9C5", surface: "#162E4A",
   surfaceHi: "#1E3D5A", teal: "#2DD4BF", red: "#F87171",
   yellow: "#FBBF24", green: "#34D399",
 };
@@ -146,8 +147,7 @@ export default function OBREvaluationPanel({
           ...authHeaders(),
         },
         body: JSON.stringify({
-          domain_scores: domainScores,
-          doc_checklist: docChecklist,
+          verified_evidence: docChecklist.filter((d) => d.checked).map((d) => d.item),
           narrative_notes: narrative,
           recommended_next: recommended,
           attestation,
@@ -158,7 +158,7 @@ export default function OBREvaluationPanel({
           ai_recommended: aiEval?.recommended_actions ?? null,
         }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) { const j = await res.json().catch(() => null); throw new Error(j?.message ?? j?.error ?? "Save failed"); }
       setMsg({
         ok: true,
         text: submit
@@ -176,14 +176,6 @@ export default function OBREvaluationPanel({
       setSaving(false);
       setSubmitting(false);
     }
-  }
-
-  function setScore(domain: string, score: number) {
-    setDomainScores((prev) => prev.map((d) => d.domain === domain ? { ...d, score } : d));
-  }
-
-  function setNotes(domain: string, notes: string) {
-    setDomainScores((prev) => prev.map((d) => d.domain === domain ? { ...d, notes } : d));
   }
 
   function toggleDoc(key: string) {
@@ -210,7 +202,7 @@ export default function OBREvaluationPanel({
           OBR Evaluation Record
         </div>
         <div style={{ fontSize: 10, color: "rgba(200,168,75,0.6)", marginBottom: 16 }}>
-          Domain III — Organizational Behavioral Readiness
+          Organization record (OBR)
         </div>
 
         {evaluation?.status && (
@@ -225,30 +217,35 @@ export default function OBREvaluationPanel({
           </div>
         )}
 
-        {/* Domain Scores */}
+        {/* Area scores: computed by the organization rules, never entered by a person */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Domain Scores (0–100)
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.gold, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Area scores (computed)
+          </div>
+          <div style={{ fontSize: 12, color: C.gray, marginBottom: 12 }}>
+            Scores are computed from the evidence on file by the published organization rules when you submit. You verify the evidence below; you can&apos;t type in or change a score.
           </div>
           {OBR_DOMAINS.map(({ key, label }) => {
-            const entry = domainScores.find((d) => d.domain === key) ?? { score: 50, notes: "" };
+            const entry = domainScores.find((d) => d.domain === key);
+            const computed = isLocked && entry && evaluation?.composite_score != null;
             return (
-              <div key={key} style={{ marginBottom: 18 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: C.white, fontWeight: 500 }}>{label}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>{entry.score}</span>
-                </div>
-                <input type="range" min={0} max={100} value={entry.score}
-                  disabled={isLocked}
-                  onChange={(e) => setScore(key, Number(e.target.value))}
-                  style={{ width: "100%", accentColor: C.gold, marginBottom: 6 }} />
-                <input placeholder="Notes (optional)" value={entry.notes}
-                  disabled={isLocked}
-                  onChange={(e) => setNotes(key, e.target.value)}
-                  style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 4, padding: "6px 10px", color: C.white, fontSize: 12, outline: "none", boxSizing: "border-box" as const }} />
+              <div key={key} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: 13, color: C.white }}>{label}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: computed ? C.gold : C.gray }}>{computed ? entry!.score : "computed on submit"}</span>
               </div>
             );
           })}
+          {evaluation?.composite_score != null && (
+            <div style={{ marginTop: 10, fontSize: 13, color: C.white }}>
+              Organization score <strong style={{ color: C.gold }}>{evaluation.composite_score}</strong>
+              {evaluation.expires_at ? <> · rating valid until {new Date(evaluation.expires_at).toLocaleDateString("en-US", { timeZone: "America/Denver", month: "short", day: "numeric", year: "numeric" })}</> : null}
+            </div>
+          )}
+        </div>
+
+        {/* Oversight: flag / pause / send back with a logged reason. No score edits. */}
+        <div style={{ marginBottom: 24, padding: 16, borderRadius: 10, border: "1px solid rgba(255,255,255,0.1)" }}>
+          <OBROversight obrSubjectId={obrSubjectId} dark />
         </div>
 
         {/* Doc Checklist */}
@@ -364,7 +361,7 @@ export default function OBREvaluationPanel({
           OBR AI Assistant
         </div>
         <div style={{ fontSize: 10, color: "rgba(200,168,75,0.5)", marginBottom: 12 }}>
-          BRSA Domain III — Organizational Readiness
+          BRSA · Organization record (OBR)
         </div>
 
         <button onClick={generateAI} disabled={aiLoading}
@@ -448,7 +445,7 @@ function AIList({ label, items }: { label?: string; items: string[] }) {
   if (!items?.length) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      {label && <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 4 }}>{label}</div>}
+      {label && <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 4 }}>{label}</div>}
       <ul style={{ paddingLeft: 16, margin: 0 }}>
         {items.map((x, i) => <li key={i} style={{ color: "#F4F6F9", fontSize: 12, marginBottom: 2 }}>{x}</li>)}
       </ul>
@@ -460,7 +457,7 @@ function AIField({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ fontSize: 11, color: "#8899AA", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#AEB9C5", marginBottom: 2 }}>{label}</div>
       <div style={{ color: "#F4F6F9", fontSize: 12, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{value}</div>
     </div>
   );

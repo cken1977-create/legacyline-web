@@ -1,24 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { brandTitle } from "../../../lib/brand";
 
 export const metadata: Metadata = {
-  title: "Vimaa OBR — Organizational Readiness",
-  description: "Track your organization's behavioral readiness standing under BRSA Domain III.",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Vimaa OBR",
-  },
+  title: brandTitle("Our organization record"),
+  description: "Your organization's readiness record (OBR), checked against the BRSA standard.",
 };
 
-export const viewport: Viewport = {
-  themeColor: "#080C14",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+export const viewport: Viewport = { themeColor: "#F7F3EA", width: "device-width", initialScale: 1 };
 
-export default function OBROrgLayout({ children }: { children: React.ReactNode }) {
+export default function OrgLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }

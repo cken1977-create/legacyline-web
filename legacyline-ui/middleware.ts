@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DEMO_REDIRECTS, isDemoMode, isRealHost } from "./lib/demo-mode";
 
 // P1 BFF: /api/core/* is rewritten to legacyline-core with the bearer token
 // taken from the httpOnly session cookie. Login/signup paths are served by
@@ -51,6 +52,40 @@ function proxyCore(req: NextRequest): NextResponse {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Standing demo: never touch the live scoring service, and send sign-in or
+  // live screens to their sample versions. Off on the real site by construction (see lib/demo-mode.ts).
+  if (isDemoMode()) {
+    // Belt and braces: a demo build must never answer on the real site's
+    // addresses. Send the visitor to the public demo instead.
+    if (isRealHost(req.headers.get("host")) || isRealHost(req.nextUrl.host)) {
+      return NextResponse.redirect("https://demo.kamilihq.com/demo");
+    }
+    // No server route in the demo may reach the live scoring service: refuse
+    // every /api call, not only /api/core and /api/auth.
+    if (pathname === "/api" || pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { ok: false, error: "demo_mode", message: "This is the Kamili demo. Nothing is saved and no live data is used." },
+        { status: 403 },
+      );
+    }
+    // Live case screens read the scoring service on the server. Send them to
+    // the sample Reading Room; intake goes to the demo start.
+    if (pathname.startsWith("/subject/") || pathname === "/subject") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/review/demo";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    const dest = DEMO_REDIRECTS[pathname.replace(/\/+$/, "") || "/"];
+    if (dest) {
+      const url = req.nextUrl.clone();
+      url.pathname = dest;
+      if (dest !== "/verify/demo") url.search = ""; // a shared ?rid= link still works on the sample verify page
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith("/api/core/")) return proxyCore(req);
 
   const org = req.cookies.get("ll_org")?.value;
@@ -96,5 +131,16 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/core/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/core/:path*",
+    "/api/:path*",
+    "/subject/:path*",
+    "/intake",
+    "/login/:path*",
+    "/app/:path*",
+    "/review",
+    "/evaluator",
+    "/verify",
+  ],
 };

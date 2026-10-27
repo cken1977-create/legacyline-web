@@ -1,6 +1,8 @@
 // P1: all browser API calls go through the same-origin BFF (/api/core), which
 // attaches the bearer token from an httpOnly cookie.
 const API_BASE = "/api/core";
+// Kamili screens (lib/core.ts) share the same BFF base.
+export const CORE_BASE = API_BASE;
 
 export interface TrainingModule {
   module_id: string;
